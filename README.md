@@ -8,3 +8,6 @@ Hubbub is under heavy development.  Until we have more working software, I doubt
 
 ## License ##
 Hubbub is available under a BSD-like license.  Please see LICENSE.txt for full license text.
+
+While you are not legally required to do so, I kindly ask if you make commercial use of my software, even as a service, you just simply link back to the
+SourceForge homepage, at http://hubbub.sf.net
