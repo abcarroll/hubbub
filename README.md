@@ -7,10 +7,4 @@ Hubbub is under heavy development.  Until we have more working software, I doubt
   * I do not use camel case for methods.  I originally tried to adhere to php-fig standards but some are very arbitrary and some ridiculous (but, some good).
 
 ## License ##
-Please see LICENSE.txt
-
-Hubbub is currently under a non-free license.  I would like to switch Hubbub to a BSD-style license but closes attribution loophopes for ASP (SaaS), until then, it is officially licensed under the
-"I can't find a good license, license" v1.0
-
-It is _planned_ that the license will be a BSD license, but still require attribution for hosted solutions.
-
+Hubbub is available under a BSD-like license.  Please see LICENSE.txt for full license text.
