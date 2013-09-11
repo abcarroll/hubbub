@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# These are the necessary packages to install ncurses on ubutu
+# The idea is, if the console is built the way I intend, it will
+# require ncurses, and Hubbub should ask first-time users if they
+# would like to install ncurses if we know how for their OS.
+
+apt-get install php-pear
+apt-get install php5-dev
+apt-get install ncurses-dev
+apt-get install libncursesw5-dev
+pecl install ncurses
+
+# Additional, I had to personally:
+echo 'extension=ncurses.so' > /etc/php5/cli/conf.d/999_ncurses.ini
