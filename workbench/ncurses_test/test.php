@@ -29,12 +29,13 @@ function win($w, $h, $x, $y, $txt){
 
 // Initialie ncurses
 $ncurse = ncurses_init();
+ncurses_noecho();
 // A full screen window
 
-$win0 = win(0, 0, 0, 0, 'win0');
-$win1 = win(10, 30, 7, 25, 'win1');
-$win2 = win(10, 30, 20, 25, 'win2');
-$info = win(15, 20, 2, 2, 'info');
+$win0 = win(0, 0, 0, 0, 'win0 ZERO');
+$win1 = win(10, 30, 7, 25, 'win1 ONE');
+$win2 = win(10, 30, 20, 25, 'win2 TWO');
+$info = win(15, 20, 2, 2, 'info INFO');
 
 // Draw everything so far
 // ncurses_refresh();
@@ -54,7 +55,7 @@ while(1){
     ncurses_refresh();// paint both windows
     ncurses_wborder($info,0,0, 0,0, 0,0, 0,0);
     ncurses_refresh();// paint both windows
-    ncurses_mvwaddstr($win, 0, 1, " info ");
+    ncurses_mvwaddstr($win0, 0, 1, " info MAMBO ");
     ncurses_refresh();// paint both windows
 
     switch($ch){
@@ -83,6 +84,11 @@ while(1){
             $txt = '.' . " $ch";
 
         ncurses_mvwaddstr($info, 1, 1, " $txt   ");
+				if($ch == 58) {
+					ncurses_move(10,10);
+					ncurses_addstr("Hello World");
+				}
+
         ncurses_wrefresh($info);
 
     }
