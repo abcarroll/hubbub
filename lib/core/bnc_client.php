@@ -29,20 +29,6 @@
 			$this->bnc->send($this->socket, "$command\n");
 		}
 
-		function on_recv($data) { 
-			$commands = explode("\n", $data);
-			if(!empty($commands[count($commands)-1])) { 
-				$incomplete = $commands[count($commands)-1];
-				$commands[count($commands)-1] = '';
-				$this->hubbub->logger->warning("Received incomplete command '$incomplete' - discarding");
-			}
-			foreach($commands as $c) { 
-				if(!empty($c)) { 
-					$this->on_recv_irc($c);
-				}
-			}
-		}
-
 		function on_recv_irc($c) { 
 			$c = $this->parse_irc_cmd($c);
 
