@@ -8,40 +8,38 @@
   */
 
 	class bnc extends net_stream_server {
-
 		protected $hubbub;
-
+		protected $clients;
+		
 		public function __construct($hubub) {
 			$this->hubbub = $hubub;
 			parent::__construct("tcp://0.0.0.0:7777");
 		}
 
-		function send_irc($socket, $data) {
-			$data .= "\r\n";
-			socket_server::send($socket, $data);
-		}
-
 		function on_client_connect($socket) {
-			$this->read_sockets[$socket] = $socket;
-			$this->send($socket, "NOTICE AUTH :*** Welcome to Hubbub/git");
+			$this->clients[(int) $socket] = new bnc_client($this->hubbub, $this, $socket);
+			$this->clients[(int) $socket]->iterate(); // Iterate once after connection automatically
 		}
 
 		function on_client_disconnect($socket) {
-
+			unset($this->clients[(int) $socket]);
 		}
 		
-		function on_client_recv($socket, $data) { }
-		function on_client_send($socket, $data) { }
-		
+		function on_client_recv($socket, $data) {
+			$this->clients[(int) $socket]->on_recv($data);
+		}
+			
+		function on_client_send($socket, $data) {
+			/* this may be a moot method anyway.  we have no way of actually controlling
+			   when data is sent. */
+		}
 		
 		function on_iterate() { 
-			$fakeworkusec = mt_rand(0,300000);
-			usleep($fakeworkusec);
-			
-			echo "BNC was iterated, did nothing for $fakeworkusec uSec\n";
-			
-			print_r(get_included_files());
+			if(count($this->clients) > 0) { 
+				foreach($this->clients as $c) { 
+					$c->iterate();
+				}
+			}
+			$this->hubbub->logger->debug("BNC Server was iterated with " . count($this->clients) . " clients");
 		}
-		
-		
 	}

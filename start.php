@@ -11,9 +11,12 @@
 	error_reporting(2147483647);
 
 	// TODO Replace with SPL..
-	function __autoload($class) { 
+	function autoload_hubbub($class) { 
 		require 'lib/core/' . $class . '.php';
 	}
+
+	spl_autoload_register('autoload_hubbub');
+	spl_autoload_register(); // Register php-fig SPL Style autoloading
 
 	/// Check if we're running a web instance
 	if(php_sapi_name() != 'cli') {
