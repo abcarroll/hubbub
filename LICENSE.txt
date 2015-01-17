@@ -1,4 +1,4 @@
-Copyright (c) 2013, Armond B. Carroll III, ben@hl9.net
+Copyright (c) 2015, Armond B. Carroll III, ben@hl9.net
 Hubbub is freely available from http://hubbub.sf.net
 
 Redistribution and use in source and binary forms, with or without
