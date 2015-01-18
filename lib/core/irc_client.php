@@ -15,12 +15,16 @@ class irc_client extends net_stream_client {
 
     public $cfg = [
         'nickname' => 'HubTest',
-        'username' => 'HubTest',
+        'username' => 'php',
         'realname' => 'Hubbub',
         'server'   => 'tcp://irc.freenode.net:6667',
     ];
 
     public function __construct($hubbub) {
+
+        $this->cfg['nickname'] = 'HubTest-' . dechex(mt_rand(0, 255));
+
+
         net_stream_client::__construct($hubbub);
         $this->state = 'pre-auth';
         $this->connect($this->cfg['server']);
