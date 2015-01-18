@@ -55,15 +55,16 @@ trait generic_irc {
 
         // For messages with a sender ("prefix" in irc rfc)
         if(substr($c, 0, 1) == ':') {
-            list($r['from'], $r['cmd'], $r['parm']) = explode(' ', $c, 3);
-            $r['hostmask'] = $this->parse_irc_hostmask($r['from']);
+            list($r['sender'], $r['cmd'], $r['parm']) = explode(' ', $c, 3);
+            $r['hostmask'] = $this->parse_irc_hostmask($r['sender']);
         } else {
             list($r['cmd'], $r['parm']) = explode(' ', $c, 2);
         }
 
         $r['cmd_original'] = $r['cmd'];
         if(is_numeric($r['cmd'])) {
-            $numeric_swap = $this->numeric_convert($r['cmd']);
+            $numeric_swap = $this->irc_numerics[(int) $r['cmd']];
+
             if($numeric_swap !== false) { // note the !== although there should never be a 000
                 $r['cmd_numeric'] = $r['cmd'];
                 $r['cmd'] = $numeric_swap;
@@ -277,7 +278,9 @@ trait generic_irc {
             $incomplete = $commands[count($commands) - 1];
             $commands[count($commands) - 1] = '';
             //$this->hubbub->logger->warning("Received incomplete command '$incomplete' - discarding");
+            trigger_error("Received incomplete command '$incomplete' - discarding");
         }
+
         foreach ($commands as $c) {
             if(!empty($c)) {
                 $this->on_recv_irc($c);

@@ -8,6 +8,12 @@
  * distributed with this source code.
  */
 
-class net_socket_client implements net_generic_client {
+class simple_data_storage extends StdClass {
+    function load() {
 
+    }
+
+    function save() {
+        print_r((array) $this);
+    }
 }
