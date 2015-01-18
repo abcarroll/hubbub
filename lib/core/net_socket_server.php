@@ -8,6 +8,6 @@
  * distributed with this source code.
  */
 
-class net_socket_client implements net_generic_client {
+class net_socket_server implements net_generic_server {
 
 }
