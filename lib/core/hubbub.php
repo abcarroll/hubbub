@@ -11,14 +11,21 @@
 class hubbub {
     public $logger, $throttler, $modules;
 
+    /**
+     * Initiates a new hubbub object.  Meant to be called once, to start an isolated instance.
+     */
     public function __construct() {
         $this->logger = new logger($this);
         $this->throttler = new adjusting_delay_throttler($this, 500000);
     }
 
+    /**
+     * The main loop. This iterates over all the root modules and runs the injected throttler.
+     */
     public function main() {
 
         $this->modules[] = new bnc($this);
+        $this->modules[] = new irc_client($this);
 
         while (1) {
             if(count($this->modules) > 0) {
