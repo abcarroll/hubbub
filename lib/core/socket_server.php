@@ -7,7 +7,7 @@
  * distributed with this source code.
  */
 
-die("Broken. 9/10/2013");
+/* Warning: broken */
 
 class socket_server {
     private $address, $port;

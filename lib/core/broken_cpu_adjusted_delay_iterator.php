@@ -7,7 +7,11 @@
  * distributed with this source code.
  */
 
-/* This code is broken which is why it's in it's own file */
+
+/*
+    This is an attempt to have the bot self-monitor it's cpu usage
+    to automatically adjust the frequency */
+/* it is incomplete. */
 
 /*
     Some Resources:
