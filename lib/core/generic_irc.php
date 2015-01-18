@@ -55,15 +55,15 @@ trait generic_irc {
 
         // For messages with a sender ("prefix" in irc rfc)
         if(substr($c, 0, 1) == ':') {
-            list($r['sender'], $r['cmd'], $r['parm']) = explode(' ', $c, 3);
-            $r['hostmask'] = $this->parse_irc_hostmask($r['sender']);
+            list($r['from'], $r['cmd'], $r['parm']) = explode(' ', $c, 3);
+            $r['hostmask'] = $this->parse_irc_hostmask($r['from']);
         } else {
             list($r['cmd'], $r['parm']) = explode(' ', $c, 2);
         }
 
         $r['cmd_original'] = $r['cmd'];
         if(is_numeric($r['cmd'])) {
-            $numeric_swap = irc_numeric_cmd_swap($r['cmd']);
+            $numeric_swap = $this->numeric_convert($r['cmd']);
             if($numeric_swap !== false) { // note the !== although there should never be a 000
                 $r['cmd_numeric'] = $r['cmd'];
                 $r['cmd'] = $numeric_swap;
@@ -276,7 +276,7 @@ trait generic_irc {
         if(!empty($commands[count($commands) - 1])) {
             $incomplete = $commands[count($commands) - 1];
             $commands[count($commands) - 1] = '';
-            $this->hubbub->logger->warning("Received incomplete command '$incomplete' - discarding");
+            //$this->hubbub->logger->warning("Received incomplete command '$incomplete' - discarding");
         }
         foreach ($commands as $c) {
             if(!empty($c)) {
@@ -296,9 +296,9 @@ trait generic_irc {
       at the bottom of this file */
 
     /* RPL_BOUNCE_OR_RPL_ISUPPORT is the only exception,
-      RPL_BOUNCE is, I believe, mostly deprecated and fell out of use.
+      RPL_BOUNCE is, I believe, mostly deprecated and fell out of use.  
       RPL_ISUPPORT is more of the norm.
-
+      
       It is possible to tell which in all cases by looking at registration status.
       RPL_BOUNCE should always be pre-registration (pre 001/rpl_welcome)
       While post-registration it would always indiate a RPL_ISUPPORT
