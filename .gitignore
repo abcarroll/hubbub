@@ -1,2 +1,8 @@
 .idea/
 var/
+
+# Don't worry about these..
+oldCode/
+
+# Likely not distributable
+workbench/irc_search/networks.conf.php
