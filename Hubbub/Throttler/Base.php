@@ -19,9 +19,8 @@ namespace Hubbub\Throttler;
 class Base {
     protected $hubbub, $frequency, $iteration;
 
-    function __construct($hubbub, $frequency) {
+    function __construct($hubbub) {
         $this->hubbub = $hubbub;
-        $this->frequency = $frequency;
     }
 
     /**

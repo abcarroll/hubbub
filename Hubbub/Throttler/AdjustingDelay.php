@@ -17,13 +17,13 @@ namespace Hubbub\Throttler;
  */
 class AdjustingDelay extends Base {
     private $last_iteration_start = 0;
-
     /**
      * @param \Hubbub\Hubbub $hubbub    The hubbub object
      * @param int            $frequency Time in microseconds to sleep after work adjustment
      */
-    function __construct($hubbub, $frequency) {
-        parent::__construct($hubbub, $frequency);
+    function __construct($hubbub) {
+        parent::__construct($hubbub);
+        $this->frequency = $this->hubbub->config['throttler']['frequency'];
         $this->last_iteration_start = microtime(1);
     }
 
