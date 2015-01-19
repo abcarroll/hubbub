@@ -1,5 +1,4 @@
 <?php
-
 /*
  * This file is a part of Hubbub, freely available at http://hubbub.sf.net
  *
@@ -14,12 +13,13 @@ class bnc extends net_stream_server {
 
     public function __construct($hubub) {
         $this->hubbub = $hubub;
-        parent::__construct("tcp://0.0.0.0:7777");
+        parent::__construct($hubub->config->bnc['listen']);;
     }
 
     function on_client_connect($socket) {
-        $this->clients[(int) $socket] = new bnc_client($this->hubbub, $this, $socket);
-        $this->clients[(int) $socket]->iterate(); // Iterate once after connection automatically
+        $newClient = new bnc_client($this->hubbub, $this, $socket);
+        $newClient->iterate(); // Iterate once after connection automatically
+        $this->clients[(int) $socket] = $newClient;
     }
 
     function on_client_disconnect($socket) {
@@ -38,6 +38,7 @@ class bnc extends net_stream_server {
     function on_iterate() {
         if(count($this->clients) > 0) {
             foreach ($this->clients as $c) {
+                /** @var $c bnc_client */
                 $c->iterate();
             }
         }

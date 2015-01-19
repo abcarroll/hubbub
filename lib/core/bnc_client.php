@@ -1,5 +1,4 @@
 <?php
-
 /*
  * This file is a part of Hubbub, freely available at http://hubbub.sf.net
  *
@@ -67,7 +66,7 @@ class bnc_client { // extends ??, this is a bit new..
         if($this->state != 'pre-auth') {
             $this->notice("*", "PASS Sequence out of order");
         } else {
-            $compare = trim(file_get_contents('var/passwd'));
+            $compare = trim('1234');
             if($c['parm'] == $compare) {
                 $this->welcome();
             } else {
