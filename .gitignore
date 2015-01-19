@@ -6,3 +6,6 @@ oldCode/
 
 # Likely not distributable
 workbench/irc_search/networks.conf.php
+
+# Logs
+*.log

@@ -9,8 +9,55 @@
 
 namespace Hubbub;
 
-// See https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-3-logger-interface.md
+/**
+ * A logger interface similar (but likely not 100% compatible) with PSR-3.
+ * See https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-3-logger-interface.md
+ *
+ * @todo Verify PSR-3 compliance.
+ */
+
+/**
+ * Class Logger
+ *
+ * @package Hubbub
+ */
 class Logger {
+    protected $fp;
+    protected $config;
+
+    public function __construct($parent, $config) {
+        $this->config = $config;
+
+        if(!empty($config['logToFile'])) {
+            $this->fp = fopen($config['logToFile'], 'a+');
+        } else {
+            $this->fp = null;
+        }
+    }
+
+    public function __destruct() {
+        if($this->fp) {
+            fclose($this->fp);
+        }
+    }
+
+    public function log($level, $message, array $context = array()) {
+        $logText = "[" . date('h:i:sA') . "] [$level] $message\n";
+
+        if(count($context) > 0) {
+            $logText .= " => Context: \n";
+            foreach($context as $cLine) {
+                $logText .= ' ==> ' . $cLine . "\n";
+            }
+        }
+
+        if($this->fp) {
+            fwrite($this->fp, $logText);
+        }
+
+        echo $logText;
+    }
+
     public function emergency($message, array $context = array()) {
         $this->log('emergency', $message, $context);
     }
@@ -41,13 +88,5 @@ class Logger {
 
     public function debug($message, array $context = array()) {
         $this->log('debug', $message, $context);
-    }
-
-    public function log($level, $message, array $context = array()) {
-        echo "[" . date('h:i:sA') . "] [$level] $message\n";
-    }
-
-    public function __construct($parent) {
-
     }
 }
