@@ -8,7 +8,18 @@
  * distributed with this source code.
  */
 
-class microbus {
+namespace Hubbub;
+
+    /**
+     * MicroBus is a proof of concept messaging bus that closely resembles Redis's PUB/SUB mechnism.
+     *
+     * @todo Implement a full message bus.
+     */
+
+/**
+ * Class MicroBus
+ */
+class MicroBus {
     private $subscriptions = [];
     private $objects = [];
 

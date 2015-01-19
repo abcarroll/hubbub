@@ -8,8 +8,20 @@
  * distributed with this source code.
  */
 
-class irc_client extends net_stream_client {
-    use generic_irc;
+namespace Hubbub\IRC;
+
+/**
+ * Thoughts: Instead of extending \Hubbub\Net\Stream\Client perhaps it should use dependency injection instead so you could
+ * actually use the other kinds of Networking if necessary?
+ */
+
+/**
+ * Class Client
+ *
+ * @package Hubbub\Modules\IRC
+ */
+class Client extends \Hubbub\Net\Stream\Client {
+    use Generic;
 
     private $state;
 
@@ -21,11 +33,9 @@ class irc_client extends net_stream_client {
     ];
 
     public function __construct($hubbub) {
-
         $this->cfg['nickname'] = 'HubTest-' . dechex(mt_rand(0, 255));
 
-
-        net_stream_client::__construct($hubbub);
+        parent::__construct($hubbub);
         $this->state = 'pre-auth';
         $this->connect($this->cfg['server']);
         $this->set_blocking(false);

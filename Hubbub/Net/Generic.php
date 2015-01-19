@@ -8,8 +8,27 @@
  * distributed with this source code.
  */
 
-interface net_generic {
+namespace Hubbub\Net;
+
+    /**
+     * @todo Expand this interface's documentation.
+     */
+
+/**
+ * Interface Generic
+ *
+ * @package Hubbub\Net
+ */
+interface Generic {
+    /**
+     * @return mixed
+     */
     function iterate();
 
+    /**
+     * @param $mode
+     *
+     * @return mixed
+     */
     function set_blocking($mode);
 }

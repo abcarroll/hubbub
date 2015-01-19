@@ -27,3 +27,6 @@ I am slowly making progress.
 Hubbub is available under a BSD-like license.  Please see LICENSE.txt for full license text.  Some files do not have a copyright header, those files are still subject to my copyright, unless specifically  noted with a separate copyright header.
 
 While you are not legally required to do so, I kindly ask if you make commercial use of my software, even as a service, you just simply link back to the SourceForge homepage, at http://hubbub.sf.net
+
+
+

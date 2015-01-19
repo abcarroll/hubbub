@@ -8,10 +8,12 @@
  * distributed with this source code.
  */
 
+namespace Hubbub\Net\Generic;
+
 /**
- * Interface net_generic_client
+ * Interface Client
  */
-interface net_generic_client extends net_generic {
+interface Client extends \Hubbub\Net\Generic {
     /**
      * @param $data
      *

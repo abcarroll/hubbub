@@ -1,5 +1,4 @@
 <?php
-
 /*
  * This file is a part of Hubbub, freely available at http://hubbub.sf.net
  *
@@ -8,7 +7,13 @@
  * distributed with this source code.
  */
 
-class bnc_client { // extends ??, this is a bit new..
+namespace Hubbub\IRC;
+
+/**
+ * Class BncClient
+ * This class represents a client connection on the BNC server.
+ */
+class BncClient { // extends ??, this is a bit new..
     use generic_irc;
 
     private $hubbub, $bnc, $socket;

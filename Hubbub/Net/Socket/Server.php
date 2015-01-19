@@ -9,14 +9,31 @@
 
 /* Warning: broken */
 
-class socket_server {
+namespace Hubbub\Net\Socket;
+
+    /**
+     * This is a generic server implementation using PHP's wrapper around Berkley sockets.
+     * It is marked as broken.  When this was moved, there was another blank implementation that needs to be removed.
+     *
+     * @todo Test & fix this implementation.
+     */
+
+/**
+ * Class Server
+ *
+ * @package Hubbub\Net\Socket
+ */
+class Server { // TODO implements Net Generic Server
     private $address, $port;
     private $socket_err_constant = E_USER_ERROR;
 
     public $client_sockets = [];
     public $listen_socket;
 
-    // ---- Useful functions ----
+    /**
+     * @param $address
+     * @param $port
+     */
     function __construct($address, $port) {
         $this->address = $address;
         $this->port = $port;
@@ -42,6 +59,12 @@ class socket_server {
         trigger_error("I am now listening on $port");
     }
 
+    /**
+     * @param $socket
+     * @param $data
+     *
+     * @return int
+     */
     function send($socket, $data) {
         if(is_array($socket)) {
             $this->on_send($socket, $data);
@@ -55,6 +78,7 @@ class socket_server {
         }
     }
 
+
     function iterate() {
         $updated_sockets = $this->listen_socket + $this->client_sockets;
         $num_updated_sockets = socket_select($updated_sockets, $write, $except, 0, 0);
@@ -63,7 +87,7 @@ class socket_server {
             // A client connecting to one of our listening sockets
             if(in_array($socket, $this->server_sockets)) {
                 if(($client = socket_accept($socket)) < 0) {
-                    trigger_error("socket_accept() failed: " . socket_strerror($msgsock), $this->socket_err_constant);
+                    trigger_error("socket_accept() failed: " . socket_strerror($sock), $this->socket_err_constant);
                     continue;
                 } else {
                     $this->socktable_add($client, 'server-client', $this->socktable_lookup($socket, 3));

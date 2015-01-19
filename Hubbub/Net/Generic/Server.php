@@ -7,10 +7,12 @@
  * distributed with this source code.
  */
 
+namespace Hubbub\Net\Generic;
+
 /**
- * Interface net_generic_server
+ * Interface Server
  */
-interface net_generic_server extends net_generic {
+interface Server extends \Hubbub\Net\Generic {
     /**
      * @param $socket
      * @param $data
