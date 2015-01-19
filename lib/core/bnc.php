@@ -28,7 +28,9 @@ class bnc extends net_stream_server {
     }
 
     function on_client_recv($socket, $data) {
-        $this->clients[(int) $socket]->on_recv($data);
+        /** @var bnc_client $client */
+        $client = $this->clients[(int) $socket];
+        $client->on_recv($data);
     }
 
     function on_client_send($socket, $data) {
