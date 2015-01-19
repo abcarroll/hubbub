@@ -28,7 +28,7 @@ class Bnc extends \Hubbub\Net\Stream\Server {
     }
 
     function on_client_connect($socket) {
-        $newClient = new Client($this->hubbub, $this, $socket);
+        $newClient = new BncClient($this->hubbub, $this, $socket);
         $newClient->iterate(); // Iterate once after connection automatically
         $this->clients[(int) $socket] = $newClient;
     }
@@ -38,7 +38,7 @@ class Bnc extends \Hubbub\Net\Stream\Server {
     }
 
     function on_client_recv($socket, $data) {
-        /** @var bnc_client $client */
+        /** @var BncClient $client */
         $client = $this->clients[(int) $socket];
         $client->on_recv($data);
     }
@@ -48,10 +48,11 @@ class Bnc extends \Hubbub\Net\Stream\Server {
            when data is sent. */
     }
 
+    // I'm not sure if it makes sense to iterate clients
     function on_iterate() {
         if(count($this->clients) > 0) {
             foreach ($this->clients as $c) {
-                /** @var $c bnc_client */
+                /** @var $c BncClient */
                 $c->iterate();
             }
         }
