@@ -17,10 +17,13 @@ spl_autoload_register(function ($class) {
     }
 });
 
+
 // Everything.
 \Hubbub\Utility::Sunrise();
+
 $h = new Hubbub();
+$bootstrap = new \Hubbub\Configuration($h);
+$h->addModules($bootstrap->data);
 $h->main();
 
-echo date('r') . "\n";
-echo "Hubbub gracefully shut down.\n";
+\Hubbub\Utility::Sunset();

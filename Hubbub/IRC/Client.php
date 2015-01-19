@@ -32,7 +32,7 @@ class Client extends \Hubbub\Net\Stream\Client {
         'server'   => 'tcp://irc.freenode.net:6667',
     ];
 
-    public function __construct($hubbub) {
+    public function __construct(\Hubbub\Hubbub $hubbub) {
         $this->cfg['nickname'] = 'HubTest-' . dechex(mt_rand(0, 255));
 
         parent::__construct($hubbub);
@@ -59,11 +59,12 @@ class Client extends \Hubbub\Net\Stream\Client {
 
     function on_disconnect() {
         echo "Disconnected\n";
-        die;
     }
 
     function on_send($data) {
-
+        /* TODO
+         * does this even fire?
+         */
     }
 
     function iterate() {
@@ -81,7 +82,7 @@ class Client extends \Hubbub\Net\Stream\Client {
         } else {
             // 1 - For numeric commands, the command has already been translated to the RFC compatible name
             //	.. like 001 is now rpl_welcome
-            // 2 - Check for the existance of on_* for that command, like on_rpl_welcome() or on_privmsg()
+            // 2 - Check for the existence of on_* for that command, like on_rpl_welcome() or on_privmsg()
             // 3 - If not found, check for the raw numeric code, like on_numeric_001()
 
             // Instead, call self-modules and submodules.. notifier should be implemented as a submodule
@@ -122,8 +123,4 @@ class Client extends \Hubbub\Net\Stream\Client {
             $this->privmsg($d['privmsg']['to'], "Hi");
         }
     }
-
-
-    // function ...
-
 }

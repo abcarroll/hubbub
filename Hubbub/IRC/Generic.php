@@ -16,6 +16,8 @@ namespace Hubbub\IRC;
  * @package Hubbub\Modules\IRC
  */
 trait Generic {
+    private $state; // unregistered, registered, ??
+
     function parse_irc_hostmask($mask) {
         // RFC: <prefix>   ::= <servername> | <nick> [ '!' <user> ] [ '@' <host> ]
         $r = array();
@@ -104,7 +106,7 @@ trait Generic {
         return $r;
     }
 
-    /* --- --- --- IRC Protocol Implemention (Outbound) --- ---- --- */
+    /* --- --- --- IRC Protocol Implementation (Outbound) --- ---- --- */
     // Ping & Ping are defined in 4.6[.2 & .3] of rfc1459
     // The chapter information accompanying each section below
     // is in reference to the old 1495 spec.
@@ -128,7 +130,7 @@ trait Generic {
     // 4.1 Message Details
 
     function pass($pass) {
-        if($state != 'unregistered') {
+        if($this->state != 'unregistered') {
             cout(owarning, "Sending PASS in a non-unregistered state ({$this->state})");
         }
         $this->send('PASS ' . $pass);

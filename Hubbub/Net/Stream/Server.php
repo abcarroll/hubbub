@@ -98,7 +98,7 @@ abstract class Server implements \Hubbub\Net\Generic\Server {
 
                 // A client has disconnected from our listening socket
                 if($data === 0) {
-                    $this->on_client_disconnect($client);
+                    $this->on_client_disconnect($socket);
                     unset($this->client_sockets[(int) $socket]);
                 } else {
                     $this->on_client_recv($socket, $data);
