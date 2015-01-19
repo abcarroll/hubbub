@@ -15,7 +15,7 @@ function win($w, $h, $x, $y, $txt) {
     // border our small window.
     ncurses_wborder($win, 0, 0, 0, 0, 0, 0, 0, 0);
     # ncurses_wrefresh($win);// paint both windows
-    ncurses_refresh();// paint both windows
+    ncurses_refresh(); // paint both windows
 
     // move into the small window and write a string
     ncurses_mvwaddstr($win, 0, 1, " $txt ");
@@ -52,11 +52,11 @@ while (1) {
     $ch = ncurses_getch();
 
     ncurses_wclear($info);
-    ncurses_refresh();// paint both windows
+    ncurses_refresh(); // paint both windows
     ncurses_wborder($info, 0, 0, 0, 0, 0, 0, 0, 0);
-    ncurses_refresh();// paint both windows
+    ncurses_refresh(); // paint both windows
     ncurses_mvwaddstr($win0, 0, 1, " info MAMBO ");
-    ncurses_refresh();// paint both windows
+    ncurses_refresh(); // paint both windows
 
     switch ($ch) {
 
@@ -97,6 +97,6 @@ while (1) {
         break;
 }
 
-ncurses_end();// clean up our screen
+ncurses_end(); // clean up our screen
 
 print_r($events);

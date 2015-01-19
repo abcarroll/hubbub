@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is a part of Hubbub, freely available at http://hubbub.sf.net
  *
