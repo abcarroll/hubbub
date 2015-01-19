@@ -43,7 +43,7 @@ interface net_generic_server extends net_generic {
 
     /**
      * @param $socket resource The socket that is sending data
-     * @param $data string The data that is being sent
+     * @param $data   string The data that is being sent
      *
      * @return void
      */
@@ -51,7 +51,7 @@ interface net_generic_server extends net_generic {
 
     /**
      * @param $socket resource The client that received the data.
-     * @param $data string The data received. This data may be binary or ASCII text.
+     * @param $data   string The data received. This data may be binary or ASCII text.
      *
      * @return mixed
      */
