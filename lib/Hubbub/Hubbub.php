@@ -8,9 +8,15 @@
  * distributed with this source code.
  */
 
-// namespace Hubbub;
+namespace Hubbub;
 
-class Hubbub extends StdClass {
+/**
+ * Class Hubbub
+ *
+ * @package Hubbub
+ */
+
+class Hubbub extends \StdClass { // TODO Not sure if StdClass is the way to do it here
     /**
      * Initiates a new hubbub object.  Meant to be called once, to start an isolated instance.
      */
