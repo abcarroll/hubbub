@@ -14,7 +14,7 @@ namespace Hubbub\IRC;
  * This class represents a client connection on the BNC server.
  */
 class BncClient { // extends ??, this is a bit new..
-    use generic_irc;
+    use Generic;
 
     private $hubbub, $bnc, $socket;
     private $connect_time, $state = 'pre-reg';
