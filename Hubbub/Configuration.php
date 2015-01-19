@@ -21,7 +21,7 @@ namespace Hubbub;
  * @package Hubbub
  */
 class Configuration {
-    private $data;
+    public $data;
 
     /**
      * @param \Hubbub\Hubbub $hubbub
@@ -29,7 +29,7 @@ class Configuration {
     public function __construct($hubbub) {
         include 'local-config.php';
         if(!empty($config)) {
-            $this->data = (object) $config;
+            $this->data = $config;
         } else {
             die("Configuration not properly defined!"); // TODO not very nice
         }
@@ -40,5 +40,9 @@ class Configuration {
      */
     public function getData() {
         return $this->data;
+    }
+
+    public function get() {
+
     }
 }
