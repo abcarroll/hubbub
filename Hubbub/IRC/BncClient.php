@@ -13,15 +13,15 @@ namespace Hubbub\IRC;
  * Class BncClient
  * This class represents a client connection on the BNC server.
  */
-class BncClient { // extends ??, this is a bit new..
+class BncClient { // TODO make a base class!
     use Generic;
 
     private $hubbub, $bnc, $socket;
-    private $connect_time, $state = 'pre-reg';
+    private $state = 'pre-reg'; // $connect_time,
 
     private $incoming_nick, $incoming_user;
 
-    function __construct($hubbub, $bnc, $socket) {
+    function __construct(\Hubbub\Hubbub $hubbub, \Hubbub\IRC\Bnc $bnc, $socket) {
         $this->hubbub = $hubbub;
         $this->bnc = $bnc;
         $this->socket = $socket;

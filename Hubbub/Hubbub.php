@@ -18,25 +18,20 @@ use \Hubbub\Throttler\AdjustingDelay;
  */
 class Hubbub extends \StdClass { // TODO Not sure if StdClass is the way to do it here
     protected $modules = [];
+    public $config, $throttler;
 
     /**
      * Initiates a new hubbub object.  Meant to be called once, to start an isolated instance.
      */
     public function __construct() {
-        // Not very sleek...
-        $this->config = new Configuration($this);
-        $this->config = $this->config->getData();
-
-        $this->logger = new Logger($this);
-        $this->throttler = new AdjustingDelay($this, 500000);
+        // Nothing here..
     }
+
 
     /**
      * The main loop. This iterates over all the root modules and runs the injected throttler.
      */
     public function main() {
-        //$this->modules[] = new \Hubbub\IRC\Bnc($this);
-        //$this->modules[] = new \Hubbub\IRC\Client($this);
 
         while (1) {
             if(count($this->modules) > 0) {
@@ -46,6 +41,20 @@ class Hubbub extends \StdClass { // TODO Not sure if StdClass is the way to do i
                 }
             }
             $this->throttler->throttle();
+        }
+    }
+
+    public function addModules($config) {
+        $this->config = $config;
+
+        foreach($config as $mKey => $mVal) {
+            $object = new $mVal['object']($this);
+
+            if(!is_numeric($mKey)) {
+                $this->$mKey = $object;
+            } else {
+                $this->modules[$mKey] = $object;
+            }
         }
     }
 }

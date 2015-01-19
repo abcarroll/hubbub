@@ -36,14 +36,15 @@ class MicroBus {
             }
             $this->objects[$sObj]->notify($event);
         }
+        return true;
     }
 
-    function subscribe(module $obj, array $filter = []) {
+    function subscribe($obj, array $filter = []) {
         $this->subscriptions[(string) $obj] = $filter;
         $this->objects[(string) $obj] = $obj;
     }
 
-    function unsubscribe(module $obj, array $filter = []) {
+    function unsubscribe($obj, array $filter = []) {
         unset($this->subscriptions[$obj]);
     }
 }

@@ -8,12 +8,15 @@
  * distributed with this source code.
  */
 
+
 namespace Hubbub\IRC;
 
-    /**
-     * Thoughts: This might should just be called IRC server.  Or implement a basic server and then extend that out to a bnc...
-     * Also, same with IRC server, it should probably use dependency injection for the Net Stream Server instead of extending it.
-     */
+/**
+ * Thoughts: This might should just be called IRC server.  Or implement a basic server and then extend that out to a bnc...
+ * Also, same with IRC server, it should probably use dependency injection for the Net Stream Server instead of extending it.
+ *
+ * @todo Move clients table and on_client_recv to a $client->on_recv() .. Should likely do both
+ */
 
 /**
  * Class Bnc
@@ -22,9 +25,9 @@ class Bnc extends \Hubbub\Net\Stream\Server {
     protected $hubbub;
     protected $clients;
 
-    public function __construct($hubub) {
+    public function __construct(\Hubbub\Hubbub $hubub) {
         $this->hubbub = $hubub;
-        parent::__construct($hubub->config->bnc['listen']);;
+        parent::__construct($hubub->config->data['bnc']['listen']);
     }
 
     function on_client_connect($socket) {
