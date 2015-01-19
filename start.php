@@ -7,22 +7,18 @@
  * distributed with this source code.
  */
 
-// See http://php.net/errorfunc.configuration.php#ini.error-reporting
-error_reporting(2147483647);
+namespace Hubbub;
 
-// TODO Replace with SPL..
-function autoload_hubbub($class) {
-    if(is_file('lib/core/' . $class . '.php')) {
-        require 'lib/core/' . $class . '.php';
+// Auto-loading
+spl_autoload_register(function ($class) {
+    $file = __DIR__ . '/' . str_replace('\\', '/', $class) . '.php';
+    if (file_exists($file)) {
+        require $file;
     }
-}
-
-spl_autoload_register('autoload_hubbub');
-spl_autoload_register(); // Register php-fig SPL Style autoloading
-
-Utility::CheckEnv();
+});
 
 // Everything.
+\Hubbub\Utility::Sunrise();
 $h = new Hubbub();
 $h->main();
 

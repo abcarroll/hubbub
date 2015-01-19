@@ -7,10 +7,20 @@
  * distributed with this source code.
  */
 
-// This file is NOT used by Hubbub.
-// This is a class I wrote separately,
+namespace Hubbub\Net\Socket;
 
-abstract class socket_generic {
+    /**
+     * This is a generic implementation using PHP's wrapper around Berkley sockets.  It is marked as not being used by Hubbub and was written separately.
+     *
+     * @todo Fix & use this properly, or remove it.
+     */
+
+/**
+ * Class Generic
+ *
+ * @package Hubbub\Net\Socket
+ */
+abstract class Generic {
     protected $is_blocking;
     // As a client, this will be the client socket;
     // As a server, it is meant for the master/binded socket

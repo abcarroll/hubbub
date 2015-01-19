@@ -7,21 +7,22 @@
  * distributed with this source code.
  */
 
-/*
-    A very simple key value store
+namespace Hubbub;
 
-    The general API should follow redis.
-    It's highly unlikely you would want to write an adapter
-    for (p)redis except for edge cases, however if that edge
-    case arises, we want to be ready.
+    /**
+     * A very simple key value store.
+     * The general API should follow redis. It's highly unlikely you would want to write an adapter for (p)redis except for edge cases, however if that
+     * edge case arises, we want to be ready.
+     * Additionally, it allows us to become familer with the redis API as we program without knowing it.
+     * It is highly unlikely we support 1/10 of the features of redis.
+     */
 
-    Additionally, it allows us to become familer with the redis
-    API as we program without knowing it.
-
-    It is highly unlikely we support 1/10 of the features of redis.
-*/
-
-class key_value_store {
+/**
+ * Class KeyValueStore
+ *
+ * @package Hubbub
+ */
+class KeyValueStore {
 
     private $values = [];
     private $changes_since_save = 0;

@@ -8,10 +8,21 @@
  * distributed with this source code.
  */
 
-class fixed_delay_throttler extends base_throttler {
+namespace Hubbub\Throttler;
+
+/**
+ * Class FixedDelay
+ *
+ * @package Hubbub\Throttler
+ */
+class FixedDelay extends Base {
+
+    /**
+     * Sleeps for a fixed amount of time regardless of work or load.
+     */
     function throttle() {
         parent::throttle();
-        trigger_error("[{$this->iteration}] Sleeping for {$this->frequency}");
+        //trigger_error("[{$this->iteration}] Sleeping for {$this->frequency}");
         usleep($this->frequency);
     }
 }

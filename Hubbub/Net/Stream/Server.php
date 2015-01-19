@@ -8,7 +8,14 @@
  * distributed with this source code.
  */
 
-abstract class net_stream_server implements net_generic_server {
+namespace Hubbub\Net\Stream;
+
+/**
+ * Class Server
+ *
+ * @package Hubbub\Net\Stream
+ */
+abstract class Server implements \Hubbub\Net\Generic\Server {
     private $location, $transport, $address, $port;
 
     private $guess_server_flags = [];

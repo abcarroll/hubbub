@@ -8,7 +8,14 @@
  * distributed with this source code.
  */
 
-abstract class net_stream_client implements net_generic_client {
+namespace Hubbub\Net\Stream;
+
+/**
+ * Class Client
+ *
+ * @package Hubbub\Net\Stream
+ */
+abstract class Client implements \Hubbub\Net\Generic\Client {
 
     private $socket;
     protected $connected = false;
@@ -18,7 +25,7 @@ abstract class net_stream_client implements net_generic_client {
     }
 
     function connect($where) {
-        echo "Connecting...\n";
+        echo "Connecting...\n"; // TODO echo ..
         $this->socket = stream_socket_client($where, $errno, $errstr, STREAM_CLIENT_ASYNC_CONNECT);
         var_dump($this->socket);
     }
@@ -42,6 +49,4 @@ abstract class net_stream_client implements net_generic_client {
             $this->on_recv($data);
         }
     }
-
-
 }

@@ -7,8 +7,10 @@
  * distributed with this source code.
  */
 
+namespace Hubbub;
+
 // See https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-3-logger-interface.md
-class logger {
+class Logger {
     public function emergency($message, array $context = array()) {
         $this->log('emergency', $message, $context);
     }

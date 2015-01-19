@@ -8,7 +8,17 @@
  * distributed with this source code.
  */
 
-class bnc extends net_stream_server {
+namespace Hubbub\IRC;
+
+    /**
+     * Thoughts: This might should just be called IRC server.  Or implement a basic server and then extend that out to a bnc...
+     * Also, same with IRC server, it should probably use dependency injection for the Net Stream Server instead of extending it.
+     */
+
+/**
+ * Class Bnc
+ */
+class Bnc extends \Hubbub\Net\Stream\Server {
     protected $hubbub;
     protected $clients;
 
@@ -18,7 +28,7 @@ class bnc extends net_stream_server {
     }
 
     function on_client_connect($socket) {
-        $newClient = new bnc_client($this->hubbub, $this, $socket);
+        $newClient = new Client($this->hubbub, $this, $socket);
         $newClient->iterate(); // Iterate once after connection automatically
         $this->clients[(int) $socket] = $newClient;
     }
