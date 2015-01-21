@@ -24,10 +24,12 @@ namespace Hubbub\IRC;
 class Bnc extends \Hubbub\Net\Stream\Server {
     protected $hubbub;
     protected $clients;
+    protected $config;
 
-    public function __construct(\Hubbub\Hubbub $hubub) {
+    public function __construct(\Hubbub\Hubbub $hubub, Array $config) {
         $this->hubbub = $hubub;
-        parent::__construct($hubub->config->data['bnc']['listen']);
+        $this->config = $config;
+        parent::__construct($this->config['listen']);
     }
 
     function on_client_connect($socket) {

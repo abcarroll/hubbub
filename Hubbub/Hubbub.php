@@ -48,7 +48,7 @@ class Hubbub extends \StdClass { // TODO Not sure if StdClass is the way to do i
         $this->config = $config;
 
         foreach($config as $mKey => $mVal) {
-            $object = new $mVal['object']($this);
+            $object = new $mVal['object']($this, $mVal);
 
             if(!is_numeric($mKey)) {
                 $this->$mKey = $object;
