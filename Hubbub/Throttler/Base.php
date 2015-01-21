@@ -17,10 +17,11 @@ namespace Hubbub\Throttler;
  * @package Hubbub\Throttler
  */
 class Base {
-    protected $hubbub, $frequency, $iteration;
+    protected $hubbub, $config, $frequency, $iteration;
 
-    function __construct($hubbub) {
+    function __construct(\Hubbub\Hubbub $hubbub, Array $config) {
         $this->hubbub = $hubbub;
+        $this->config = $config;
     }
 
     /**

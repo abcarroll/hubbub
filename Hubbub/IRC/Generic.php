@@ -16,8 +16,6 @@ namespace Hubbub\IRC;
  * @package Hubbub\Modules\IRC
  */
 trait Generic {
-    private $state; // unregistered, registered, ??
-
     function parse_irc_hostmask($mask) {
         // RFC: <prefix>   ::= <servername> | <nick> [ '!' <user> ] [ '@' <host> ]
         $r = array();

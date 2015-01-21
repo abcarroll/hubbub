@@ -10,6 +10,10 @@
 namespace Hubbub\IRC;
 
 /**
+ * $this->state:
+ */
+
+/**
  * Class BncClient
  * This class represents a client connection on the BNC server.
  */
@@ -17,14 +21,19 @@ class BncClient { // TODO make a base class!
     use Generic;
 
     private $hubbub, $bnc, $socket;
-    private $state = 'pre-reg'; // $connect_time,
-
-    private $incoming_nick, $incoming_user;
+    /**
+     * @var string $state         The state of the connection.  Possible values are 'preauth', 'unregistered', 'registered'.
+     * @var int    $auth_attempts The number of authenticiation attempts.  Currently hard-coded to a maximum of 3 attempts.
+     * @
+     */
+    private $state, $auth_attempts = 0, $nick, $user, $connect_time, $state_time;
 
     function __construct(\Hubbub\Hubbub $hubbub, \Hubbub\IRC\Bnc $bnc, $socket) {
         $this->hubbub = $hubbub;
         $this->bnc = $bnc;
         $this->socket = $socket;
+        $this->connect_time = time();
+        $this->state_time = time();
     }
 
     function disconnect() {
@@ -51,18 +60,18 @@ class BncClient { // TODO make a base class!
     }
 
     function on_nick($c) {
-        $this->incoming_nick = $c['parm'];
-        $this->try_registration();
+        $this->user = $c['parm'];
+        $this->registration_msg();
     }
 
     function on_user($c) {
-        $this->incoming_user = $c['parm'];
-        $this->try_registration();
+        $this->user = $c['parm'];
+        $this->registration_msg();
     }
 
-    function try_registration() {
-        if(!empty($this->incoming_nick) && !empty($this->incoming_user)) {
-            $this->state = 'pre-auth';
+    function registration_msg() {
+        if(!empty($this->nick) && !empty($this->user)) {
+            $this->state = 'unregistered';
             $this->notice("*", "I'm going to have to ask you see your I.D.");
             $this->notice("*", "Type /QUOTE PASS <yourpass> now.");
         }
@@ -83,18 +92,28 @@ class BncClient { // TODO make a base class!
     }
 
     function welcome() {
-        $this->send(":Hubbub 001 {$this->incoming_nick} WELCOME");
+        $this->send(":Hubbub 001 {$this->nick} WELCOME");
         $f = file("LICENSE.txt");
-        $this->send(":Hubbub 001 {$this->incoming_nick} :Welcome to Hubbub's Internet Relay Chat Proxy, " . $this->incoming_nick);
-        $this->send(":Hubbub 375 {$this->incoming_nick} :MOTD AS FOLLOWS");
+        $this->send(":Hubbub 001 {$this->nick} :Welcome to Hubbub's Internet Relay Chat Proxy, " . $this->nick);
+        $this->send(":Hubbub 375 {$this->nick} :MOTD AS FOLLOWS");
         foreach ($f as $line) {
-            $this->send(":Hubbub 372 {$this->incoming_nick} : - " . trim($line));
+            $this->send(":Hubbub 372 {$this->nick} : - " . trim($line));
         }
-        $this->send(":Hubbub 375 {$this->incoming_nick} :END OF MOTD");
-        $this->send(":-Hubbub!Hubbub@Hubbub. PRIVMSG {$this->incoming_nick} :Welcome back, cowboy!");
+        $this->send(":Hubbub 375 {$this->nick} :END OF MOTD");
+        $this->send(":-Hubbub!Hubbub@Hubbub. PRIVMSG {$this->nick} :Welcome back, cowboy!");
     }
 
     function iterate() {
         $this->hubbub->logger->debug("BNC Client #" . ((int) $this->socket) . " was iterated.");
+
+        // Check state times for expiration
+        if(
+            ($this->state == 'preauth' || $this->state == 'unregistered') &&
+            $this->state_time > 60
+        ) {
+
+        }
+
+
     }
 }

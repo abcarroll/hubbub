@@ -14,13 +14,22 @@ $config = [
         'password' => '1234',
     ]*/
 
-    'logger' => [
-        'object' => '\Hubbub\Logger',
+    'logger'    => [
+        'object'    => '\Hubbub\Logger',
+        'logToFile' => 'hubbub.log',
     ],
 
     'throttler' => [
         'object'    => '\Hubbub\Throttler\AdjustingDelay',
         'frequency' => 500000,
+    ],
+
+    [
+        'object' => '\Hubbub\IRC\Bnc',
+        'listen' => 'tcp://0.0.0.0:7777',
+        'users' => [
+            'corndog' => 'myPass'
+        ]
     ]
 
 ];
