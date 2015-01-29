@@ -24,23 +24,23 @@ namespace Hubbub\IRC;
 class Bnc extends \Hubbub\Net\Stream\Server {
     use Generic;
 
-    protected $hubbub;
-    protected $bus;
+    protected $hubbub, $config, $logger, $bus;
     protected $clients;
-    protected $config;
 
-
-    public function __construct(\Hubbub\Hubbub $hubub, Array $config) {
+    public function __construct(\Hubbub\Hubbub $hubub, \Hubbub\Configuration $config, \Hubbub\Logger $logger, \Hubbub\MicroBus) {
         $this->hubbub = $hubub;
         $this->config = $config;
+        $this->logger = $logger;
+        $this->bus = $bus;
+
         parent::__construct($this->config['listen']);
 
-        $this->hubbub->bus->subscribe($this, [
+        $this->bus->subscribe($this, [
             'protocol' => 'irc'
         ]);
 
         // InternalBus Method
-        /*$this->hubbub->bus->subscribe([
+        /*$this->bus->subscribe([
             'protocol' => 'irc'
         ], [$this, 'on_notify']);*/
     }
@@ -69,11 +69,13 @@ class Bnc extends \Hubbub\Net\Stream\Server {
         /* this may be a moot method anyway.  we have no way of actually controlling
            when data is sent. */
 
-        $this->hubbub->logger->debug("BNC::on_client_send: " . $data);
+        $this->logger->debug("BNC::on_client_send: " . $data);
     }
 
-    // I'm not sure if it makes sense to iterate clients
-    // Followup 2014/01: It looks like it does.
+
+    /**
+     * Iterates the connected clients
+     */
     function on_iterate() {
         if(count($this->clients) > 0) {
             foreach ($this->clients as $c) {
@@ -93,7 +95,6 @@ class Bnc extends \Hubbub\Net\Stream\Server {
     /*
      * From Message Bus
      */
-
     function __toString() {
         return 'bnc';
     }

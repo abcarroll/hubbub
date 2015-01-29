@@ -9,7 +9,6 @@
  */
 
 namespace Hubbub;
-use \Hubbub\Throttler\AdjustingDelay;
 
 /**
  * Class Hubbub
@@ -17,8 +16,13 @@ use \Hubbub\Throttler\AdjustingDelay;
  * @package Hubbub
  */
 class Hubbub extends \StdClass { // TODO Not sure if StdClass is the way to do it here
-    protected $modules = [];
-    public $config, $throttler, $bus;
+    /**
+     * @var array                  $modules
+     * @var \Hubbub\Throttler\Base $throttler
+     * @var \Hubbub\Logger         $logger
+     * @var \Hubbub\MicroBus       $bus
+     */
+    private $modules = [], $config, $throttler, $logger, $bus;
 
     /**
      * Initiates a new hubbub object.  Meant to be called once, to start an isolated instance.
@@ -29,7 +33,7 @@ class Hubbub extends \StdClass { // TODO Not sure if StdClass is the way to do i
 
 
     /**
-     * The main loop. This iterates over all the root modules and runs the injected throttler.
+     * The main loop. This iterates over all the root modules, calling their iterate() method, and runs the injected throttler.
      */
     public function main() {
 
@@ -44,21 +48,56 @@ class Hubbub extends \StdClass { // TODO Not sure if StdClass is the way to do i
         }
     }
 
+    /**
+     * Adds a new module onto the core Hubbub observer-iterator
+     *
+     * @param $config
+     *
+     * @throws \Exception
+     */
     public function addModules($config) {
         $this->config = $config;
 
         foreach($config as $mKey => $mVal) {
             if(!empty($mVal['object'])) {
-                $object = new $mVal['object']($this, $mVal);
+                $object = new $mVal['object'](
+                    $this,
+                    $this->getConfig(),
+                    $this->getLogger(),
+                    $this->getBus(),
+                );
 
-                if(!is_numeric($mKey)) {
-                    $this->$mKey = $object;
-                } else {
-                    $this->modules[$mKey] = $object;
-                }
+                $this->modules[$mKey] = $object;
             } else {
                 throw new \Exception("addModule() called with a missing 'object' \$config index");
             }
         }
+    }
+
+    /*
+     * Getters & Setters
+     */
+    public function getConfig() {
+        return $this->config;
+    }
+
+    public function setConfig($cfg) {
+        $this->config = $config;
+    }
+
+    public function getLogger() {
+        return $this->logger;
+    }
+
+    public function setLogger($logger) {
+        $this->logger = $logger;
+    }
+
+    public function getBus() {
+        return $this->bus;
+    }
+
+    public function setBus($bus) {
+        $this->bus = $bus;
     }
 }
