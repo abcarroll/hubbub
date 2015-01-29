@@ -29,6 +29,8 @@ class AdjustingDelay extends Base {
 
     /**
      * Throttles for 'frequency' sec minus how long the previous iteration lasted.
+     *
+     * @todo Re-enable debugging messages when logging filtering is available.
      */
     function throttle() {
         parent::throttle();
@@ -37,9 +39,9 @@ class AdjustingDelay extends Base {
         $iteration_sleep = $this->frequency - $iteration_length;
         if($iteration_sleep > 0) {
             usleep($iteration_sleep);
-            $this->hubbub->logger->debug("[{$this->iteration}] Sleeping for $iteration_sleep uSec, iteration took $iteration_length uSec");
+            //$this->hubbub->logger->debug("[{$this->iteration}] Sleeping for $iteration_sleep uSec, iteration took $iteration_length uSec");
         } else {
-            $this->hubbub->logger->debug("[{$this->iteration}] NOT Sleeping, iteration took $iteration_length uSec");
+            //$this->hubbub->logger->debug("[{$this->iteration}] NOT Sleeping, iteration took $iteration_length uSec");
         }
 
         $this->last_iteration_start = microtime(1);
