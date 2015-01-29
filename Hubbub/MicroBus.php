@@ -34,7 +34,7 @@ class MicroBus {
                     break 2; // Some field didn't match, break from that subscription
                 }
             }
-            $this->objects[$sObj]->notify($event);
+            $this->objects[$sObj]->on_notify($event);
         }
         return true;
     }

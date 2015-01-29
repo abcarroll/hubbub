@@ -25,9 +25,7 @@ abstract class Client implements \Hubbub\Net\Generic\Client {
     }
 
     function connect($where) {
-        echo "Connecting...\n"; // TODO echo ..
         $this->socket = stream_socket_client($where, $errno, $errstr, STREAM_CLIENT_ASYNC_CONNECT);
-        var_dump($this->socket);
     }
 
     function set_blocking($block = true) {
