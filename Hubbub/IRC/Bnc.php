@@ -22,9 +22,13 @@ namespace Hubbub\IRC;
  * Class Bnc
  */
 class Bnc extends \Hubbub\Net\Stream\Server {
+    use Generic;
+
     protected $hubbub;
+    protected $bus;
     protected $clients;
     protected $config;
+
 
     public function __construct(\Hubbub\Hubbub $hubub, Array $config) {
         $this->hubbub = $hubub;
@@ -62,5 +66,13 @@ class Bnc extends \Hubbub\Net\Stream\Server {
             }
         }
         $this->hubbub->logger->debug("BNC Server was iterated with " . count($this->clients) . " clients");
+    }
+
+    /* Does this trigger??? */
+    function on_recv($line) {
+        $cmd = $this->parse_irc_cmd($line);
+
+
+
     }
 }

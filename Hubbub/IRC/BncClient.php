@@ -113,7 +113,14 @@ class BncClient { // TODO make a base class!
         ) {
 
         }
+    }
 
+    function on_privmsg($c) {
+        $this->hubbub->bus->publish([
+            'originate' => true,
+            'protocol' => 'irc',
+            'sender'   => 'Me',
+        ]);
 
     }
 }

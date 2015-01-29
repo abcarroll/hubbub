@@ -18,7 +18,7 @@ use \Hubbub\Throttler\AdjustingDelay;
  */
 class Hubbub extends \StdClass { // TODO Not sure if StdClass is the way to do it here
     protected $modules = [];
-    public $config, $throttler;
+    public $config, $throttler, $bus;
 
     /**
      * Initiates a new hubbub object.  Meant to be called once, to start an isolated instance.
@@ -48,12 +48,16 @@ class Hubbub extends \StdClass { // TODO Not sure if StdClass is the way to do i
         $this->config = $config;
 
         foreach($config as $mKey => $mVal) {
-            $object = new $mVal['object']($this, $mVal);
+            if(!empty($mVal['object'])) {
+                $object = new $mVal['object']($this, $mVal);
 
-            if(!is_numeric($mKey)) {
-                $this->$mKey = $object;
+                if(!is_numeric($mKey)) {
+                    $this->$mKey = $object;
+                } else {
+                    $this->modules[$mKey] = $object;
+                }
             } else {
-                $this->modules[$mKey] = $object;
+                throw new \Exception("addModule() called with a missing 'object' \$config index");
             }
         }
     }
