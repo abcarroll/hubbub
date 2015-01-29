@@ -22,11 +22,13 @@ $config = [
      */
     [
         'object' => '\Hubbub\IRC\Bnc',
+        'netType' => '\Hubbub\Net\Stream',
         'listen' => 'tcp://0.0.0.0:7777',
         'users' => [
             'corndog' => 'myPass'
         ]
-    ], [
+    ],
+    /*[
         'object'   => '\Hubbub\IRC\Client',
         'network'  => 'freenode',
         'nickname' => 'HubTest-' . dechex(mt_rand(0, 255)),
@@ -34,5 +36,5 @@ $config = [
         'realname' => 'Hubbub',
         'server'   => 'tcp://irc.freenode.net:6667',
         'timeout'  => 30
-    ],
+    ],*/
 ];
