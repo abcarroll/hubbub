@@ -23,6 +23,9 @@ namespace Hubbub\IRC;
 class Client extends \Hubbub\Net\Stream\Client {
     use Generic;
 
+
+    private $protocol = 'irc';
+    private $network = 'freenode';
     private $state;
 
     public $cfg = [
@@ -34,8 +37,8 @@ class Client extends \Hubbub\Net\Stream\Client {
 
     public function __construct(\Hubbub\Hubbub $hubbub) {
         $this->cfg['nickname'] = 'HubTest-' . dechex(mt_rand(0, 255));
-
         parent::__construct($hubbub);
+        $this->bus = $hubbub->bus;
         $this->state = 'pre-auth';
         $this->connect($this->cfg['server']);
         $this->set_blocking(false);
@@ -113,14 +116,37 @@ class Client extends \Hubbub\Net\Stream\Client {
         }
     }
 
+    /*
+     * Publish Events
+     */
+
     function on_rpl_welcome($d) {
-        $this->join("#hubbub");
+        $this->bus->publish([
+            'protocol' => $this->protocol,
+            'network'  => $this->network,
+            'event'    => 'connected',
+        ]);
     }
 
-
     function on_privmsg($d) {
-        if($d['privmsg']['msg'] == 'Hello') {
-            $this->privmsg($d['privmsg']['to'], "Hi");
-        }
+        $this->bus->publish([
+            'protocol' => $this->protocol,
+            'network'  => $this->network,
+            'event'    => 'msg',
+            'from'     => $d['sender'],
+            'data'     => $d['data'],
+            'irc'      => $d,
+        ]);
+    }
+
+    function on_notice($d) {
+        $this->bus->publish([
+            'protocol' => $this->protocol,
+            'network'  => $this->network,
+            'event'    => 'message',
+            'from'     => $d['sender'],
+            'data'     => $d['data'],
+            'irc'      => $d,
+        ]);
     }
 }

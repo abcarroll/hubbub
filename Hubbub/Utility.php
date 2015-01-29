@@ -20,6 +20,8 @@ class Utility {
      * Sets up the environment in early stages of execution.  This is a bootstrap-ish type piece of code.
      */
     static public function Sunrise() {
+        echo "Hubbub session started " . date('r') . "\n";
+
         // See http://php.net/errorfunc.configuration.php#ini.error-reporting
         error_reporting(2147483647);
 
