@@ -17,13 +17,16 @@ spl_autoload_register(function ($class) {
     }
 });
 
+// $conf = new Configuration();
+
 // Set the PHP Error Handler
 ErrorHandler::setErrorHandler();
+\Hubbub\Utility::Sunrise(); // Bootstrap CLI
 
-trigger_error("A fucktwit", E_USER_ERROR);
-
-// Everything.
-\Hubbub\Utility::Sunrise();
+// Something something .. Like this ..
+//$logger = new Logger();
+//ErrorHandler::setErrorHandler($logger);
+//$conf->setLogger($logger);
 
 $h = new Hubbub();
 $bootstrap = new \Hubbub\Configuration($h);

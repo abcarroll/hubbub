@@ -23,19 +23,18 @@ namespace Hubbub;
  * @package Hubbub
  */
 class Logger { // extends PsrLogAbstractLogger implements PsrLogLoggerInterface {
-    protected $fp;
-    protected $config;
-    protected $instance;
+    /**
+     * @var Logger $instance
+     * @var Configuration $conf
+     * @var Resource $fp
+     */
+    protected $instance, $conf, $fp;
 
     //public function __construct($parent, $config) {
-    public function __construct() {
-        /*$this->config = $config;
-
-        if(!empty($config['logToFile'])) {
-            $this->fp = fopen($config['logToFile'], 'a+');
-        } else {
-            $this->fp = null;
-        }*/
+    public function __construct(\Hubbub\Configuration $conf = null) {
+        if($conf !== null) {
+            $this->setConf($conf);
+        }
     }
 
     public function __destruct() {
@@ -43,7 +42,7 @@ class Logger { // extends PsrLogAbstractLogger implements PsrLogLoggerInterface 
             fclose($this->fp);
         }
     }
-`   `
+
     public function log($level, $message, array $context = array()) {
         // Generate a pretty message
         $prefixStr = "[" . date('h:i:sA') . "] [$level] ";
@@ -54,15 +53,13 @@ class Logger { // extends PsrLogAbstractLogger implements PsrLogLoggerInterface 
             fwrite($this->fp, $logText);
         }
 
-        // Print a "context dump" (think a core dump) on severe errors
-
+        // Print a "context dump" (think core dump) on severe errors
         switch($level) {
             case 'emergency':
             case 'alert':
             case 'critical':
             case 'error':
             case 'warning':
-                // Dump the context to a file for more severe errors
                 $this->dumpContext($logText, $context);
                 break;
         }
@@ -116,9 +113,19 @@ class Logger { // extends PsrLogAbstractLogger implements PsrLogLoggerInterface 
         $fileName = 'context-' . sha1($logText) . '.txt';
 
         if(@file_put_contents($fileName, $logText)) {
-            echo "\n\n* * * Context dump written to file: $fileName *\n\n";
+            echo "\n* * * Context dump written to file: $fileName *\n\n";
         } else {
-            fwrite(STDERR, "\n\n** ** ** Could not write context dump to file: $fileName *\n\n");
+            fwrite(STDERR, "\n** ** ** Could not write context dump to file: $fileName *\n\n");
+        }
+    }
+
+    public function setConf(\Hubbub\Configuration $conf) {
+        $this->conf = $conf;
+
+        if(!empty($conf['logToFile'])) {
+            $this->fp = fopen($conf['logToFile'], 'a+');
+        } else {
+            $this->fp = null;
         }
     }
 
@@ -135,4 +142,5 @@ class Logger { // extends PsrLogAbstractLogger implements PsrLogLoggerInterface 
         }
         return $instance;
     }
+
 }

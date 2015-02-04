@@ -22,21 +22,19 @@ class Hubbub extends \StdClass { // TODO Not sure if StdClass is the way to do i
      * @var \Hubbub\Logger         $logger
      * @var \Hubbub\MicroBus       $bus
      */
-    private $modules = [], $config, $throttler, $logger, $bus;
+    private $modules = [], $conf, $throttler, $logger, $bus;
 
     /**
      * Initiates a new hubbub object.  Meant to be called once, to start an isolated instance.
      */
     public function __construct() {
-        // Nothing here..
+        // Nothing here!
     }
-
 
     /**
      * The main loop. This iterates over all the root modules, calling their iterate() method, and runs the injected throttler.
      */
     public function main() {
-
         while (1) {
             if(count($this->modules) > 0) {
                 /** @var $m \Hubbub\Net\Generic\Client */
@@ -51,18 +49,17 @@ class Hubbub extends \StdClass { // TODO Not sure if StdClass is the way to do i
     /**
      * Adds a new module onto the core Hubbub observer-iterator
      *
-     * @param $config
+     * @param $conf
      *
      * @throws \Exception
      */
-    public function addModules($config) {
-        $this->config = $config;
+    public function addModules($conf) {
+        $this->conf = $conf;
 
-        foreach($config as $mKey => $mVal) {
+        foreach($conf as $mKey => $mVal) {
             if(!empty($mVal['object'])) {
                 $object = new $mVal['object'](
-                    $this,
-                    $this->getConfig(),
+                    $this->getConf(),
                     $this->getLogger(),
                     $this->getBus()
                 );
@@ -77,12 +74,12 @@ class Hubbub extends \StdClass { // TODO Not sure if StdClass is the way to do i
     /*
      * Getters & Setters
      */
-    public function getConfig() {
-        return $this->config;
+    public function getConf() {
+        return $this->conf;
     }
 
-    public function setConfig($cfg) {
-        $this->config = $config;
+    public function setConf($conf) {
+        $this->conf = $conf;
     }
 
     public function getLogger() {

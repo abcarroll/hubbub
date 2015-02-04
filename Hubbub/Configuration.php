@@ -9,27 +9,26 @@
 
 namespace Hubbub;
 
-    /*
-     * Warning: Logger is not available at this point! (FIXME)
-     *
-     * I am not impressed with this jumble of code.
-     */
-
 /**
  * Class Configuration
  *
  * @package Hubbub
  */
 class Configuration {
+    /*
+     * What a mess!
+     */
+
+    protected $logger;
     public $data;
 
     /**
      * @param \Hubbub\Hubbub $hubbub
      */
     public function __construct($hubbub) {
-        include 'local-config.php';
-        if(!empty($config)) {
-            $this->data = $config;
+        require 'conf/bootstrap.php';
+        if(!empty($conf)) {
+            $this->data = $conf;
         } else {
             die("Configuration not properly defined!"); // TODO not very nice
         }
@@ -42,7 +41,7 @@ class Configuration {
         return $this->data;
     }
 
-    public function get() {
-
+    public function setLogger(\Hubbub\Logger $logger) {
+        $this->logger = $logger;
     }
 }
