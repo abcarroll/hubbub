@@ -36,7 +36,7 @@ class InternalBus {
 
             foreach($sub['filter'] as $matchKey => $matchValue) {
 
-                if(isset())
+                //if(isset())
 
             }
 

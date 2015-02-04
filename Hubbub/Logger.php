@@ -2,7 +2,7 @@
 /*
  * This file is a part of Hubbub, freely available at http://hubbub.sf.net
  *
- * Copyright (c) 2013, Armond B. Carroll <ben@hl9.net>
+ * Copyright (c) 2015, Armond B. Carroll <ben@hl9.net>
  * For full license terms, please view the LICENSE.txt file that was
  * distributed with this source code.
  */
@@ -10,10 +10,11 @@
 namespace Hubbub;
 
 /**
- * A logger interface similar (but likely not 100% compatible) with PSR-3.
+ * A logger interface that "looks like" the PSR-3 interface.
+ * Note it does not technically, but practically, implements PsrLogLoggerInterface.
  * See https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-3-logger-interface.md
  *
- * @todo Verify PSR-3 compliance.
+ * @todo Actual PSR-3 usage.
  */
 
 /**
@@ -21,18 +22,20 @@ namespace Hubbub;
  *
  * @package Hubbub
  */
-class Logger {
+class Logger { // extends PsrLogAbstractLogger implements PsrLogLoggerInterface {
     protected $fp;
     protected $config;
+    protected $instance;
 
-    public function __construct($parent, $config) {
-        $this->config = $config;
+    //public function __construct($parent, $config) {
+    public function __construct() {
+        /*$this->config = $config;
 
         if(!empty($config['logToFile'])) {
             $this->fp = fopen($config['logToFile'], 'a+');
         } else {
             $this->fp = null;
-        }
+        }*/
     }
 
     public function __destruct() {
@@ -40,22 +43,29 @@ class Logger {
             fclose($this->fp);
         }
     }
-
+`   `
     public function log($level, $message, array $context = array()) {
-        $logText = "[" . date('h:i:sA') . "] [$level] $message\n";
+        // Generate a pretty message
+        $prefixStr = "[" . date('h:i:sA') . "] [$level] ";
+        $logText = $prefixStr . str_replace("\n", "\n$prefixStr", $message);
 
-        if(count($context) > 0) {
-            $logText .= " => Context: \n";
-            foreach($context as $cLine) {
-                $logText .= ' ==> ' . $cLine . "\n";
-            }
-        }
-
+        echo $logText . "\n";
         if($this->fp) {
             fwrite($this->fp, $logText);
         }
 
-        echo $logText;
+        // Print a "context dump" (think a core dump) on severe errors
+
+        switch($level) {
+            case 'emergency':
+            case 'alert':
+            case 'critical':
+            case 'error':
+            case 'warning':
+                // Dump the context to a file for more severe errors
+                $this->dumpContext($logText, $context);
+                break;
+        }
     }
 
     public function emergency($message, array $context = array()) {
@@ -88,5 +98,41 @@ class Logger {
 
     public function debug($message, array $context = array()) {
         $this->log('debug', $message, $context);
+    }
+
+    /**
+     * Generates and writes a "context dump" to the local working directory.
+     *
+     * @param       $logText
+     * @param array $context
+     */
+    protected function dumpContext($logText, array $context) {
+        $logText = date('r') . "\n\n" . $logText;
+        ob_start();
+        var_dump($context);
+        $logText .= "\n\nContext Dump As Follows:\n\n";
+        $logText .= ob_get_clean();
+
+        $fileName = 'context-' . sha1($logText) . '.txt';
+
+        if(@file_put_contents($fileName, $logText)) {
+            echo "\n\n* * * Context dump written to file: $fileName *\n\n";
+        } else {
+            fwrite(STDERR, "\n\n** ** ** Could not write context dump to file: $fileName *\n\n");
+        }
+    }
+
+    /**
+     * Returns the instance of the object in a Singleton pattern.
+     * This is only meant for \Hubbub\ErrorHandler.
+     *
+     * @return Logger
+     */
+    public static function getInstance() {
+        static $instance = null;
+        if ($instance === null) {
+            $instance = new Logger();
+        }
+        return $instance;
     }
 }
