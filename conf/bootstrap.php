@@ -13,6 +13,7 @@ $config = [
         'object'    => '\Hubbub\Throttler\AdjustingDelay',
         'frequency' => 500000,
     ],
+
     'bus' => [
         'object' => '\Hubbub\MicroBus'
     ],
@@ -20,7 +21,7 @@ $config = [
     /*
      * Configure these, maybe...
      */
-    [
+    /*[
         'object' => '\Hubbub\IRC\Bnc',
         'netType' => '\Hubbub\Net\Stream',
         'listen' => 'tcp://0.0.0.0:7777',
@@ -28,7 +29,7 @@ $config = [
             'corndog' => 'myPass'
         ]
     ],
-    /*[
+    [
         'object'   => '\Hubbub\IRC\Client',
         'network'  => 'freenode',
         'nickname' => 'HubTest-' . dechex(mt_rand(0, 255)),
