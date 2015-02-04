@@ -9,7 +9,7 @@
 
 namespace Hubbub;
 
-// Auto-loading
+// Auto-loading "bootstrap"
 spl_autoload_register(function ($class) {
     $file = __DIR__ . '/' . str_replace('\\', '/', $class) . '.php';
     if (file_exists($file)) {
@@ -17,26 +17,10 @@ spl_autoload_register(function ($class) {
     }
 });
 
-// Handling "Normal" PHP Errors.  Closely resembles the example on set_error_handler() docs.
-//function Hubbub_handlePhpErrors($errno, $errstr , $errfile , $errline , $errcontext) {
-set_error_handler(function ($errno, $errstr , $errfile , $errline , $errcontext) {
-		// This error code is not included in error_reporting
-    if (!(error_reporting() & $errno)) {
-        return;
-    }
+// Set the PHP Error Handler
+ErrorHandler::setErrorHandler();
 
-    switch($errno) {
-        case E_USER_ERROR:
-        case E_RECOVERABLE_ERROR:
-            // Should get the logger and call $logger->error()
-            throw new \ErrorException($errstr, 0, $errno, $errfile, $errline);
-
-        default:
-            // Just let the default PHP error handling work for now.
-            // @todo This should call the appropriate PsrLogger method for all types.
-            return false;
-    }
-});
+trigger_error("A fucktwit", E_USER_ERROR);
 
 // Everything.
 \Hubbub\Utility::Sunrise();

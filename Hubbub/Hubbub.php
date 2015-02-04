@@ -64,7 +64,7 @@ class Hubbub extends \StdClass { // TODO Not sure if StdClass is the way to do i
                     $this,
                     $this->getConfig(),
                     $this->getLogger(),
-                    $this->getBus(),
+                    $this->getBus()
                 );
 
                 $this->modules[$mKey] = $object;
