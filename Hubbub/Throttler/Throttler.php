@@ -3,7 +3,7 @@
 /*
  * This file is a part of Hubbub, freely available at http://hubbub.sf.net
  *
- * Copyright (c) 2013, Armond B. Carroll <ben@hl9.net>
+ * Copyright (c) 2015, Armond B. Carroll <ben@hl9.net>
  * For full license terms, please view the LICENSE.txt file that was
  * distributed with this source code.
  */
@@ -16,12 +16,12 @@ namespace Hubbub\Throttler;
  *
  * @package Hubbub\Throttler
  */
-class Base {
-    protected $hubbub, $conf, $frequency, $iteration;
+abstract class Throttler {
+    protected $conf, $logger, $iteration;
 
-    function __construct(\Hubbub\Hubbub $hubbub, Array $conf) {
-        $this->hubbub = $hubbub;
+    function __construct(\Hubbub\Configuration $conf = null, \Hubbub\Logger $logger = null) {
         $this->conf = $conf;
+        $this->logger = $logger;
     }
 
     /**

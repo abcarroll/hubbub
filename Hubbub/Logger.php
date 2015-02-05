@@ -122,25 +122,15 @@ class Logger { // extends PsrLogAbstractLogger implements PsrLogLoggerInterface 
     public function setConf(\Hubbub\Configuration $conf) {
         $this->conf = $conf;
 
-        if(!empty($conf['logToFile'])) {
-            $this->fp = fopen($conf['logToFile'], 'a+');
+        if(!empty($conf['logger']['logToFile'])) {
+            $this->fp = fopen($conf['logger']['logToFile'], 'a+');
         } else {
             $this->fp = null;
         }
     }
 
-    /**
-     * Returns the instance of the object in a Singleton pattern.
-     * This is only meant for \Hubbub\ErrorHandler.
-     *
-     * @return Logger
-     */
-    public static function getInstance() {
-        static $instance = null;
-        if ($instance === null) {
-            $instance = new Logger();
-        }
-        return $instance;
+    public function setBus(\Hubbub\MicroBus $bus) {
+        $this->bus = $bus;
     }
 
 }

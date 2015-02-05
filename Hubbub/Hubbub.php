@@ -15,7 +15,7 @@ namespace Hubbub;
  *
  * @package Hubbub
  */
-class Hubbub extends \StdClass { // TODO Not sure if StdClass is the way to do it here
+class Hubbub {
     /**
      * @var array                  $modules
      * @var \Hubbub\Throttler\Base $throttler
@@ -27,8 +27,10 @@ class Hubbub extends \StdClass { // TODO Not sure if StdClass is the way to do i
     /**
      * Initiates a new hubbub object.  Meant to be called once, to start an isolated instance.
      */
-    public function __construct() {
-        // Nothing here!
+    public function __construct(\Hubbub\Configuration $conf, \Hubbub\Logger $logger, \Hubbub\MicroBus $bus, \Hubbub\Throttler\Throttler $throttler) {
+        $this->conf = $conf;
+        $this->logger = $logger;
+        $this->throttler = $throttler;
     }
 
     /**
