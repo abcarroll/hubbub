@@ -14,34 +14,27 @@ namespace Hubbub;
  *
  * @package Hubbub
  */
-class Configuration {
-    /*
-     * What a mess!
-     */
+class Configuration extends \ArrayObject {
+    protected $conf, $logger, $bus;
 
-    protected $logger;
-    public $data;
-
-    /**
-     * @param \Hubbub\Hubbub $hubbub
-     */
-    public function __construct($hubbub) {
-        require 'conf/bootstrap.php';
+    public function __construct(\Hubbub\Logger $logger = null, \Hubbub\MicroBus $bus = null) {
+        require 'conf/local-config.php';
         if(!empty($conf)) {
-            $this->data = $conf;
+            $this->exchangeArray($conf);
         } else {
-            die("Configuration not properly defined!"); // TODO not very nice
+            throw new \Exception("Local configuration file does not contain a global \$conf variable!");
         }
-    }
-
-    /**
-     * @return object
-     */
-    public function getData() {
-        return $this->data;
     }
 
     public function setLogger(\Hubbub\Logger $logger) {
         $this->logger = $logger;
+    }
+
+    public function setConf(\Hubbub\Configuration $conf) {
+        $this->conf = $conf;
+    }
+
+    public function setBus(\Hubbub\MicroBus $bus) {
+        $this->bus = $bus;
     }
 }

@@ -17,20 +17,41 @@ spl_autoload_register(function ($class) {
     }
 });
 
-// $conf = new Configuration();
 
-// Set the PHP Error Handler
-ErrorHandler::setErrorHandler();
 \Hubbub\Utility::Sunrise(); // Bootstrap CLI
 
+// This injects everything with everything.
 // Something something .. Like this ..
-//$logger = new Logger();
-//ErrorHandler::setErrorHandler($logger);
-//$conf->setLogger($logger);
+require 'conf/bootstrap.php';
+if(!empty($bootstrap)) {
 
-$h = new Hubbub();
-$bootstrap = new \Hubbub\Configuration($h);
-$h->addModules($bootstrap->data);
-$h->main();
+    // Initialize
+    foreach($bootstrap as $depName => $depCfg) {
+        $$depName = new $depCfg['object']();
+        echo " > Bootstrapping $depName as {$depCfg['object']}\n";
+    }
+
+    // and Inject
+    foreach($bootstrap as $depName => $depCfg) {
+        foreach($depCfg['inject'] as $depInj) {
+            $$depName->{'set' . $depInj}($$depInj);
+            echo " >  Injecting $depInj into $depName\n";
+        }
+    }
+
+} else {
+    die("Missing bootstrap file!");
+}
+
+assert($conf instanceof \Hubbub\Configuration);
+assert($logger instanceof \Hubbub\Logger);
+assert($bus instanceof \Hubbub\MicroBus);
+
+// Set the PHP Error Handler
+$errorHandler = new ErrorHandler($logger);
+$errorHandler->setHandler();
+
+$hubbub = new Hubbub($conf, $logger, $bus, $throttler);
+$hubbub->main();
 
 \Hubbub\Utility::Sunset();

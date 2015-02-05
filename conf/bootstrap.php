@@ -1,41 +1,36 @@
 <?php
-/* Example Bootstrap File */
-$config = [
-    /*
-     * Internal Modules
-     */
-    'logger'    => [
-        'object'    => '\Hubbub\Logger',
-        'logToFile' => 'hubbub.log',
-    ],
 
-    'throttler' => [
-        'object'    => '\Hubbub\Throttler\AdjustingDelay',
-        'frequency' => 500000,
-    ],
+/*
+ * Dependency Injection Graph
+ */
 
-    'bus' => [
-        'object' => '\Hubbub\MicroBus'
-    ],
+$bootstrap = [
 
-    /*
-     * Configure these, maybe...
-     */
-    /*[
-        'object' => '\Hubbub\IRC\Bnc',
-        'netType' => '\Hubbub\Net\Stream',
-        'listen' => 'tcp://0.0.0.0:7777',
-        'users' => [
-            'corndog' => 'myPass'
+    'conf'         => [
+        'object' => '\Hubbub\Configuration',
+        'inject' => [
+            'logger', 'bus'
         ]
     ],
-    [
-        'object'   => '\Hubbub\IRC\Client',
-        'network'  => 'freenode',
-        'nickname' => 'HubTest-' . dechex(mt_rand(0, 255)),
-        'username' => 'php',
-        'realname' => 'Hubbub',
-        'server'   => 'tcp://irc.freenode.net:6667',
-        'timeout'  => 30
-    ],*/
+
+    'logger'       => [
+        'object' => '\Hubbub\Logger',
+        'inject' => [
+            'conf', 'bus'
+        ]
+    ],
+
+    'bus'          => [
+        'object' => '\Hubbub\MicroBus',
+        'inject' => [
+            'conf', 'logger',
+        ]
+    ],
+
+    'throttler'    => [
+        'object' => '\Hubbub\Throttler\TimeAdjustedDelay',
+        'inject' => [
+            'conf', 'logger'
+        ]
+    ],
 ];

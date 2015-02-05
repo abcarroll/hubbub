@@ -47,4 +47,16 @@ class MicroBus {
     function unsubscribe($obj, array $filter = []) {
         unset($this->subscriptions[$obj]);
     }
+
+    public function setBus(\Hubbub\MicroBus $bus) {
+        // @todo
+    }
+
+    public function setConf(\Hubbub\Configuration $conf) {
+        // @todo
+    }
+
+    public function setLogger(\Hubbub\Logger $logger) {
+        // @todo
+    }
 }

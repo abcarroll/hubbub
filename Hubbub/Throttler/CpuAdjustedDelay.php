@@ -9,7 +9,7 @@
 
 namespace Hubbub\Throttlers;
 
-use Hubbub\Throttler\AdjustingDelay;
+use Hubbub\Throttler\TimeAdjustedDelay;
 
 /**
  * This is an attempt to have the bot self-monitor it's cpu usage to automatically adjust the frequency. It is incomplete and BROKEN!
@@ -40,7 +40,7 @@ trigger_error("The CPU-Adjusted Delay Throttler is likely broken!", E_USER_ERROR
  *
  * @package Hubbub\Throttlers
  */
-class CpuAdjustedDelay extends AdjustingDelay {
+class CpuAdjustedDelay extends TimeAdjustedDelay {
     private $jiffy_sec;
     private $target_cpu = 10;
 

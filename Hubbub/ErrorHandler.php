@@ -10,6 +10,10 @@
 namespace Hubbub;
 
 class ErrorHandler {
+    /**
+     * @var \Hubbub\Logger
+     */
+    protected $logger;
 
     // Ordered from lowest to highest
     static protected $errNoToString = [
@@ -52,33 +56,40 @@ class ErrorHandler {
         E_USER_DEPRECATED   => "warning",
     ];
 
-    static public function setErrorHandler() {
-        // set_error_handler('ErrorHandler::errorHandler');
-        set_error_handler(function ($errNo, $errStr, $errFile, $errLine, $errContext) {
-            // This error code is not included in error_reporting
-            if(!(error_reporting() & $errNo)) {
-                return true;
-            }
+    public function __construct(\Hubbub\Logger $logger = null) {
+        $this->logger = $logger;
 
-            $logger = Logger::getInstance();
+        if($logger !== null) {
+            $this->setHandler();
+        }
+    }
 
-            $level = ErrorHandler::$errNoToLevel[$errNo];
-
-            $message = "PHP " . ErrorHandler::$errNoToString[$errNo]
-                . "\n > $errStr"
-                . "\n > $errFile:$errLine";
-
-            $logger->log($level, $message, $errContext);
-
-            switch ($errNo) {
-                case E_ERROR:
-                case E_USER_ERROR:
-                case E_RECOVERABLE_ERROR:
-                    throw new \ErrorException($errStr, 0, $errNo, $errFile, $errLine);
-                    break;
-            }
-
+    public function handle($errNo, $errStr, $errFile, $errLine, $errContext) {
+        // This error code is not included in error_reporting
+        if(!(error_reporting() & $errNo)) {
             return true;
-        });
+        }
+
+        $level = ErrorHandler::$errNoToLevel[$errNo];
+
+        $message = "PHP " . ErrorHandler::$errNoToString[$errNo]
+            . "\n > $errStr"
+            . "\n > $errFile:$errLine";
+
+        $this->logger->log($level, $message, $errContext);
+
+        switch ($errNo) {
+            case E_ERROR:
+            case E_USER_ERROR:
+            case E_RECOVERABLE_ERROR:
+                throw new \ErrorException($errStr, 0, $errNo, $errFile, $errLine);
+                break;
+        }
+
+        return true;
+    }
+
+    public function setHandler() {
+        set_error_handler([$this, 'handle']);;
     }
 }
