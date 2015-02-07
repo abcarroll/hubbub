@@ -7,30 +7,37 @@
 $bootstrap = [
 
     'conf'         => [
-        'object' => '\Hubbub\Configuration',
+        'class'  => '\Hubbub\Configuration',
         'inject' => [
-            'logger', 'bus'
+            'logger',
+            'bus'
         ]
     ],
-
     'logger'       => [
-        'object' => '\Hubbub\Logger',
+        'class'  => '\Hubbub\Logger',
         'inject' => [
-            'conf', 'bus'
+            'conf',
+            'bus'
         ]
     ],
-
+    'errorHandler' => [
+        'class'  => '\Hubbub\ErrorHandler',
+        'inject' => [
+            'logger'
+        ]
+    ],
     'bus'          => [
-        'object' => '\Hubbub\MicroBus',
+        'class'  => '\Hubbub\MicroBus',
         'inject' => [
-            'conf', 'logger',
+            'conf',
+            'logger',
         ]
     ],
-
     'throttler'    => [
-        'object' => '\Hubbub\Throttler\TimeAdjustedDelay',
+        'class'  => '\Hubbub\Throttler\TimeAdjustedDelay',
         'inject' => [
-            'conf', 'logger'
+            'conf',
+            'logger'
         ]
     ],
 ];

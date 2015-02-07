@@ -60,7 +60,7 @@ class ErrorHandler {
         $this->logger = $logger;
 
         if($logger !== null) {
-            $this->setHandler();
+            $this->setLogger($logger);
         }
     }
 
@@ -91,5 +91,10 @@ class ErrorHandler {
 
     public function setHandler() {
         set_error_handler([$this, 'handle']);;
+    }
+
+    public function setLogger(\Hubbub\Logger $logger) {
+        $this->logger = $logger;
+        $this->setHandler();
     }
 }

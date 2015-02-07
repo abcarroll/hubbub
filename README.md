@@ -20,8 +20,7 @@ Hubbub isn't ready yet.  There is a mostly full featured IRC client, and partial
 I am slowly making progress.
 
 ## TODO ##
-  * Modernize Code: Most of this code was written before true namespace support so you see PEAR-like class names.
-
+  * ~~Modernize Code: Most of this code was written before true namespace support so you see PEAR-like class names.~~
 
 ## License ##
 Hubbub is available under a BSD-like license.  Please see LICENSE.txt for full license text.  Some files do not have a copyright header, those files are still subject to my copyright, unless specifically  noted with a separate copyright header.
