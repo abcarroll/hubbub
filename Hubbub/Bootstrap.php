@@ -1,13 +1,45 @@
 <?php
+/*
+ * This file is a part of Hubbub, freely available at http://hubbub.sf.net
+ *
+ * Copyright (c) 2015, Armond B. Carroll <ben@hl9.net>
+ * For full license terms, please view the LICENSE.txt file that was
+ * distributed with this source code.
+ */
 
 namespace Hubbub;
 
+/**
+ * Class Bootstrap
+ *
+ * @package Hubbub
+ */
 class Bootstrap {
-    static public function loadDependencies() {
-        // This injects everything with everything.
-        // Something something .. Like this ..
 
-        require 'conf/bootstrap.php';
+    /**
+     * Returns the CLI argument-specified or default bootstrap configuration file's array.
+     *
+     * @return array
+     */
+    static public function getDependenciesArray() {
+
+        if(empty($argv[1])) {
+            $bootstrapFile = 'conf/bootstrap.php';
+        } else {
+            $bootstrapFile = $argv[1];
+        }
+
+        return include($bootstrapFile);
+    }
+
+    /**
+     * @return array An associative array containing the
+     * @throws \Exception
+     */
+    static public function loadDependencies(Array $bootstrap) {
+        // This injects everything with everything.
+        // It's a bit over-engineered, I've been told.
+
         if(!empty($bootstrap)) {
 
             $dependencies = [];

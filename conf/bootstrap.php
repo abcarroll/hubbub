@@ -1,15 +1,12 @@
 <?php
-
 /*
  * Dependency Injection Graph
  */
 
-$bootstrap = [
-
+return [
     'conf'         => [
         'class'  => '\Hubbub\Configuration',
         'inject' => [
-            'logger',
             'bus'
         ]
     ],
