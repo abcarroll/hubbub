@@ -30,10 +30,6 @@ class Configuration extends \ArrayObject {
         $this->logger = $logger;
     }
 
-    public function setConf(\Hubbub\Configuration $conf) {
-        $this->conf = $conf;
-    }
-
     public function setBus(\Hubbub\MicroBus $bus) {
         $this->bus = $bus;
     }

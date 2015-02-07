@@ -15,34 +15,6 @@ namespace Hubbub;
  * @package Hubbub
  */
 class Utility {
-
-    /**
-     * Sets up the environment in early stages of execution.  This is a bootstrap-ish type piece of code.
-     */
-    static public function Sunrise() {
-        echo "Hubbub session started " . date('r') . "\n";
-
-        // See http://php.net/errorfunc.configuration.php#ini.error-reporting
-        error_reporting(2147483647);
-
-        // Check if we're running a web instance
-        if(php_sapi_name() != 'cli') {
-            header('Content-Type: text/plain');
-            ob_implicit_flush();
-
-            // TODO Should this be changed to a warning?
-            echo "I think I am running in a web environment.  I normally need to be run in a shell.  I will continue anyway, but please be advised this might be a bad idea.\n";
-        }
-    }
-
-    /**
-     * Clean up the environment in a graceful shutdown situation
-     */
-    static public function Sunset() {
-        echo date('r') . "\n";
-        echo "Hubbub gracefully shut down.\n";
-    }
-
     /**
      * Converts an integer into a string using the best SI prefix.  For example 0.003 converts to '3 milli'.
      *
