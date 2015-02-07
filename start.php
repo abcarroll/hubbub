@@ -9,16 +9,19 @@
 
 namespace Hubbub;
 
-// Auto-loading "bootstrap"
+// PSR-4 autoloader
 spl_autoload_register(function ($class) {
-    $file = __DIR__ . '/' . str_replace('\\', '/', $class) . '.php';
+    $file = __DIR__ . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $class) . '.php';
     if(file_exists($file)) {
         require $file;
     }
 });
 
+
 \Hubbub\Bootstrap::Sunrise();
-$dependencies = Bootstrap::loadDependencies();
+$dependencies = Bootstrap::loadDependencies(
+    Bootstrap::getDependenciesArray()
+);
 $hubbub = new Hubbub(
     $dependencies['conf'],
     $dependencies['logger'],
