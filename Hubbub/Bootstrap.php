@@ -87,8 +87,8 @@ class Bootstrap {
     static public function Sunrise() {
         echo "Hubbub session started " . date('r') . "\n";
 
-        // See http://php.net/errorfunc.configuration.php#ini.error-reporting
-        error_reporting(2147483647);
+        // All errors + strict
+        error_reporting(E_ALL | E_STRICT);
 
         // Check if we're running a web instance
         if(php_sapi_name() != 'cli') {
