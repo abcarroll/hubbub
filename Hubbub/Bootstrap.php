@@ -106,8 +106,7 @@ class Bootstrap {
      * Clean up the environment in a graceful shutdown situation
      */
     static public function Sunset() {
-        echo date('r') . "\n";
-        echo "Hubbub gracefully shut down.\n";
+        echo "Hubbub session gracefully shut down " . date('r') . "\n";
     }
 
 }
