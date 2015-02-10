@@ -33,21 +33,19 @@ use Hubbub\Throttler\TimeAdjustedDelay;
  * This was written when Hubbub used the Throttlers as the outright iterator / observer and thus the context may be slightly dated.
  */
 
-trigger_error("The CPU-Adjusted Delay Throttler is likely broken!", E_USER_ERROR);
-
 /**
  * Class CpuAdjustedDelay
  *
  * @package Hubbub\Throttlers
  */
-class CpuAdjustedDelay extends TimeAdjustedDelay {
+class CpuAdjustedDelay {
     private $jiffy_sec;
     private $target_cpu = 10;
 
 
     private $total_sys_jiffies, $total_ujiff, $total_sjiff;
 
-    function get_total_sys_jiffies() {
+    function getTotalSysJiffies() {
         $proc_stat = file('/proc/stat');
         foreach ($proc_stat as $line) {
             if(substr($line, 0, 4) == 'cpu ') {
@@ -55,16 +53,17 @@ class CpuAdjustedDelay extends TimeAdjustedDelay {
             }
         }
 
-        $pieces = explode(' ', $line);
-        $pieces[0] = 0; // overwrite cpu line
-
-        $total_jiffies = array_sum($pieces);
+        if(!empty($line)) {
+            $pieces = explode(' ', $line);
+            $pieces[0] = 0; // overwrite cpu line
+            $total_jiffies = array_sum($pieces);
+        }
 
         return $total_jiffies;
     }
 
     function __construct($hubbub, $frequency) {
-        parent::__construct($hubbub, $frequency);
+        // parent::__construct($hubbub, $frequency);
 
         // The ZZZ is just an easy way to make sure it returned an integer and nothing else (i.e. error)
         $try = shell_exec('python -c "import os; print \'ZZZ\'; print os.sysconf(os.sysconf_names[\'SC_CLK_TCK\'])"');
@@ -75,7 +74,7 @@ class CpuAdjustedDelay extends TimeAdjustedDelay {
             $this->jiffy_sec = 100;
         }
 
-        $this->total_sys_jiffies = $this->get_total_sys_jiffies();
+        $this->total_sys_jiffies = $this->getTotalSysJiffies();
     }
 
     #user_util = 100 * (utime_after - utime_before) / (time_total_after - time_total_before);
@@ -85,7 +84,7 @@ class CpuAdjustedDelay extends TimeAdjustedDelay {
     function get_cpu_usage() {
         $pid = getmypid();
         $last_jiffies = $this->total_sys_jiffies;
-        $this->total_sys_jiffies = $this->get_total_sys_jiffies();
+        $this->total_sys_jiffies = $this->getTotalSysJiffies();
 
         $stats = file_get_contents('/proc/' . $pid . '/stat');
         trigger_error($stats);
@@ -103,20 +102,19 @@ class CpuAdjustedDelay extends TimeAdjustedDelay {
 
     function iterate() {
         $this->get_cpu_usage();
-        parent::iterate();
+        //parent::iterate();
     }
 }
 
 $iterator = new CpuAdjustedDelay(null, 500);
 
-for ($x = 0; $x < 5; $x++) {
-    $iterator->add_module(new dummy());
-}
-
 while (1) {
-    $iterator->iterate();
 
-    for ($x = 0; $x < 1000000; $x++) {
+    echo $iterator->getTotalSysJiffies();
+
+    echo "\n";
+
+    /*for ($x = 0; $x < 1000000; $x++) {
         $z = 2 ^ $x;
     }
 
@@ -124,6 +122,6 @@ while (1) {
     for ($x = 0; $x < 1000; $x++) {
         fread($fp, 1024);
     }
-    fclose($fp);
+    fclose($fp);*/
 
 }
