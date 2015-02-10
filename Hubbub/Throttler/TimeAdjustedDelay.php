@@ -47,9 +47,9 @@ class TimeAdjustedDelay extends Throttler implements IterableModule {
         $iteration_sleep = $this->frequency - $iteration_length;
         if($iteration_sleep > 0) {
             usleep($iteration_sleep);
-            $this->logger->debug("[{$this->iteration}] Sleeping for $iteration_sleep uSec, iteration took $iteration_length uSec");
+            // $this->logger->debug("[{$this->iteration}] Sleeping for $iteration_sleep uSec, iteration took $iteration_length uSec");
         } else {
-            $this->logger->debug("[{$this->iteration}] NOT Sleeping, iteration took $iteration_length uSec");
+            $this->logger->warning("[{$this->iteration}] NOT Sleeping, iteration took $iteration_length uSec");
         }
 
         $this->last_iteration_start = microtime(1);
