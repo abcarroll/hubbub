@@ -17,10 +17,38 @@ Hubbub is based on some code I wrote over 10 years ago when I was about 14 years
 ## Status ##
 Hubbub isn't ready yet.  There is a mostly full featured IRC client, and partial IRC server (BNC-side) component.  There used to be interest in Skype however Skype stopped supporting sending messages through it's dbus API in Dec 2013.  If there is ever a way to accomplish this withotu legal ramifications, it will be so.  Right now, the main component missing is a reliable messaging hub to aid in moving chat messages around internally in a protocol-neutral way, and a configuration interface.  There is a lot of loose ends to be tied up yet.
 
-I am slowly making progress.
+I am *slowly* making progress.  This project is intended to be a very well laid out example of Object Oriented Programming with dependency injection & IoC techniques which are relatively new concepts to me.
 
 ## TODO ##
   * ~~Modernize Code: Most of this code was written before true namespace support so you see PEAR-like class names.~~
+  * Finish the messaging bus, merge the two bus classes.  Possibly refactor into MessageBus not MsgBus.
+  * Write out all classes & namespaces.  Refactor into new namespaces and write Interfaces and Abstract classes where needed.
+    * Make sure the getters and setters are consistent.
+  * Refactor the IRC client considerably.  Get the modular bits working again.  Refactor to use proper camelCase callback methods.
+    Things such as channels, commands, and nicks should be objects.
+  * Move networking objects into DI injection on the Bnc/IRC Objects
+     - Fix client disconnection issue
+  * The bootstrapping is still a little over-done.  For the most part, it should work, but I believe the bootstrap and conf class needs to be refactored
+    into more than just those two classes.
+  * *Re-implement chroot() capabilities from mpiBot*
+  * Write basic configuration script as a demo.  Should ask:
+    * Logging options (to file, context dumps)
+    * Auto-detect or ask which Net class to use (socket, stream, fsockopen)
+    * Run BNC? Listening options, password
+    * Global IRC Options: Default nick/user/realname, ctcp & dcc options, global irc modules
+    * Add networks
+      * Per-server options: nick/user/realname, ctcp&dcc options, server modules
+        * Auto join, SASL, TLS, auto-login for services
+      * Add servers
+    * { .. repeat until satisfied }
+  * *Clean up circular reference issue.* (Somewhat done)
+  * Move Conf into a JSON loader.  Write a demo mySQL conf class.
+  * Ensure all headers are up-to-date
+  * Ensure all phpDocs are up-to-date.
+  * Ensure all throttlers have a consistent API.
+  * Attempt to complete the CpuAdjustedDelay Throttler.
+  * Refactor code to make better use of Built-in Spl Classes such as ArrayObject, or the SplObserver/SplSubject for the
+    message bus (or is our's too different from that specific implementation?)
 
 ## License ##
 Hubbub is available under a BSD-like license.  Please see LICENSE.txt for full license text.  Some files do not have a copyright header, those files are still subject to my copyright, unless specifically  noted with a separate copyright header.
