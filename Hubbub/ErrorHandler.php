@@ -7,6 +7,10 @@
  * distributed with this source code.
  */
 
+/**
+ * @todo phpDoc blocks
+ */
+
 namespace Hubbub;
 
 class ErrorHandler {
@@ -35,9 +39,7 @@ class ErrorHandler {
         // E_ALL ...
     ];
 
-    /*
-     * These might could be improved.
-     */
+    // These might could be improved.
     static protected $errNoToLevel = [
         E_ERROR             => "emergency",
         E_WARNING           => "warning",
@@ -73,8 +75,7 @@ class ErrorHandler {
         $level = ErrorHandler::$errNoToLevel[$errNo];
 
         $message = "PHP " . ErrorHandler::$errNoToString[$errNo]
-            . "\n > $errStr"
-            . "\n > $errFile:$errLine";
+            . "\n > $errStr in $errFile:$errLine";
 
         $this->logger->log($level, $message, $errContext);
 
