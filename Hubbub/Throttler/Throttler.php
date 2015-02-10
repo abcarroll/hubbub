@@ -12,7 +12,7 @@ namespace Hubbub\Throttler;
 
 /**
  * Class Base
- * I'm not 100% sure this class is necessary as it does very little.  Perhaps an interface would be more appropriate?
+ * @todo I'm not 100% sure this class is necessary as it does very little.  Perhaps an interface would be more appropriate?
  *
  * @package Hubbub\Throttler
  */

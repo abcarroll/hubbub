@@ -9,7 +9,7 @@ $conf = [
         'contextDumps' => true, // TODO Does not care about this setting
     ],
     'throttler' => [
-        'frequency' => 500000,
+        'frequency' => 50000,
     ],
 
     /* this is JUST an example to help better understand how to write the conf module*/

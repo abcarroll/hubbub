@@ -15,7 +15,7 @@ namespace Hubbub;
  * @package Hubbub
  */
 class Hubbub {
-    protected $conf, $logger, $iterator;
+    public $conf, $logger, $iterator;
 
     function __construct(\Hubbub\Configuration $conf, \Hubbub\Logger $logger, \Hubbub\RootIterator $iterator) {
         $this->conf = $conf;
