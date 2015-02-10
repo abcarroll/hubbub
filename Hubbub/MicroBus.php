@@ -19,7 +19,7 @@ namespace Hubbub;
 /**
  * Class MicroBus
  */
-class MicroBus {
+class MicroBus implements MsgBus, IterableModule {
     private $subscriptions = [];
     private $objects = [];
 
@@ -58,5 +58,9 @@ class MicroBus {
 
     public function setLogger(\Hubbub\Logger $logger) {
         // @todo
+    }
+
+    public function iterate() {
+        // nothing yet
     }
 }

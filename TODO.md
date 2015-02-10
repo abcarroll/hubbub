@@ -11,3 +11,5 @@ This is a short term to-do list.
 - Ensure all phpDocs are up-to-date.
 - Ensure all throttlers have a consistent API.
 - Attempt to complete the CpuAdjustedDelay Throttler.
+- Refactor code to make better use of Built-in Spl Classes such as ArrayObject, or the SplObserver/SplSubject for the
+    message bus (or is our's too different from that specific implementation?)

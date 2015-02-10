@@ -20,9 +20,8 @@ namespace Hubbub\IRC;
  *
  * @package Hubbub\Modules\IRC
  */
-class Client extends \Hubbub\Net\Stream\Client {
+class Client extends \Hubbub\Net\Stream\Client implements \Hubbub\IterableModule {
     use Generic;
-
 
     private $protocol = 'irc';
     private $network = 'freenode';
@@ -71,7 +70,6 @@ class Client extends \Hubbub\Net\Stream\Client {
     }
 
     function iterate() {
-        echo "ITER IRC CLIENT\n";
         parent::iterate();
     }
 
@@ -121,25 +119,27 @@ class Client extends \Hubbub\Net\Stream\Client {
      */
 
     function on_rpl_welcome($d) {
-        $this->bus->publish([
+        /* $this->bus->publish([
             'protocol' => $this->protocol,
             'network'  => $this->network,
             'event'    => 'connected',
-        ]);
+        ]); */
+
     }
 
     function on_privmsg($d) {
-        $this->bus->publish([
+        /* $this->bus->publish([
             'protocol' => $this->protocol,
             'network'  => $this->network,
             'event'    => 'msg',
             'from'     => $d['sender'],
             'data'     => $d['data'],
             'irc'      => $d,
-        ]);
+        ]); */
     }
 
     function on_notice($d) {
+        /*
         $this->bus->publish([
             'protocol' => $this->protocol,
             'network'  => $this->network,
@@ -147,6 +147,6 @@ class Client extends \Hubbub\Net\Stream\Client {
             'from'     => $d['sender'],
             'data'     => $d['data'],
             'irc'      => $d,
-        ]);
+        ]); */
     }
 }
