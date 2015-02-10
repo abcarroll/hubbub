@@ -7,14 +7,12 @@ return [
     'conf'         => [
         'class'  => '\Hubbub\Configuration',
         'inject' => [
-            'bus'
         ]
     ],
     'logger'       => [
         'class'  => '\Hubbub\Logger',
         'inject' => [
             'conf',
-            'bus'
         ]
     ],
     'errorHandler' => [
@@ -23,11 +21,13 @@ return [
             'logger'
         ]
     ],
+    'moduleIterator' => [
+        'class' => '\Hubbub\ModuleIterator'
+    ],
+
     'bus'          => [
         'class'  => '\Hubbub\MicroBus',
         'inject' => [
-            'conf',
-            'logger',
         ]
     ],
     'throttler'    => [
@@ -36,5 +36,5 @@ return [
             'conf',
             'logger'
         ]
-    ],
+    ]
 ];

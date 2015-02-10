@@ -19,14 +19,14 @@ spl_autoload_register(function ($class) {
 
 
 \Hubbub\Bootstrap::Sunrise();
+
 $dependencies = Bootstrap::loadDependencies(
     Bootstrap::getDependenciesArray()
 );
+
 $hubbub = new Hubbub(
     $dependencies['conf'],
     $dependencies['logger'],
-    $dependencies['bus'],
-    $dependencies['throttler']
 );
-$hubbub->main();
+
 \Hubbub\Bootstrap::Sunset();
