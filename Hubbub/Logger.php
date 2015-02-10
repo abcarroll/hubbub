@@ -15,6 +15,7 @@ namespace Hubbub;
  * See https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-3-logger-interface.md
  *
  * @todo Actual PSR-3 usage.
+ * @todo phpDoc Updates
  */
 
 /**
@@ -60,7 +61,8 @@ class Logger { // extends PsrLogAbstractLogger implements PsrLogLoggerInterface 
             case 'critical':
             case 'error':
             case 'warning':
-                $this->dumpContext($logText, $context);
+                // TODO Make configurable.  Off until then, this is really meant more for long running instances.
+                // $this->dumpContext($logText, $context);
                 break;
         }
     }
