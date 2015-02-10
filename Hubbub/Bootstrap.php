@@ -52,15 +52,17 @@ class Bootstrap {
                 $dependencies[ $depName ] = new $depCfg['class']();
 
                 // Each module that this dependency requests
-                foreach($depCfg['inject'] as $injName) {
-                    if(isset($dependencies[ $injName ])) {
-                        // The requested dependency is already initiated
-                        // echo " >  Injecting $injName into $depName\n";
-                        $dependencies[ $depName ]->{'set' . $injName}($dependencies[ $injName ]);
-                    } else {
-                        // Else, add it to the queue for when it is initiated
-                        // echo " >  Queueing $injName to be injected into $depName\n";
-                        $dependencyQueue [ $injName ][] = $depName;
+                if(!empty($depCfg['inject'])) {
+                    foreach($depCfg['inject'] as $injName) {
+                        if(isset($dependencies[ $injName ])) {
+                            // The requested dependency is already initiated
+                            // echo " >  Injecting $injName into $depName\n";
+                            $dependencies[ $depName ]->{'set' . $injName}($dependencies[ $injName ]);
+                        } else {
+                            // Else, add it to the queue for when it is initiated
+                            // echo " >  Queueing $injName to be injected into $depName\n";
+                            $dependencyQueue [ $injName ][] = $depName;
+                        }
                     }
                 }
 
