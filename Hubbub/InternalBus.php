@@ -9,7 +9,7 @@
 
 namespace Hubbub;
 
-class InternalBus {
+class InternalBus implements MsgBus, IterableModule {
 
     private $subscriptions;
 
@@ -51,6 +51,10 @@ class InternalBus {
             $this->objects[$sObj]->notify($event);
         }
         return true;
+    }
+
+    public function iterate() {
+        //nothing yet
     }
 
 }

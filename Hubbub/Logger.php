@@ -131,7 +131,7 @@ class Logger { // extends PsrLogAbstractLogger implements PsrLogLoggerInterface 
         }
     }
 
-    public function setBus(\Hubbub\MicroBus $bus) {
+    public function setBus(\Hubbub\MsgBus $bus) {
         $this->bus = $bus;
     }
 

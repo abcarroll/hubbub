@@ -9,13 +9,14 @@
  */
 
 namespace Hubbub\Throttler;
+use Hubbub\IterableModule;
 
 /**
  * Class AdjustingDelay
  *
  * @package Hubbub\Throttler
  */
-class TimeAdjustedDelay extends Throttler {
+class TimeAdjustedDelay extends Throttler implements IterableModule {
     protected $conf, $logger;
     protected $frequency, $last_iteration_start = 0;
 
@@ -39,7 +40,7 @@ class TimeAdjustedDelay extends Throttler {
      *
      * @todo Re-enable debugging messages when logging filtering is available.
      */
-    function throttle() {
+    function iterate() {
         parent::throttle();
 
         $iteration_length = round((microtime(1) - $this->last_iteration_start) * 1000000);
@@ -54,7 +55,7 @@ class TimeAdjustedDelay extends Throttler {
         $this->last_iteration_start = microtime(1);
     }
 
-    public function setBus(\Hubbub\MicroBus $bus) {
+    public function setBus(\Hubbub\MsgBus $bus) {
         // @todo
     }
 

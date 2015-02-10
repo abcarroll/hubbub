@@ -17,20 +17,12 @@ namespace Hubbub;
 class Configuration extends \ArrayObject {
     protected $conf, $logger, $bus;
 
-    public function __construct(\Hubbub\Logger $logger = null, \Hubbub\MicroBus $bus = null) {
+    public function __construct(\Hubbub\Logger $logger = null, \Hubbub\MsgBus $bus = null) {
         require 'conf/local-config.php';
         if(!empty($conf)) {
             $this->exchangeArray($conf);
         } else {
             throw new \Exception("Local configuration file does not contain a global \$conf variable!");
         }
-    }
-
-    public function setLogger(\Hubbub\Logger $logger) {
-        $this->logger = $logger;
-    }
-
-    public function setBus(\Hubbub\MicroBus $bus) {
-        $this->bus = $bus;
     }
 }

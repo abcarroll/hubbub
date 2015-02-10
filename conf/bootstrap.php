@@ -1,40 +1,44 @@
 <?php
 /*
  * Dependency Injection Graph
+ * Under normal circumstance it is not necessary to edit this file.
  */
 
 return [
-    'conf'         => [
+    'conf'           => [
         'class'  => '\Hubbub\Configuration',
-        'inject' => [
-        ]
     ],
-    'logger'       => [
+
+    'logger'         => [
         'class'  => '\Hubbub\Logger',
         'inject' => [
-            'conf',
+            'conf'
         ]
     ],
-    'errorHandler' => [
+
+    'errorHandler'   => [
         'class'  => '\Hubbub\ErrorHandler',
         'inject' => [
             'logger'
         ]
     ],
-    'moduleIterator' => [
-        'class' => '\Hubbub\ModuleIterator'
-    ],
 
-    'bus'          => [
-        'class'  => '\Hubbub\MicroBus',
-        'inject' => [
-        ]
-    ],
     'throttler'    => [
         'class'  => '\Hubbub\Throttler\TimeAdjustedDelay',
         'inject' => [
-            'conf',
-            'logger'
+            'conf', 'logger'
         ]
-    ]
+    ],
+
+    'bus'       => [
+        'class'  => '\Hubbub\InternalBus',
+        'inject' => []
+    ],
+
+    'rootIterator' => [
+        'class'  => '\Hubbub\RootIterator',
+        'inject' => [
+            'throttler', 'bus'
+        ]
+    ],
 ];

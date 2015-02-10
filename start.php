@@ -24,9 +24,11 @@ $dependencies = Bootstrap::loadDependencies(
     Bootstrap::getDependenciesArray()
 );
 
+// TODO Move this to the bootstrapper if the bootstrapper can be easily modified to do constructor injection
 $hubbub = new Hubbub(
     $dependencies['conf'],
     $dependencies['logger'],
+    $dependencies['rootIterator']
 );
 
 \Hubbub\Bootstrap::Sunset();
