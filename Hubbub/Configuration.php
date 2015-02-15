@@ -17,7 +17,7 @@ namespace Hubbub;
 class Configuration extends \ArrayObject {
     protected $conf, $logger, $bus;
 
-    public function __construct(\Hubbub\Logger $logger = null, \Hubbub\MsgBus $bus = null) {
+    public function __construct(\Hubbub\Logger $logger = null, \Hubbub\MessageBus $bus = null) {
         require 'conf/local-config.php';
         if(!empty($conf)) {
             $this->exchangeArray($conf);

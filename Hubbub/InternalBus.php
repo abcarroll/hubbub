@@ -9,7 +9,7 @@
 
 namespace Hubbub;
 
-class InternalBus implements MsgBus, IterableModule {
+class InternalBus implements MessageBus, IterableModule {
 
     private $subscriptions;
 

@@ -27,7 +27,7 @@ class Bnc extends \Hubbub\Net\Stream\Server {
     protected $hubbub, $config, $logger, $bus;
     protected $clients;
 
-    public function __construct(\Hubbub\Hubbub $hubub, \Hubbub\Configuration $config, \Hubbub\Logger $logger, \Hubbub\MsgBus $bus) {
+    public function __construct(\Hubbub\Hubbub $hubub, \Hubbub\Configuration $config, \Hubbub\Logger $logger, \Hubbub\MessageBus $bus) {
         $this->hubbub = $hubub;
         $this->config = $config;
         $this->logger = $logger;

@@ -55,7 +55,7 @@ class TimeAdjustedDelay extends Throttler implements IterableModule {
         $this->last_iteration_start = microtime(1);
     }
 
-    public function setBus(\Hubbub\MsgBus $bus) {
+    public function setBus(\Hubbub\MessageBus $bus) {
         // @todo
     }
 

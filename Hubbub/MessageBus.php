@@ -2,6 +2,6 @@
 
 namespace Hubbub;
 
-interface MsgBus {
+interface MessageBus {
 
 }

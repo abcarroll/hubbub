@@ -19,7 +19,7 @@ namespace Hubbub;
 /**
  * Class MicroBus
  */
-class MicroBus implements MsgBus, IterableModule {
+class MicroBus implements MessageBus, IterableModule {
     private $subscriptions = [];
     private $objects = [];
 

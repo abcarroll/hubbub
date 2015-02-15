@@ -111,7 +111,7 @@ class RootIterator {
      * TODO the inject() method to call their own setConf/setLogger methods.
      */
 
-    public function setBus(\Hubbub\MsgBus $bus) {
+    public function setBus(\Hubbub\MessageBus $bus) {
         $this->add($bus, 'bus');
     }
 
