@@ -55,53 +55,234 @@ trait Generic {
         return $r;
     }
 
+    function parse_irc_target($arg) {
+        list($target, $arg) = explode(' ', $arg, 2);
+        if(substr($arg, 0, 1) == ':') { // remove preceeding ':'
+            $arg = substr($arg, 1);
+        }
+
+        return [$target, $arg];
+    }
+
+    /*
+     * Returns an array
+     *
+     *
+     */
+
     // Note, for simplicity, you must only pass 1 irc protocol line at a time,
+
+    /**
+     * @param string $c A raw, unformatted IRC protocol line.
+     *
+     * @return array A parsed, structured array containing formatted IRC data.
+     *
+     * This is the main IRC protocol processing method.  It returns a pretty array with the following indexes:
+     *  protocol    always "irc"
+     *  data        the raw, unprocessed data.  probably equal to the passed "$c" parameter.
+     *  data-cmd    the raw, unprocessed command name (such as NOTICE, PRIVMSG)
+     *  data-arg    the raw, unprocessed argument (such as ':foo bar')
+     *  is-numeric  was the original command a numeric command?
+     *  cmd         the processed command, in lowercase, such as 'privmsg', or 'rpl_welcome' for 001
+     *  arg         the processed command's argument
+     */
     function parse_irc_cmd($c) {
-        $r = array('raw' => $c);
+        $parsed = [
+            'protocol' => 'irc',
+            'data'     => $c,
+        ];
+
         $c = trim($c);
 
         // For messages with a sender ("prefix" in irc rfc)
         if(substr($c, 0, 1) == ':') {
-            list($r['sender'], $r['cmd'], $r['parm']) = explode(' ', $c, 3);
-            $r['hostmask'] = $this->parse_irc_hostmask($r['sender']);
+            list($sender, $cmd, $arg) = explode(' ', $c, 3);
         } else {
-            list($r['cmd'], $r['parm']) = explode(' ', $c, 2);
+            $sender = null;
+            list($cmd, $arg) = explode(' ', $c, 2);
         }
 
-        $r['cmd_original'] = $r['cmd'];
-        if(is_numeric($r['cmd'])) {
-            $numeric_swap = $this->irc_numerics[(int) $r['cmd']];
+        // Strip the beginning ':' from the sender
+        if(substr($sender, 0, 1) == ':') {
+            $sender = substr($sender, 1);
+        }
 
-            if($numeric_swap !== false) { // note the !== although there should never be a 000
-                $r['cmd_numeric'] = $r['cmd'];
-                $r['cmd'] = $numeric_swap;
+        // Set them to the parsed array...
+        $parsed['data-cmd'] = $cmd;
+        $parsed['data-arg'] = $arg;
+
+        if(is_numeric($cmd)) {
+            $numeric_swap = $this->irc_numerics[(int) $cmd];
+
+            if($numeric_swap !== false) {
+                $cmd = $numeric_swap;
             } else {
+                // @todo Use real logger here
                 cout(owarning, "I don't have a definition for numeric command {$r['cmd']}");
             }
         }
 
-        $r['cmd'] = strtolower($r['cmd']); // Not very IRC like, but I prefer it.
+        $cmd = strtolower($cmd); // For normalization
+
+        $parsed['from'] = $this->parse_irc_hostmask($sender);
+        $parsed['cmd'] = $cmd;
 
         // Now per-cmd processing rules
-        if($r['cmd'] == 'privmsg') {
-            list($r['privmsg']['to'], $r['privmsg']['msg']) = explode(' ', $r['parm'], 2);
-            if(substr($r['privmsg']['msg'], 0, 1) == ':') {
-                $r['privmsg']['msg'] = substr($r['privmsg']['msg'], 1);
-            }
+        if($cmd == 'privmsg' || $cmd == 'notice') {
+            list($target, $arg) = $this->parse_irc_target($arg);
 
-            // Check for ctcp marker
-            if(substr($r['privmsg']['msg'], 0, 1) == chr(1) && substr($r['privmsg']['msg'], -1) == chr(1)) {
-                $r['ctcp']['raw'] = substr($r['privmsg']['msg'], 1, strlen($r['privmsg']['msg']) - 2);
-                if(strpos($r['ctcp']['raw'], ' ') !== false) {
-                    list($r['ctcp']['cmd'], $r['ctcp']['parm']) = explode(' ', $r['ctcp']['raw'], 2);
-                } else {
-                    $r['ctcp']['cmd'] = $r['ctcp']['raw'];
-                    $r['ctcp']['parm'] = '';
+            $parsed['type'] = 'message';
+            $parsed['message'] = [
+                'target' => $target,
+                'arg'    => $arg,
+            ];
+
+
+            // Check for ctcp marker -- only privmsg's
+            if($cmd == 'privmsg') {
+
+                if(substr($arg, 0, 1) === chr(1) && substr($arg, -1) === chr(1)) { // it is a ctcp
+                    $ctcpData = substr($arg, 1, -1); // Strip the 0x01 off
+                    if(strpos($ctcpData, ' ') !== false) {
+                        list($ctcpCmd, $ctcpArg) = explode(' ', $ctcpData);
+                    } else {
+                        $ctcpCmd = $ctcpData;
+                        $ctcpArg = null;
+                    }
+
+                    $parsed['ctcp'] = [
+                        'data' => $ctcpData,
+                        'cmd'  => $ctcpCmd,
+                        'arg'  => $ctcpArg
+                    ];
                 }
             }
+        } elseif($cmd == 'rpl_welcome') {
+            list($target, $arg) = $this->parse_irc_target($arg);
+            $parsed['type'] = 'meta';
+            $parsed[$cmd] = [
+                'target' => $target,
+                'arg'    => $arg,
+            ];
+        } elseif($cmd == 'rpl_yourhost') {
+            list($target, $arg) = $this->parse_irc_target($arg);
+
+            if(preg_match("/Your host is (.*), running version (.*)/i", $arg, $m)) {
+                $yourHost = $m[1];
+                $ircdVersion = $m[2];
+            } else {
+                // @todo things like this would be useful to "send in" on failure
+                cout(owarning, "Could not parse rpl_yourhost correctly.");
+                $yourHost = null;
+                $ircdVersion = null;
+            }
+
+            $parsed['type'] = 'meta';
+            $parsed[$cmd] = [
+                'target'       => $target,
+                'arg'          => $arg,
+                'your-host'    => $yourHost,
+                'ircd-version' => $ircdVersion
+            ];
+
+        } elseif($cmd == 'rpl_created') {
+            list($target, $arg) = $this->parse_irc_target($arg);
+
+            if(preg_match("/This server was created (.*)/i", $arg, $m)) {
+                $serverCreated = $m[1];
+
+                $serverCreatedUnix = str_replace(' at ', ' ', $serverCreated);
+                if(!(($serverCreatedUnix = strtotime($serverCreatedUnix)) > 0)) {
+                    $serverCreatedUnix = null;
+                }
+            } else {
+                // @todo things like this would be useful to "send in" on failure
+                cout(owarning, "Could not parse rpl_created correctly.");
+                $serverCreated = null;
+                $serverCreatedUnix = null;
+            }
+
+            $parsed['type'] = 'meta';
+            $parsed[$cmd] = [
+                'target'            => $target,
+                'arg'               => $arg,
+                'created'           => $serverCreated,
+                'created-timestamp' => $serverCreatedUnix,
+            ];
+        } elseif($cmd == 'rpl_myinfo') {
+            // format is:
+            // <server_name> <version> <user_modes> <chan_modes> <channel_modes_with_params> <user_modes_with_params> <server_modes> <server_modes_with_params>
+
+            list($target, $arg) = $this->parse_irc_target($arg);
+
+            $myInfo = [];
+            $explodedIndexes = [
+                'server-name', 'ircd-version', 'user-modes', 'chan-modes', 'chan-modes-parms', 'user-mode-parms', 'server-modes', 'server-modes-parms'
+            ];
+            $pieces = explode(' ', $arg);
+            foreach ($explodedIndexes as $index => $key) {
+                if(isset($pieces[$index])) {
+                    $myInfo[$key] = $pieces[$index];
+                }
+            }
+
+            $parsed[$cmd] = $myInfo;
+
+        } elseif($cmd == 'rpl_bounce_or_rpl_isupport') {
+            list($target, $arg) = $this->parse_irc_target($arg);
+
+            // @todo Needs testing.  Never tested against an actual production ircd.
+            if(preg_match('/Try (.*), port (.*)/i', $arg, $m)) {
+                $cmd = 'rpl_bounce';
+                $parsed['cmd'] = $cmd; // overwrite the command with the real cmd
+                $parsed[$cmd] = [
+                    'server' => $m[1],
+                    'port'   => $m[2]
+                ];
+            } else { // @todo No error checking..
+
+                $iSupport = [];
+                $innerArg = substr($arg, 0, strpos($arg, ' :'));
+                $innerArg = explode(' ', $innerArg);
+                foreach($innerArg as $iArg) {
+                    if(strpos($iArg, '=') !== false) {
+                        list($iargKey, $iargVal) = explode('=', $iArg, 2);
+                        $iSupport[$iargKey] = $iargVal;
+                    } else {
+                        $iSupport[$iArg] = '';
+                    }
+                }
+
+                $cmd = 'rpl_isupport';
+                $parsed['cmd'] = $cmd; // overwrite the command with the real cmd
+                $parsed[$cmd] = $iSupport;
+
+            }
+
+            var_dump($parsed);
+
+
+        } elseif($cmd == 'rpl_luserclient') {
+            list($target, $arg) = $this->parse_irc_target($arg);
+            if(preg_match('/There are (.*) users and (.*) invisible on (.*) servers/i', $arg, $m)) {
+                $pass = [
+                    'users' => $m[1],
+                    'invisible' => $m[2],
+                    'servers' => $m[3],
+                ];
+            } else {
+                cout(owarning, "Couldn't parse rpl_luserclient");
+            }
+        } elseif($cmd == 'rpl_luserop' || $cmd == 'rpl_luserunknown' || $cmd == 'rpl_luserchannels') {
+
+            // HubTest-48 24 :IRC Operators online
+            // HubTest-48 9 :unknown connection(s)
+            // HubTest-48 55896 :channels formed
+
+        }  else {
         }
 
-        return $r;
+        return $parsed;
     }
 
     /* --- --- --- IRC Protocol Implementation (Outbound) --- ---- --- */
