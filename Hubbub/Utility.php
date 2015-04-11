@@ -45,4 +45,37 @@ class Utility {
         }
     }
 
+
+    /**
+     * Converts a string represented port range (6667-7000) into an array covering the ports in the range.
+     *
+     * @param string|int|array $str A port range, such as 6667-7000
+     *
+     * @return array A list of individual ports covered in the range
+     *
+     * @todo Handle backwards port ranges (e.g. passing an array and getting 6667, 6668, 7000-8000)
+     */
+    function portRange($str) {
+        $return = array();
+        // remove any characters except digits ',' and '-'
+        $str = preg_replace('/[^\d,-]/', '', $str);
+        // split by ,
+        $ports = explode(',', $str);
+        if(!is_array($ports)) {
+            $ports = array($ports);
+        }
+        foreach ($ports as $p) {
+            $p = explode('-', $p);
+            if(count($p) > 1) {
+                for ($x = $p[0]; $x <= $p[1]; $x++) {
+                    $return[] = $x;
+                }
+            } else {
+                $return[] = $p[0];
+            }
+        }
+
+        return $return;
+    }
+
 }
