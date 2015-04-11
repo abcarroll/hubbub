@@ -2,6 +2,21 @@
 
 This is a short term to-do list.
 
+-----------------------------------
+PHASE 1
+-----------------------------------
+Take each modular component, isolate it, and rebuild it as an isolated
+module.
+
+  - Networking (all variants)
+  - IRC Client
+  - IRC Server
+  - XMPP Client
+
+
+-----------------------------------
+PHASE 2
+-----------------------------------
 - Clean up circular reference issue.
 - Move Conf into a JSON loader.  Write a demo mySQL conf class.
 - Finish the messaging bus, merge the two bus classes.

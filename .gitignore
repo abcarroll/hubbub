@@ -9,3 +9,6 @@ workbench/irc_search/networks.conf.php
 
 # Logs
 *.log
+
+# Local file - remove later
+conf/channel-list.txt

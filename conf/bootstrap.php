@@ -31,7 +31,7 @@ return [
     ],
 
     'bus'       => [
-        'class'  => '\Hubbub\InternalBus',
+        'class'  => '\Hubbub\MessageBus',
         'inject' => []
     ],
 

@@ -21,7 +21,10 @@ namespace Hubbub\IRC;
  * @package Hubbub\Modules\IRC
  */
 class Client extends \Hubbub\Net\Stream\Client implements \Hubbub\IterableModule {
-    use Generic;
+    // Numerics is already pulled in via Parser
+    // use Numerics;
+    use Parser;
+    use Senders;
 
     private $protocol = 'irc';
     private $network = 'freenode';
@@ -44,58 +47,48 @@ class Client extends \Hubbub\Net\Stream\Client implements \Hubbub\IterableModule
     }
 
     /* --- Properly set states on connect and disconnect --- */
-    function on_connect($socket = null) {
+    public function on_connect($socket = null) {
         $this->state = 'gave-auth';
-        $this->nick($this->cfg['nickname']);
-        $this->user($this->cfg['username'], $this->cfg['realname']);
+        $this->sendNick($this->cfg['nickname']);
+        $this->sendUser($this->cfg['username'], $this->cfg['realname']);
     }
 
 
-    function recv($length = 4096) {
+    public function recv($length = 4096) {
+
+        die("Used?");
 
     }
 
-    function send($data) {
+    public function send($data) {
         return parent::send("$data\n");
     }
 
-    function on_disconnect() {
+    public function on_disconnect() {
         echo "Disconnected\n";
     }
 
-    function on_send($data) {
+    public function on_send($data) {
         /* TODO
          * does this even fire?
          */
     }
 
-    function iterate() {
+    public function iterate() {
         parent::iterate();
     }
 
-    function on_recv_irc($raw_data, $socket = null) {
-        $d = $this->parse_irc_cmd($raw_data);
+    public function on_recv_irc($rawData, $socket = null) {
+        echo " => $rawData\n";
 
-        print_r($d);
+        /** @var \StdClass $data */
+        $data = $this->parseIrcCommand($rawData);
 
-        if($d['cmd'] == 'ping') {
-            $this->pong($d['parm']);
+        if($data->cmd == 'ping') {
+            $this->sendPong($data['parm']);
         } else {
-            // 1 - For numeric commands, the command has already been translated to the RFC compatible name
-            //	.. like 001 is now rpl_welcome
-            // 2 - Check for the existence of on_* for that command, like on_rpl_welcome() or on_privmsg()
-            // 3 - If not found, check for the raw numeric code, like on_numeric_001()
-
-            // Instead, call self-modules and submodules.. notifier should be implemented as a submodule
-
-            // on rpl_welcome it should set state = online
-
-            // where did my timers go?
-
-            // this is getting confusing..
-
-            if(method_exists($this, 'on_' . $d['cmd'])) {
-                $this->{'on_' . $d['cmd']}($d);
+            if(method_exists($this, 'on_' . $data->cmd)) {
+                $data = $this->{'on_' . $data->cmd}($data);
             }
 
             /* foreach($this->modules as $m) {
@@ -111,42 +104,22 @@ class Client extends \Hubbub\Net\Stream\Client implements \Hubbub\IterableModule
                     }
                 }
             } */ # end foreach($commands
+
+
+            // Finally should do something like this
+            /* $this->bus->publish([
+              'protocol' => $this->protocol,
+              'network'  => $this->network,
+              'event'    => 'msg',
+              'from'     => $d['sender'],
+              'data'     => $d['data'],
+              'irc'      => $d,
+          ]); */
         }
     }
 
-    /*
-     * Publish Events
-     */
-
-    function on_rpl_welcome($d) {
-        /* $this->bus->publish([
-            'protocol' => $this->protocol,
-            'network'  => $this->network,
-            'event'    => 'connected',
-        ]); */
-
+    public function on_rpl_welcome() {
+        $this->sendJoin("#hubbub");
     }
 
-    function on_privmsg($d) {
-        /* $this->bus->publish([
-            'protocol' => $this->protocol,
-            'network'  => $this->network,
-            'event'    => 'msg',
-            'from'     => $d['sender'],
-            'data'     => $d['data'],
-            'irc'      => $d,
-        ]); */
-    }
-
-    function on_notice($d) {
-        /*
-        $this->bus->publish([
-            'protocol' => $this->protocol,
-            'network'  => $this->network,
-            'event'    => 'message',
-            'from'     => $d['sender'],
-            'data'     => $d['data'],
-            'irc'      => $d,
-        ]); */
-    }
 }
