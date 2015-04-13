@@ -228,9 +228,9 @@ trait Parser {
      *
      * @return mixed
      */
-    private function parse_cap($line) {
+    /*private function parse_cap($line) {
         return $line;
-    }
+    }*/
 
     /*
      * Section 000-199, local server to client connections
