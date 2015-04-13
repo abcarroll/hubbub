@@ -50,10 +50,27 @@ I am *slowly* making progress.  This project is intended to be a very well laid 
   * Refactor code to make better use of Built-in Spl Classes such as ArrayObject, or the SplObserver/SplSubject for the
     message bus (or is our's too different from that specific implementation?)
 
+## Getting help
+Hubbub has an official IRC channel on Freenode, at `#hubbub`.  You are welcome to join, and idle.  You can test your Hubbub in `#hubbub-test`.  We'd love to see your bot/bnc.
+
+## Credits
+
+### Authors
+
+> Hubbub is written by:
+ - A.B. Carroll <ben@hl9.net>
+
+### Contributers
+
+> Creative Support, Technical Information, Code Review Provided by:
+ - Rob DeHart <rob@1606inc.com>
+ - Mike Preston <mike@technomonk.com>
+
+> Additionally, some low level protocol formats, numeric and mode tables  were created with the help of data from
+> Simon Butcher pickle@alien.net.au
+
 ## License ##
 Hubbub is available under a BSD-like license.  Please see LICENSE.txt for full license text.  Some files do not have a copyright header, those files are still subject to my copyright, unless specifically  noted with a separate copyright header.
 
 While you are not legally required to do so, I kindly ask if you make commercial use of my software, even as a service, you just simply link back to the SourceForge homepage, at http://hubbub.sf.net
-
-
 
