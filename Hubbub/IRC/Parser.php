@@ -232,6 +232,14 @@ trait Parser {
         return $line;
     }*/
 
+    private function parse_join(StdClass $cmd) {
+        $cmd->join = [
+            'channels' => $cmd->args
+        ];
+
+        return $cmd;
+    }
+
     /*
      * Section 000-199, local server to client connections
      */

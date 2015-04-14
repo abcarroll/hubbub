@@ -10,6 +10,8 @@
 
 namespace Hubbub\IRC;
 
+use StdClass;
+
 /**
  * Thoughts: Instead of extending \Hubbub\Net\Stream\Client perhaps it should use dependency injection instead so you could
  * actually use the other kinds of Networking if necessary?
@@ -27,23 +29,27 @@ class Client extends \Hubbub\Net\Stream\Client implements \Hubbub\IterableModule
     use Senders;
 
     private $protocol = 'irc';
-    private $network = 'freenode';
     private $state;
 
-    public $cfg = [
+    public $serverInfo = [];
+
+    /*public $cfg = [
         'nickname' => 'HubTest',
         'username' => 'php',
         'realname' => 'Hubbub',
         'server'   => 'tcp://irc.freenode.net:6667',
-    ];
+    ];*/
 
-    public function __construct(\Hubbub\Hubbub $hubbub) {
-        $this->cfg['nickname'] = 'HubTest-' . dechex(mt_rand(0, 255));
+    public $cfg;
+
+    public function __construct(\Hubbub\Hubbub $hubbub = null) {
+        $this->state = 'pre-auth';
+
+        /*$this->cfg['nickname'] = 'HubTest-' . dechex(mt_rand(0, 255));
         parent::__construct($hubbub);
         $this->bus = $hubbub->bus;
-        $this->state = 'pre-auth';
         $this->connect($this->cfg['server']);
-        $this->set_blocking(false);
+        $this->set_blocking(false);*/
     }
 
     /* --- Properly set states on connect and disconnect --- */
@@ -69,9 +75,7 @@ class Client extends \Hubbub\Net\Stream\Client implements \Hubbub\IterableModule
     }
 
     public function on_send($data) {
-        /* TODO
-         * does this even fire?
-         */
+        /* @todo I don't belive this is used anymore */
     }
 
     public function iterate() {
@@ -118,8 +122,59 @@ class Client extends \Hubbub\Net\Stream\Client implements \Hubbub\IterableModule
         }
     }
 
-    public function on_rpl_welcome() {
+    private function on_rpl_welcome(StdClass $cmd) {
         $this->sendJoin("#hubbub");
     }
 
+    private function on_join(StdClass $cmd) {
+        die(print_r($cmd));
+    }
+
+    /*
+     * Informational Replies
+     */
+
+    private function on_rpl_yourhost(StdClass $cmd) {
+        $this->serverInfo = array_merge($this->serverInfo, [$cmd->cmd => $cmd->{$cmd->cmd}]);
+    }
+
+    private function on_rpl_created(StdClass $cmd) {
+        $this->serverInfo = array_merge($this->serverInfo, [$cmd->cmd => $cmd->{$cmd->cmd}]);
+    }
+
+    private function on_rpl_myinfo(Stdclass $cmd) {
+        $this->serverInfo = array_merge($this->serverInfo, [$cmd->cmd => $cmd->{$cmd->cmd}]);
+    }
+
+    private function on_rpl_isupport(Stdclass $cmd) {
+        $this->serverInfo = array_merge($this->serverInfo, [$cmd->cmd => $cmd->{$cmd->cmd}]);
+    }
+
+    private function on_rpl_luserclient(Stdclass $cmd) {
+        $this->serverInfo = array_merge($this->serverInfo, [$cmd->cmd => $cmd->{$cmd->cmd}]);
+    }
+
+    private function on_rpl_luserop(Stdclass $cmd) {
+        $this->serverInfo = array_merge($this->serverInfo, [$cmd->cmd => $cmd->{$cmd->cmd}]);
+    }
+
+    private function on_rpl_luserunknown(Stdclass $cmd) {
+        $this->serverInfo = array_merge($this->serverInfo, [$cmd->cmd => $cmd->{$cmd->cmd}]);
+    }
+
+    private function on_rpl_luserchannels(Stdclass $cmd) {
+        $this->serverInfo = array_merge($this->serverInfo, [$cmd->cmd => $cmd->{$cmd->cmd}]);
+    }
+
+    private function on_rpl_luserme(Stdclass $cmd) {
+        $this->serverInfo = array_merge($this->serverInfo, [$cmd->cmd => $cmd->{$cmd->cmd}]);
+    }
+
+    private function on_rpl_localusers(Stdclass $cmd) {
+        $this->serverInfo = array_merge($this->serverInfo, [$cmd->cmd => $cmd->{$cmd->cmd}]);
+    }
+
+    private function on_rpl_globalusers(Stdclass $cmd) {
+        $this->serverInfo = array_merge($this->serverInfo, [$cmd->cmd => $cmd->{$cmd->cmd}]);
+    }
 }
