@@ -23,11 +23,10 @@ use StdClass;
  * @package Hubbub\Modules\IRC
  */
 class Client extends \Hubbub\Net\Stream\Client implements \Hubbub\IterableModule {
-    // Numerics is already pulled in via Parser
-    // use Numerics;
     use Parser;
     use Senders;
 
+    private $net;
     private $protocol = 'irc';
     private $state;
 
@@ -44,6 +43,16 @@ class Client extends \Hubbub\Net\Stream\Client implements \Hubbub\IterableModule
 
     public function __construct(\Hubbub\Hubbub $hubbub = null) {
         $this->state = 'pre-auth';
+
+        $clientClass = $hubbub->conf['net']['client'];
+        $this->new = $clientClass;
+
+        print_r($this->new);
+
+
+
+
+        die;
 
         /*$this->cfg['nickname'] = 'HubTest-' . dechex(mt_rand(0, 255));
         parent::__construct($hubbub);

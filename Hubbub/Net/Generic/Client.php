@@ -15,6 +15,18 @@ namespace Hubbub\Net\Generic;
  */
 interface Client extends \Hubbub\Net\Generic {
     /**
+     * @param $where
+     *
+     * @return bool
+     */
+    function connect($where);
+
+    /**
+     * @return bool
+     */
+    function disconnect();
+
+    /**
      * @param $data
      *
      * @return mixed
@@ -24,7 +36,7 @@ interface Client extends \Hubbub\Net\Generic {
     /**
      * @param $length
      *
-     * @return mixed
+     * @return bool|string The data received or false on failure.
      */
     function recv($length);
 

@@ -23,9 +23,12 @@ class Hubbub {
         $this->iterator = $iterator;
 
         /* Testing only , this would normally come from the conf */
+        //$irc = new \Hubbub\IRC\Client($this);
+        //$this->iterator->add($irc, 'irc-Freenode');
 
-        $irc = new \Hubbub\IRC\Client($this);
-        $this->iterator->add($irc, 'irc-Freenode');
+        $exampleProtocol = new \Hubbub\ExProto\Client($this);;
+        $this->iterator->add($exampleProtocol, 'exampleProtocol');
+
 
         $this->run();
     }

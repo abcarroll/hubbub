@@ -3,7 +3,7 @@
 /*
  * This file is a part of Hubbub, freely available at http://hubbub.sf.net
  *
- * Copyright (c) 2013, Armond B. Carroll <ben@hl9.net>
+ * Copyright (c) 2015, Armond B. Carroll <ben@hl9.net>
  * For full license terms, please view the LICENSE.txt file that was
  * distributed with this source code.
  */
@@ -15,36 +15,65 @@ namespace Hubbub\Net\Stream;
  *
  * @package Hubbub\Net\Stream
  */
-abstract class Client implements \Hubbub\Net\Generic\Client {
+class Client implements \Hubbub\Net\Generic\Client {
 
+    private $parent;
     private $socket;
-    protected $connected = false;
+    private $connected = false;
 
-    function __construct() {
-        //nothing
+
+    public function __construct(\Hubbub\Net\ClientUser $parent) {
+        $this->parent = $parent;
     }
 
-    function connect($where) {
+    public function connect($where) {
+        die("Connecting to: " . $where);
+
         $this->socket = stream_socket_client($where, $errno, $errstr, STREAM_CLIENT_ASYNC_CONNECT);
     }
 
-    function set_blocking($block = true) {
+    public function disconnect() {
+        throw new \ErrorException("disconnect() not implemented!");
+    }
+
+    public function set_blocking($block = true) {
         return stream_set_blocking($this->socket, $block);
     }
 
-    function send($data) {
+    public function send($data) {
+        $this->parent->on_send($data);
         return fwrite($this->socket, $data);
     }
 
-    function iterate() {
+    public function recv($length = 4096) {
+        $data = fread($this->socket, $length);
+        $this->parent->on_recv($data);
+    }
+
+    public function iterate() {
         if(!$this->connected && !feof($this->socket)) {
             $this->connected = true;
-            $this->on_connect();
+            $this->parent->on_connect();
         } elseif(feof($this->socket)) {
-            $this->on_disconnect();
+            $this->parent->on_disconnect();
         } else {
-            $data = fread($this->socket, 4096);
-            $this->on_recv($data);
+            $this->recv();
         }
+    }
+
+    // This part is confusing .. Do we have these in \Hubbub\Net\Generic\Client anyway?  And just force them to call the "parent"?
+    // I don't think so ..
+    function on_connect() {
+    }
+
+    function on_disconnect() {
+    }
+
+    function on_send($data) {
+
+    }
+
+    function on_recv($data) {
+
     }
 }

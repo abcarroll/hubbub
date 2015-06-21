@@ -20,7 +20,8 @@ $conf = [
 
     'net'       => [
         // Which class to inject into the various objects?
-        'class'   => '\Hubbub\Net\Stream',
+        'client'   => '\Hubbub\Net\Stream\Client',
+        'server'   => '\Hubbub\Net\Stream\Server',
 
         // Connection timeout
         'timeout' => '10',
