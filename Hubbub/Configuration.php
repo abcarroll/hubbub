@@ -44,11 +44,12 @@ class Configuration extends Injectable {
      * @throws \Exception
      */
     public function get($value) {
+        echo " >> (config) getting value: $value\n";
         $current = $this->array;
         $pieces = explode('.', $value);
         $lastPiece = null;
         foreach($pieces as $piece) {
-            echo "Dropping down into $piece\n";
+            echo " >> (config) Dropping down into $piece\n";
             if(isset($current[$piece])) {
                 if(is_array($current[$piece]) && end($pieces) !== $piece) {
                     $current = $current[$piece];
@@ -57,7 +58,7 @@ class Configuration extends Injectable {
                 if($this->logger instanceof Logger) {
                     $this->logger->warning("Invalid configuration value: $value, couldn't find $piece inside $lastPiece");
                 } else {
-                    throw new \Exception("Can't find logger: the logger proprety instance an instance of \\Hubbub\\Logger");
+                    throw new \Exception("Can't find logger: the logger property instance not an instance of \\Hubbub\\Logger");
                 }
             }
             $lastPiece = $piece;
