@@ -10,7 +10,7 @@
 
 namespace Hubbub\Net;
 
-interface ServerUser {
+interface Server {
 
     public function on_listen();
     public function on_client_connect($client);

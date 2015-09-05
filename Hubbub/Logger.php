@@ -122,10 +122,11 @@ class Logger { // extends PsrLogAbstractLogger implements PsrLogLoggerInterface 
     }
 
     public function setConf(\Hubbub\Configuration $conf) {
-        $this->conf = $conf;
 
-        if(!empty($conf['logger']['logToFile'])) {
-            $this->fp = fopen($conf['logger']['logToFile'], 'a+');
+
+        $this->conf = $conf;
+        if(!empty($this->conf->get('logger.logToFile'))) {
+            $this->fp = fopen($this->conf->get('logger.logToFile'), 'a+');
         } else {
             $this->fp = null;
         }

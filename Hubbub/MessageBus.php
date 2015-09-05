@@ -14,7 +14,7 @@ namespace Hubbub;
  *
  * @package Hubbub
  */
-class MessageBus implements IterableModule { // @todo not actually an iterable module ?
+class MessageBus implements Iterable { // @todo not actually an iterable module ?
 
     protected $subscriptions;
 

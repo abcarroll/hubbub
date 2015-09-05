@@ -10,7 +10,7 @@
 
 namespace Hubbub\Net;
 
-interface ClientUser {
+interface Client {
 
     public function on_connect();
     public function on_disconnect();

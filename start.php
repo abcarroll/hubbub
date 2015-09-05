@@ -29,7 +29,9 @@ $dependencies = Bootstrap::loadDependencies(
 $hubbub = new Hubbub(
     $dependencies['conf'],
     $dependencies['logger'],
-    $dependencies['rootIterator']
+    $dependencies['iterator']
 );
+
+$hubbub->run();
 
 \Hubbub\Bootstrap::Sunset();

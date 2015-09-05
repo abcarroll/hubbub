@@ -26,7 +26,7 @@ return [
     'throttler'    => [
         'class'  => '\Hubbub\Throttler\TimeAdjustedDelay',
         'inject' => [
-            'conf', 'logger'
+            'logger', 'conf'
         ]
     ],
 
@@ -35,10 +35,10 @@ return [
         'inject' => []
     ],
 
-    'rootIterator' => [
-        'class'  => '\Hubbub\RootIterator',
+    'iterator' => [
+        'class'  => '\Hubbub\Iterator',
         'inject' => [
-            'throttler', 'bus'
+            'logger', 'throttler', 'bus'
         ]
     ],
 ];

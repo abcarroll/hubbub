@@ -22,7 +22,7 @@ use StdClass;
  *
  * @package Hubbub\Modules\IRC
  */
-class Client implements \Hubbub\IterableModule, \Hubbub\Net\ClientUser {
+class Client implements \Hubbub\Iterable, \Hubbub\Net\ClientUser {
 
     private $hubbub;
     /**

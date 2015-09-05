@@ -9,14 +9,14 @@
  */
 
 namespace Hubbub\Throttler;
-use Hubbub\IterableModule;
+use Hubbub\Iterable;
 
 /**
  * Class AdjustingDelay
  *
  * @package Hubbub\Throttler
  */
-class TimeAdjustedDelay extends Throttler implements IterableModule {
+class TimeAdjustedDelay extends Throttler implements Iterable {
     protected $conf, $logger;
     protected $frequency, $last_iteration_start = 0;
 
@@ -61,7 +61,7 @@ class TimeAdjustedDelay extends Throttler implements IterableModule {
 
     public function setConf(\Hubbub\Configuration $conf) {
         $this->conf = $conf;
-        $this->frequency = $this->conf['throttler']['frequency'];
+        $this->frequency = $this->conf->get('throttler.frequency');
     }
 
     public function setLogger(\Hubbub\Logger $logger) {

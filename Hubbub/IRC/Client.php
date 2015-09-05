@@ -22,7 +22,7 @@ use StdClass;
  *
  * @package Hubbub\Modules\IRC
  */
-class Client extends \Hubbub\Net\Stream\Client implements \Hubbub\IterableModule {
+class Client extends \Hubbub\Net\Stream\Client implements \Hubbub\Iterable {
     use Parser;
     use Senders;
 

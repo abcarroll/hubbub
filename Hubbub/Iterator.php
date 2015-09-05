@@ -14,16 +14,16 @@ namespace Hubbub;
  *
  * @package Hubbub
  */
-class RootIterator {
+class Iterator extends Injectable {
 
     protected $modules;
     protected $run = true;
 
     /**
-     * @param \Hubbub\IterableModule $module An iterable object to add to the iteration stack.
+     * @param \Hubbub\Iterable $module An iterable object to add to the iteration stack.
      * @param string $alias An alias to use that we can reference the object with later.
      */
-    public function add(\Hubbub\IterableModule $module, $alias = null) {
+    public function add(\Hubbub\Iterable $module, $alias = null) {
         if($alias !== null) {
             $this->modules[$alias] = $module;
         } else {
@@ -51,11 +51,11 @@ class RootIterator {
     /**
      * Removes the passed object reference from the iteration stack.
      *
-     * @param \Hubbub\IterableModule $module An iterable object to remove.
+     * @param \Hubbub\Iterable $module An iterable object to remove.
      *
      * @return bool
      */
-    public function removeByObject(\Hubbub\IterableModule $module) {
+    public function removeByObject(\Hubbub\Iterable $module) {
         $search = array_search($module, $this->modules, true);
         if($search !== false) {
             unset($this->modules[$search]);
@@ -72,8 +72,9 @@ class RootIterator {
     public function run() {
         while ($this->run) {
             if(count($this->modules) > 0) {
-                /** @var \Hubbub\IterableModule $m */
+                /** @var \Hubbub\Iterable $m */
                 foreach ($this->modules as $m) {
+                    $this->logger->debug("Iterating module: " . get_class($m));
                     $m->iterate();
                 }
             } else {
@@ -111,11 +112,11 @@ class RootIterator {
      * TODO the inject() method to call their own setConf/setLogger methods.
      */
 
-    public function setBus(\Hubbub\MessageBus $bus) {
+    public function setBus($bus) {
         $this->add($bus, 'bus');
     }
 
-    public function setThrottler(\Hubbub\Throttler\Throttler $throttler) {
+    public function setThrottler($throttler) {
         $this->add($throttler, 'throttler');
     }
 

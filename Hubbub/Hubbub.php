@@ -14,12 +14,10 @@ namespace Hubbub;
  *
  * @package Hubbub
  */
-class Hubbub {
-    public $conf, $logger, $iterator;
+class Hubbub extends Injectable {
+    public $iterator;
 
-    function __construct(\Hubbub\Configuration $conf, \Hubbub\Logger $logger, \Hubbub\RootIterator $iterator) {
-        $this->conf = $conf;
-        $this->logger = $logger;
+    function __construct(\Hubbub\Configuration $conf, \Hubbub\Logger $logger, \Hubbub\Iterator $iterator) {
         $this->iterator = $iterator;
 
         /* Testing only , this would normally come from the conf */
@@ -28,12 +26,9 @@ class Hubbub {
 
         $exampleProtocol = new \Hubbub\ExProto\Client($this);;
         $this->iterator->add($exampleProtocol, 'exampleProtocol');
-
-
-        $this->run();
     }
 
-    private function run() {
+    public function run() {
         $this->iterator->run();
     }
 }

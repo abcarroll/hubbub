@@ -48,7 +48,7 @@ class Bootstrap {
             // Initialize
             foreach($bootstrap as $depName => $depCfg) {
 
-                // echo " > Bootstrapping $depName as {$depCfg['class']}\n";
+                echo " > Bootstrapping $depName as {$depCfg['class']}\n";
                 $dependencies[ $depName ] = new $depCfg['class']();
 
                 // Each module that this dependency requests
@@ -56,11 +56,17 @@ class Bootstrap {
                     foreach($depCfg['inject'] as $injName) {
                         if(isset($dependencies[ $injName ])) {
                             // The requested dependency is already initiated
-                            // echo " >  Injecting $injName into $depName\n";
-                            $dependencies[ $depName ]->{'set' . $injName}($dependencies[ $injName ]);
+                            if(method_exists($dependencies[ $depName ], 'set' . $injName)) {
+                                echo " >  Injecting $injName into $depName via standard setter\n";
+                                $dependencies[$depName]->{'set' . $injName}($dependencies[$injName]);
+                            } elseif(method_exists($dependencies[$depName], 'inject')) {
+                                $dependencies[$depName]->inject($injName, $dependencies[$injName]);
+                            } else {
+                                throw new \ErrorException("No way to inject $injName into $depName via common methods.");
+                            }
                         } else {
                             // Else, add it to the queue for when it is initiated
-                            // echo " >  Queueing $injName to be injected into $depName\n";
+                            echo " >  Queueing $injName to be injected into $depName\n";
                             $dependencyQueue [ $injName ][] = $depName;
                         }
                     }
@@ -69,7 +75,7 @@ class Bootstrap {
                 // Each module that has requested this dependency before it was initiated ($dependencyQueue)
                 if(!empty($dependencyQueue[$depName]) && count($dependencyQueue[$depName]) > 0) {
                     foreach($dependencyQueue[$depName] as $injectIn) {
-                        // echo " >  Late-Injecting $depName into $injectIn\n";
+                        echo " >  Late-Injecting $depName into $injectIn\n";
                         $dependencies [$injectIn]->{'set' . $depName}($dependencies[$depName]);
                     }
                 }

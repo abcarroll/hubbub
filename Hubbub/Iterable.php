@@ -2,6 +2,6 @@
 
 namespace Hubbub;
 
-interface IterableModule {
+interface Iterable {
     public function iterate();
 }
