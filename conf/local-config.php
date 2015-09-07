@@ -9,34 +9,28 @@ $conf = [
         'contextDumps' => true, // TODO Does not care about this setting
     ],
     'throttler' => [
-        'frequency' => 50000,
+        'frequency' => 500000,
     ],
-
     /* this is JUST an example to help better understand how to write the conf module*/
 
     'bootstrap' => [ // things just got weird..
-        'chroot' => '',
+                     'chroot' => '',
     ],
-
     'net'       => [
         // Which class to inject into the various objects?
-        'client'   => '\Hubbub\Net\Stream\Client',
-        'server'   => '\Hubbub\Net\Stream\Server',
-
+        'client'  => '\Hubbub\Net\Stream\Client',
+        'server'  => '\Hubbub\Net\Stream\Server',
         // Connection timeout
         'timeout' => '10',
     ],
-
     'irc'       => [
         'global'   => [
             'nickname'  => 'HubTest-' . mt_rand(0, 999),
             'username'  => 'Hubbub',
             'realname'  => 'Hubbub',
-
             // Default part & quit messages if none are specified otherwise
             'partmsg'   => '',
             'quitmsg'   => 'I use Hubbub, the php irc client: http://github.com/nezzario/hubbub',
-
             // How long to wait between reconnects, or 0 to never reconnect if disconnected
             'reconnect' => 30,
             'modules'   => [
@@ -53,7 +47,6 @@ $conf = [
                     // How long to wait between nick regain retries
                     'retry' => 300,
                 ],
-
                 /*
                  * These are more complicated as they seem because they require interaction with a BNC, and as such their
                  * configuration is stuck somewhere in-between the IRC and BNC realm.
@@ -63,7 +56,6 @@ $conf = [
                     'mode'    => 'static', // Needs a static mode, pass-thru mode, block mode, pass-thru-when-active (ie pass thru if bnc is active)
                     'version' => 'I use Hubbub, the php irc client: http://github.com/nezzario/hubbub'
                 ],
-
                 'dcc'      => [
                     'file' => [
                         'file' => 'auto-accept|prompt|ignore|pass-thru',
@@ -74,16 +66,13 @@ $conf = [
 
             ]
         ],
-
         'freenode' => [
             // Peg the server list to a dynamic server list.
             'serverListPegged' => 'freenode',
-
             // The list of servers, or if it is pegged, the cached/last updated copy of the server list
-            'servers'          => [
-
+            'serverList'          => [
+                'irc.freenode.net:6667',
             ],
-
             'modules'          => [
 
                 /*
@@ -98,7 +87,12 @@ $conf = [
                 ]
             ]
 
-        ]
-
+        ],
+    ],
+    'hubbub'    => [
+        'freenode' => [
+            'class' => '\Hubbub\IRC\Client',
+            'conf'  => 'irc.freenode'
+        ],
     ]
 ];

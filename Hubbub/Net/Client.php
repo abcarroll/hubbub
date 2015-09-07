@@ -10,11 +10,22 @@
 
 namespace Hubbub\Net;
 
-interface Client {
+abstract class Client implements \Hubbub\Iterable {
 
-    public function on_connect();
-    public function on_disconnect();
-    public function on_send($data);
-    public function on_recv($data);
+    /** @var  \Hubbub\Hubbub */
+    public $hubbub;
 
+    /** @var  \Hubbub\Net\Generic\Client */
+    protected $net;
+
+    public function __construct(\Hubbub\Hubbub $hubbub) {
+        $this->hubbub = $hubbub;
+        $class = $hubbub->conf->get('net.client');
+        $this->net = new $class($this);
+    }
+
+    abstract public function on_connect();
+    abstract public function on_disconnect();
+    abstract public function on_send($data);
+    abstract public function on_recv($data);
 }

@@ -40,7 +40,7 @@ class MessageBus implements Iterable { // @todo not actually an iterable module 
         }
     }
 
-    public function publish() {
+    public function publish($message) {
 
     }
 

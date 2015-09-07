@@ -18,14 +18,14 @@ class Hubbub extends Injectable {
     public $iterator;
 
     function __construct(\Hubbub\Configuration $conf, \Hubbub\Logger $logger, \Hubbub\Iterator $iterator) {
+        $this->conf = $conf;
+        $this->logger = $logger;
         $this->iterator = $iterator;
 
-        /* Testing only , this would normally come from the conf */
-        //$irc = new \Hubbub\IRC\Client($this);
-        //$this->iterator->add($irc, 'irc-Freenode');
-
-        $exampleProtocol = new \Hubbub\ExProto\Client($this);;
-        $this->iterator->add($exampleProtocol, 'exampleProtocol');
+        foreach($this->conf->get('hubbub') as $alias => $init) {
+            $new = new $init['class']($this, $init['conf']);
+            $this->iterator->add($new, $alias);
+        }
     }
 
     public function run() {

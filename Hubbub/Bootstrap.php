@@ -48,7 +48,7 @@ class Bootstrap {
             // Initialize
             foreach($bootstrap as $depName => $depCfg) {
 
-                echo " > Bootstrapping $depName as {$depCfg['class']}\n";
+                // echo " > Bootstrapping $depName as {$depCfg['class']}\n";
                 $dependencies[ $depName ] = new $depCfg['class']();
 
                 // Each module that this dependency requests
@@ -57,7 +57,7 @@ class Bootstrap {
                         if(isset($dependencies[ $injName ])) {
                             // The requested dependency is already initiated
                             if(method_exists($dependencies[ $depName ], 'set' . $injName)) {
-                                echo " >  Injecting $injName into $depName via standard setter\n";
+                                // echo " >  Injecting $injName into $depName via standard setter\n";
                                 $dependencies[$depName]->{'set' . $injName}($dependencies[$injName]);
                             } elseif(method_exists($dependencies[$depName], 'inject')) {
                                 $dependencies[$depName]->inject($injName, $dependencies[$injName]);
@@ -66,7 +66,7 @@ class Bootstrap {
                             }
                         } else {
                             // Else, add it to the queue for when it is initiated
-                            echo " >  Queueing $injName to be injected into $depName\n";
+                            // echo " >  Queueing $injName to be injected into $depName\n";
                             $dependencyQueue [ $injName ][] = $depName;
                         }
                     }
@@ -75,7 +75,7 @@ class Bootstrap {
                 // Each module that has requested this dependency before it was initiated ($dependencyQueue)
                 if(!empty($dependencyQueue[$depName]) && count($dependencyQueue[$depName]) > 0) {
                     foreach($dependencyQueue[$depName] as $injectIn) {
-                        echo " >  Late-Injecting $depName into $injectIn\n";
+                        // echo " >  Late-Injecting $depName into $injectIn\n";
                         $dependencies [$injectIn]->{'set' . $depName}($dependencies[$depName]);
                     }
                 }
@@ -93,7 +93,7 @@ class Bootstrap {
      * Sets up the environment in early stages of execution.
      */
     static public function Sunrise() {
-        echo "Hubbub session started " . date('r') . "\n";
+        // echo "Hubbub session started " . date('r') . "\n";
 
         // All errors + strict
         error_reporting(E_ALL | E_STRICT);
@@ -104,7 +104,7 @@ class Bootstrap {
             ob_implicit_flush();
 
             // TODO Should this be changed to a warning?
-            echo "I think I am running in a web environment.  I normally need to be run in a shell.  I will continue anyway, but please be advised this might be a bad idea.\n";
+            // echo "I think I am running in a web environment.  I normally need to be run in a shell.  I will continue anyway, but please be advised this might be a bad idea.\n";
         }
     }
 
@@ -112,7 +112,7 @@ class Bootstrap {
      * Clean up the environment in a graceful shutdown situation
      */
     static public function Sunset() {
-        echo "Hubbub session gracefully shut down " . date('r') . "\n";
+        // echo "Hubbub session gracefully shut down " . date('r') . "\n";
     }
 
 }

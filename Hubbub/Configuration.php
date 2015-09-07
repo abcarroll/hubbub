@@ -21,7 +21,7 @@ namespace Hubbub;
  */
 class Configuration extends Injectable {
 
-    private $array;
+    protected $array;
 
     public function __construct(\Hubbub\Logger $logger = null, \Hubbub\MessageBus $bus = null) {
         require 'conf/local-config.php';
@@ -44,12 +44,12 @@ class Configuration extends Injectable {
      * @throws \Exception
      */
     public function get($value) {
-        echo " >> (config) getting value: $value\n";
+        // echo " >> (config) getting value: $value\n";
         $current = $this->array;
         $pieces = explode('.', $value);
         $lastPiece = null;
         foreach($pieces as $piece) {
-            echo " >> (config) Dropping down into $piece\n";
+            // echo " >> (config) Dropping down into $piece\n";
             if(isset($current[$piece])) {
                 if(is_array($current[$piece]) && end($pieces) !== $piece) {
                     $current = $current[$piece];
