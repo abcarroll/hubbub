@@ -17,11 +17,11 @@ namespace Hubbub;
 class Hubbub extends Injectable {
     public $iterator;
 
-    function __construct(\Hubbub\Configuration $conf, \Hubbub\Logger $logger, \Hubbub\Iterator $iterator) {
-        $this->conf = $conf;
-        $this->logger = $logger;
-        $this->iterator = $iterator;
+    public function __construct($dependencies) {
 
+    }
+
+    public function init() {
         foreach($this->conf->get('hubbub') as $alias => $init) {
             $new = new $init['class']($this, $init['conf']);
             $this->iterator->add($new, $alias);

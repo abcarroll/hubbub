@@ -21,17 +21,8 @@ spl_autoload_register(function ($class) {
 
 \Hubbub\Bootstrap::Sunrise();
 
-$dependencies = Bootstrap::loadDependencies(
+Bootstrap::loadDependencies(
     Bootstrap::getDependenciesArray()
 );
-
-// TODO Move this to the bootstrapper if the bootstrapper can be easily modified to do constructor injection
-$hubbub = new Hubbub(
-    $dependencies['conf'],
-    $dependencies['logger'],
-    $dependencies['iterator']
-);
-
-$hubbub->run();
 
 \Hubbub\Bootstrap::Sunset();

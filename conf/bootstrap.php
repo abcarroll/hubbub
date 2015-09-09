@@ -1,44 +1,57 @@
 <?php
 /*
- * Dependency Injection Graph
+ * Dependency Injection Tree
  * Under normal circumstance it is not necessary to edit this file.
+ * You can however, edit this file to change core functionality, such as replace the throttler.
+ *
+ * Be careful, this loads the entire piece of software, including the Hubbub object itself.
  */
 
 return [
-    'conf'           => [
-        'class'  => '\Hubbub\Configuration',
+    'conf'         => [
+        'class' => '\Hubbub\Configuration',
     ],
-
-    'logger'         => [
+    'logger'       => [
         'class'  => '\Hubbub\Logger',
         'inject' => [
             'conf'
         ]
     ],
-
-    'errorHandler'   => [
+    'errorHandler' => [
         'class'  => '\Hubbub\ErrorHandler',
         'inject' => [
             'logger'
         ]
     ],
-
-    'throttler'    => [
-        'class'  => '\Hubbub\Throttler\TimeAdjustedDelay',
-        'inject' => [
-            'logger', 'conf'
-        ]
-    ],
-
-    'bus'       => [
+    'bus'          => [
         'class'  => '\Hubbub\MessageBus',
         'inject' => []
     ],
-
-    'iterator' => [
-        'class'  => '\Hubbub\Iterator',
+    'throttler'    => [
+        'class'  => '\Hubbub\Throttler\TimeAdjustedDelay',
         'inject' => [
-            'logger', 'throttler', 'bus'
+            'logger',
+            'conf'
         ]
     ],
+    'iterator'     => [
+        'class'  => '\Hubbub\Iterator',
+        'inject' => [
+            'logger',
+            'bus',
+            'throttler',
+        ]
+    ],
+
+    'hubbub'       => [
+        'class'                => '\Hubbub\Hubbub',
+        'constructorInjection' => true,
+        'inject'               => [
+            'conf',
+            'logger',
+            'bus',
+            'throttler',
+            'iterator',
+        ],
+    ]
 ];

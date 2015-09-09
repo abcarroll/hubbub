@@ -8,7 +8,6 @@
  * distributed with this source code.
  */
 
-
 namespace Hubbub\IRC;
 
 use StdClass;
