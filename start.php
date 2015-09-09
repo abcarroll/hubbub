@@ -19,10 +19,10 @@ spl_autoload_register(function ($class) {
 });
 
 
-\Hubbub\Bootstrap::Sunrise();
+Bootstrap::Sunrise();
 
 new Hubbub(Bootstrap::loadDependencies(
     Bootstrap::getDependenciesArray()
 ));
 
-\Hubbub\Bootstrap::Sunset();
+Bootstrap::Sunset();
