@@ -21,8 +21,8 @@ spl_autoload_register(function ($class) {
 
 \Hubbub\Bootstrap::Sunrise();
 
-Bootstrap::loadDependencies(
+new Hubbub(Bootstrap::loadDependencies(
     Bootstrap::getDependenciesArray()
-);
+));
 
 \Hubbub\Bootstrap::Sunset();

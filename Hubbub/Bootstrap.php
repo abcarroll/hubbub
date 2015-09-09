@@ -56,7 +56,12 @@ class Bootstrap {
                 if(self::VERBOSE) {
                     echo " > Creating object '$depName' as '{$depCfg['class']}'\n";
                 }
-                $dependencies[$depName] = new $depCfg['class']();
+
+                if(isset($bootstrap['constructorInject']) && $bootstrap['constructorInject'] === true) {
+                    $dependencies[$depName] = new $depCfg['class']($dependencies);
+                } else {
+                    $dependencies[$depName] = new $depCfg['class']();
+                }
 
                 // Each module that this dependency requests
                 if(!empty($depCfg['inject'])) {

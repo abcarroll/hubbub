@@ -14,11 +14,26 @@ namespace Hubbub;
  *
  * @package Hubbub
  */
-class Hubbub extends Injectable {
+class Hubbub {
+    /** @var  \Hubbub\Configuration */
+    public $conf;
+    /** @var  \Hubbub\Logger */
+    public $logger;
+    /** @var  \Hubbub\MessageBus */
+    public $bus;
+    /** @var  \Hubbub\Throttler\Throttler */
+    public $throttler;
+    /** @var  \Hubbub\Iterator */
     public $iterator;
 
-    public function __construct($dependencies) {
+    public function __construct(Array $dependants) {
+        // Injects the $dependants array into this instance, which would be gathered from \Hubbub\Bootstrap in normal circumstance.
+        array_walk($dependants, function($dVal, $dKey) {
+            $this->$dKey = $dVal;
+        });
 
+        $this->init();
+        $this->run();
     }
 
     public function init() {

@@ -21,7 +21,7 @@ return [
         'class'  => '\Hubbub\ErrorHandler',
         'inject' => [
             'logger'
-        ]
+        ],
     ],
     'bus'          => [
         'class'  => '\Hubbub\MessageBus',
@@ -42,16 +42,4 @@ return [
             'throttler',
         ]
     ],
-
-    'hubbub'       => [
-        'class'                => '\Hubbub\Hubbub',
-        'constructorInjection' => true,
-        'inject'               => [
-            'conf',
-            'logger',
-            'bus',
-            'throttler',
-            'iterator',
-        ],
-    ]
 ];
