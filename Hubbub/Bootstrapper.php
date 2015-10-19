@@ -14,7 +14,7 @@ namespace Hubbub;
  *
  * @package Hubbub
  */
-class Bootstrap {
+class Bootstrapper {
     /**
      * Whether or not to directly 'echo' debugging information.  This is so close to the start procedures, logging facilities are not yet created.
      * @const bool VERBOSE

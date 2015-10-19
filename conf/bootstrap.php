@@ -25,13 +25,16 @@ return [
     ],
     'bus'          => [
         'class'  => '\Hubbub\MessageBus',
-        'inject' => []
+        'inject' => [
+            'conf',
+            'logger',
+        ]
     ],
     'throttler'    => [
         'class'  => '\Hubbub\Throttler\TimeAdjustedDelay',
         'inject' => [
-            'logger',
-            'conf'
+            'conf',
+            'logger'
         ]
     ],
     'iterator'     => [

@@ -41,7 +41,18 @@ class Client {
         $errorStr = null;
 
         $this->status = 'connecting';
-        $this->socket = @stream_socket_client($where, $errorNo, $errorStr, 15); //STREAM_CLIENT_ASYNC_CONNECT
+        /*
+         * @todo There is a bug, or at least unexpected behavior here where this call can take a VERY long time during the DNS lookup.  Fix me.
+         *
+         * So far, I have not really enjoyed the stream_* functions and in fact, don't particularly see the advantage over socket functions except the fact
+         * that socket_* functions have to be explicitly added to compile-time config of PHP, and stream_* are built-in and non-removable.  stream_* functions
+         * otherwise seem to me, A.B. Carroll, a step in the wrong direction otherwise, as there are numerous bugs regarding asynchronous connections and not
+         * enough low level access is given to the blanket over the C wrapper libraries.
+         *
+         * So BE WARNED!  The function below is NOT truly async / non-blocking; the underlying networking will be, however the initial DNS lookup is liable
+         * to hang indefinitely for all we know.
+         */
+        $this->socket = @stream_socket_client($where, $errorNo, $errorStr, null, STREAM_CLIENT_ASYNC_CONNECT);
 
         echo "past connection...";
 

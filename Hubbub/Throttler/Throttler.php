@@ -11,15 +11,18 @@
 namespace Hubbub\Throttler;
 
 /**
- * Class Base
- * @todo I'm not 100% sure this class is necessary as it does very little.  Perhaps an interface would be more appropriate?
- *
+ * Class Throttler
  * @package Hubbub\Throttler
+ * @todo I'm not 100% sure this class is necessary as it does very little.  Perhaps an interface would be more appropriate?
  */
 abstract class Throttler {
     protected $conf, $logger, $iteration;
 
-    function __construct(\Hubbub\Configuration $conf = null, \Hubbub\Logger $logger = null) {
+    /**
+     * @param \Hubbub\Configuration|null $conf   The configuration object
+     * @param \Hubbub\Logger|null        $logger The logger object
+     */
+    public function __construct(\Hubbub\Configuration $conf = null, \Hubbub\Logger $logger = null) {
         $this->conf = $conf;
         $this->logger = $logger;
     }

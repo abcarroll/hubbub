@@ -19,7 +19,7 @@ namespace Hubbub;
  *          notation, we can have the backed configuration stored in any way we choose.
  *
  */
-class Configuration extends Injectable {
+class Configuration {
 
     protected $array;
 

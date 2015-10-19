@@ -20,6 +20,15 @@ class Iterator extends Injectable {
     protected $run = true;
 
     /**
+     * @param Configuration|null $conf   The configuration object
+     * @param Logger|null        $logger The logger object
+     */
+    public function __construct(\Hubbub\Configuration $conf = null, \Hubbub\Logger $logger = null) {
+        $this->conf = $conf;
+        $this->logger = $logger;
+    }
+
+    /**
      * @param \Hubbub\Iterable $module An iterable object to add to the iteration stack.
      * @param string $alias An alias to use that we can reference the object with later.
      */

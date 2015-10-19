@@ -15,8 +15,16 @@ namespace Hubbub;
  * @package Hubbub
  */
 class MessageBus implements Iterable { // @todo not actually an iterable module ?
-
     protected $subscriptions;
+
+    /**
+     * @param Configuration|null $conf   The configuration object
+     * @param Logger|null        $logger The logger object
+     */
+    public function __construct(\Hubbub\Configuration $conf = null, \Hubbub\Logger $logger = null) {
+        $this->conf = $conf;
+        $this->logger = $logger;
+    }
 
     /**
      * @param callable          $callback
@@ -42,10 +50,6 @@ class MessageBus implements Iterable { // @todo not actually an iterable module 
 
     public function publish($message) {
 
-    }
-
-    public function setBus(\Hubbub\MicroBus $bus) {
-        // @todo
     }
 
     public function setConf(\Hubbub\Configuration $conf) {
