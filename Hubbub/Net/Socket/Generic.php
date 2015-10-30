@@ -1,49 +1,49 @@
 <?php
 /*
- * This file is a part of Hubbub, freely available at http://hubbub.sf.net
+ * This file is a part of Hubbub, available at:
+ * http://github.com/abcarroll/hubbub
  *
- * Copyright (c) 2013, Armond B. Carroll <ben@hl9.net>
+ * Copyright (c) 2013-2015, A.B. Carroll <ben@hl9.net>
  * For full license terms, please view the LICENSE.txt file that was
  * distributed with this source code.
  */
 
 namespace Hubbub\Net\Socket;
 
-    /**
-     * This is a generic implementation using PHP's wrapper around Berkley sockets.  It is marked as not being used by Hubbub and was written separately.
-     *
-     * @todo Fix & use this properly, or remove it.
-     */
-
 /**
  * Class Generic
- *
  * @package Hubbub\Net\Socket
  */
 abstract class Generic {
-    protected $is_blocking;
-    // As a client, this will be the client socket;
-    // As a server, it is meant for the master/binded socket
+    /**
+     * @var resource As a client, this will be the client socket.  As a server, this will be the listening socket.
+     */
     protected $socket;
-    protected $extra_sockets = array();
 
-    protected $low_socket_state = 'stateless'; // stateless, listening, connecting, connected, disconnected
+    /**
+     * @var bool Is the socket blocking (true) or non-blocking (false)?
+     */
+    protected $isBlocking;
 
-    // valid options
-    // [inet[[4]|6]|file],{udp|tcp|tcpseq}
+    /**
+     * @var string The simplified status of the socket represented as a string.
+     */
+    protected $socketState = 'stateless'; // stateless, listening, connecting, connected, disconnected
 
-    // Other considerations:
-    // - From what I understand SOCK_SEQPACKET is not well supported even across major OS's so it is disregarded
-    //	here.  If anyone would like to write/test a reliable way to both support it via the create() function's
-    //	parameters and all other considerations, they are more than welcome.
-    // - I believe AF_TIPC may be useful later on (if not yesterday) - once again, same as above
-    // - And so on, and so on with the plethora of PF/AF/Proto's available.
-
-    // TODO udp and icmp are not tested
-
-    public function create($type, $protocol) {
+    /**
+     * Create a low level socket.  This method is able to socket_create() any type of client or listening socket using simple string inputs.
+     *
+     * Other considerations: (1) From what I understand SOCK_SEQPACKET is not well supported even across major OS's so it is disregarded here.  If anyone would
+     * like to write/test a reliable way to both support it via the create() function's parameters and all other considerations, they are more than welcome. I
+     * believe AF_TIPC may be useful.
+     *
+     * @param string    $type     The type of socket, as a string.  Valid values: inet, inet4, inet6, unix, file
+     * @param string    $protocol The protocol of the socket, as a string.  Valid values: tcp, udp, icmp, rdm, and [unsupported] tcpseq.
+     * @param bool|true $blocking Should the socket be blocking, if it makes sense in this context?  Defaults to true.
+     */
+    public function create($type, $protocol, $blocking = true) {
         $type_table = array(
-            'inet'  => AF_INET, // FUTURE auto-select ipv4/ipv6 based on later events
+            'inet'  => AF_INET, // TODO auto-select ipv4/ipv6 based on later events
             'inet4' => AF_INET,
             'inet6' => AF_INET6,
             'unix'  => AF_UNIX,
@@ -61,29 +61,26 @@ abstract class Generic {
         $protonumber = getprotobyname($protocol);
 
         if(($this->socket = socket_create($type_table[$type], $proto_table[$protocol], $protonumber)) < 0) {
-            cout(osocket_debug, 'socket_create() has failed');
-
+            $errorMsg = $this->lastErrorMsg();
+            trigger_error("Couldn't create socket: $errorMsg", E_USER_WARNING);
             return;
         } else {
-            cout(osocket_debug, 'socket_create() success');
-            $this->set_nonblocking();
+            if($blocking) {
+                $this->setBlocking();
+            } else {
+                $this->setBlocking(false);
+            }
         }
     }
 
     public function bind($src_ip) {
         // TODO can't call bind() when already connected
-        if(($socket_bind = @socket_bind($this->socket, $src_ip)) < 0) {
-            cout(osocket_debug, 'socket_bind() has failed');
-
+        if($this->socketState == 'connected' && ($socket_bind = @socket_bind($this->socket, $src_ip)) < 0) {
+            trigger_error("socket_bind() has failed: either already connected, or the call failed.");
             return false;
         } else {
             return true;
         }
-    }
-
-    final public function cycle() {
-        $this->socket_poll();
-        $this->on_cycle();
     }
 
     // send() and recv() probably only work for tcp
@@ -115,42 +112,28 @@ abstract class Generic {
     }
 
     // blocking/nonblocking
-    public function set_blocking() {
-        $this->is_blocking = true;
-
-        return socket_set_block($this->socket);
+    public function setBlocking($blocking = true) {
+        $this->isBlocking = $blocking;
+        if($blocking) {
+            return socket_set_block($this->socket);
+        } else {
+            return socket_set_nonblock($this->socket);
+        }
     }
 
-    public function set_nonblocking() {
-        $this->is_blocking = false;
-
-        return socket_set_nonblock($this->socket);
+    public function isBlocking() {
+        return $this->isBlocking;
     }
 
-    public function is_blocking() {
-        return $this->is_blocking;
-    }
-
-    public function is_nonblocking() {
-        return !$this->is_blocking;
-    }
-
-    public function last_error($socket = null) {
+    public function lastErrorMsg($socket = null) {
         if($socket === null) {
             $socket = $this->socket;
         }
-        $errno = socket_last_error($socket);
-        $b = socket_strerror($errno);
+        $errorNumber = socket_last_error($socket);
+        $errorMsg = socket_strerror($errorNumber);
         socket_clear_error($socket);
-
-        return $b;
+        return "[$errorNumber] $errorMsg";
     }
 
-    abstract public function on_cycle();
-
-    abstract protected function socket_poll();
-
-    abstract protected function on_send($data, $socket = null);
-
-    abstract protected function on_recv($data, $socket = null);
+    abstract public function
 }
