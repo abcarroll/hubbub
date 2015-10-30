@@ -74,8 +74,7 @@ class ErrorHandler {
 
         $level = ErrorHandler::$errNoToLevel[$errNo];
 
-        $message = "PHP " . ErrorHandler::$errNoToString[$errNo]
-            . "\n > $errStr in $errFile:$errLine";
+        $message = "(php) [" . ErrorHandler::$errNoToString[$errNo] . "]: $errStr in $errFile:$errLine\n";
 
         $this->logger->log($level, $message, $errContext);
 
