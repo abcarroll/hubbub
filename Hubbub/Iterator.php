@@ -1,10 +1,13 @@
 <?php
 /*
- * This file is a part of Hubbub, freely available at http://hubbub.sf.net
+ * This file is a part of Hubbub, available at:
+ * http://github.com/abcarroll/hubbub
  *
- * Copyright (c) 2015, Armond B. Carroll <ben@hl9.net>
+ * Copyright (c) 2015, A.B. Carroll <ben@hl9.net>
+ * Hubbub is distributed under a BSD-like license.
+ *
  * For full license terms, please view the LICENSE.txt file that was
- * distributed with this source code.
+ * distributed with this source code, or available at the URL above.
  */
 
 namespace Hubbub;
@@ -30,7 +33,7 @@ class Iterator extends Injectable {
 
     /**
      * @param \Hubbub\Iterable $module An iterable object to add to the iteration stack.
-     * @param string $alias An alias to use that we can reference the object with later.
+     * @param string           $alias  An alias to use that we can reference the object with later.
      */
     public function add(\Hubbub\Iterable $module, $alias = null) {
         if($alias !== null) {
@@ -79,10 +82,10 @@ class Iterator extends Injectable {
      * @return bool True if the run was ended 'gracefully', false if the iterator ran out of subjects to iterate over.
      */
     public function run() {
-        while ($this->run) {
+        while($this->run) {
             if(count($this->modules) > 0) {
                 /** @var \Hubbub\Iterable $m */
-                foreach ($this->modules as $m) {
+                foreach($this->modules as $m) {
                     $this->logger->debug("Iterating module: " . get_class($m));
                     $m->iterate();
                 }
@@ -108,7 +111,7 @@ class Iterator extends Injectable {
      */
     public function getItems() {
         $itemList = [];
-        foreach ($this->modules as $key => $object) {
+        foreach($this->modules as $key => $object) {
             $itemList[$key] = get_class($object);
         }
 
@@ -128,7 +131,6 @@ class Iterator extends Injectable {
     public function setThrottler($throttler) {
         $this->add($throttler, 'throttler');
     }
-
 
 
 }

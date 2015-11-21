@@ -1,17 +1,20 @@
 <?php
 /*
- * This file is a part of Hubbub, freely available at http://hubbub.sf.net
+ * This file is a part of Hubbub, available at:
+ * http://github.com/abcarroll/hubbub
  *
- * Copyright (c) 2013, Armond B. Carroll <ben@hl9.net>
+ * Copyright (c) 2013-2015, A.B. Carroll <ben@hl9.net>
+ * Hubbub is distributed under a BSD-like license.
+ *
  * For full license terms, please view the LICENSE.txt file that was
- * distributed with this source code.
+ * distributed with this source code, or available at the URL above.
  */
 
 namespace Hubbub\IRC;
 
-/**
- * $this->state:
- */
+    /**
+     * $this->state:
+     */
 
 /**
  * Class BncClient
@@ -114,7 +117,7 @@ class BncClient { // TODO make a base class!
         $f = file("LICENSE.txt");
         $this->send(":Hubbub 001 {$this->nick} : Welcome to Hubbub's Internet Relay Chat Proxy, " . $this->nick);
         $this->send(":Hubbub 375 {$this->nick} : MOTD AS FOLLOWS");
-        foreach ($f as $line) {
+        foreach($f as $line) {
             $this->send(":Hubbub 372 {$this->nick} : - " . trim($line));
         }
         $this->send(":Hubbub 375 {$this->nick} :END OF MOTD");
@@ -136,8 +139,8 @@ class BncClient { // TODO make a base class!
     function on_privmsg($c) {
         $this->hubbub->bus->publish([
             'originate' => true,
-            'protocol' => 'irc',
-            'sender'   => 'Me',
+            'protocol'  => 'irc',
+            'sender'    => 'Me',
         ]);
 
     }

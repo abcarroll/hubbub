@@ -1,11 +1,13 @@
 <?php
-
 /*
- * This file is a part of Hubbub, freely available at http://hubbub.sf.net
+ * This file is a part of Hubbub, available at:
+ * http://github.com/abcarroll/hubbub
  *
- * Copyright (c) 2015, Armond B. Carroll <ben@hl9.net>
+ * Copyright (c) 2015, A.B. Carroll <ben@hl9.net>
+ * Hubbub is distributed under a BSD-like license.
+ *
  * For full license terms, please view the LICENSE.txt file that was
- * distributed with this source code.
+ * distributed with this source code, or available at the URL above.
  */
 
 namespace Hubbub\IRC;
@@ -28,7 +30,7 @@ trait Senders {
             trigger_error("Received incomplete command '$incomplete' - discarding", E_USER_WARNING);
         }
 
-        foreach ($commands as $c) {
+        foreach($commands as $c) {
             if(!empty($c)) {
                 $this->on_recv_irc($c);
             }
@@ -162,7 +164,7 @@ trait Senders {
 
     /**
      * @param string $channel The channel to set the topic for.
-     * @param string $topic The topic to set for the channel.
+     * @param string $topic   The topic to set for the channel.
      */
     public function setTopic($channel, $topic) {
         $this->send("TOPIC $channel :$topic");
@@ -184,7 +186,7 @@ trait Senders {
      * Invites a user to the channel specified.  The paraters are reversed from the protocol implementation for consistency of our own API.
      *
      * @param string $channel The channel to invite the user to.
-     * @param string $user The user to invite.
+     * @param string $user    The user to invite.
      */
     public function sendInvite($channel, $user) {
         $this->send("INVITE $user $channel");
@@ -192,16 +194,16 @@ trait Senders {
 
     /**
      * @param string $channel The channel to kick said user out of.
-     * @param string $user The user to kick.
+     * @param string $user    The user to kick.
      * @param string $comment An optional parting comment for the user.
      */
     public function sendKick($channel, $user, $comment = "") {
-    if(empty($comment)) {
-        $this->send("KICK $channel $user");
-    } else {
-        $this->send("KICK $channel $user :$comment");
+        if(empty($comment)) {
+            $this->send("KICK $channel $user");
+        } else {
+            $this->send("KICK $channel $user :$comment");
+        }
     }
-}
 
     /**
      * @param bool $server

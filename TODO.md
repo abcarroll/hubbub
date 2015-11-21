@@ -1,3 +1,24 @@
+This is turned into a pile of garbage ....
+
+re-focus efforts on the server modules
+
+focus efforts onto bnc client
+so we can login 
+talk over a bus
+ask for dns lookups over the bus 
+wait for jobs over the bus 
+i.e.
+
+$jobId = $bus->sendMessage("nslookup", "www.google.com");
+while($bus->waitForMessage($jobid)) { 
+
+}
+
+this is a sort of new meaning to the bus ..
+
+
+
+
 # To Do #
 
 This is a short term to-do list.

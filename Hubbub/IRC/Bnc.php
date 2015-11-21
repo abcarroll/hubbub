@@ -1,22 +1,24 @@
 <?php
-
 /*
- * This file is a part of Hubbub, freely available at http://hubbub.sf.net
+ * This file is a part of Hubbub, available at:
+ * http://github.com/abcarroll/hubbub
  *
- * Copyright (c) 2013, Armond B. Carroll <ben@hl9.net>
+ * Copyright (c) 2015, A.B. Carroll <ben@hl9.net>
+ * Hubbub is distributed under a BSD-like license.
+ *
  * For full license terms, please view the LICENSE.txt file that was
- * distributed with this source code.
+ * distributed with this source code, or available at the URL above.
  */
 
 
 namespace Hubbub\IRC;
 
-/**
- * Thoughts: This might should just be called IRC server.  Or implement a basic server and then extend that out to a bnc...
- * Also, same with IRC server, it should probably use dependency injection for the Net Stream Server instead of extending it.
- *
- * @todo Move clients table and on_client_recv to a $client->on_recv() .. Should likely do both
- */
+    /**
+     * Thoughts: This might should just be called IRC server.  Or implement a basic server and then extend that out to a bnc...
+     * Also, same with IRC server, it should probably use dependency injection for the Net Stream Server instead of extending it.
+     *
+     * @todo Move clients table and on_client_recv to a $client->on_recv() .. Should likely do both
+     */
 
 /**
  * Class Bnc
@@ -60,7 +62,7 @@ class Bnc extends \Hubbub\Net\Stream\Server {
     }
 
     function on_client_recv($socket, $data) {
-        /** @var BncClient $client */
+        /** @var \Hubbub\IRC\BncClient $client */
         $client = $this->clients[(int) $socket];
         $client->on_recv($data);
     }
@@ -78,7 +80,7 @@ class Bnc extends \Hubbub\Net\Stream\Server {
      */
     function on_iterate() {
         if(count($this->clients) > 0) {
-            foreach ($this->clients as $c) {
+            foreach($this->clients as $c) {
                 /** @var $c BncClient */
                 $c->iterate();
             }

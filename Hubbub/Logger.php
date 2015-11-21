@@ -1,22 +1,25 @@
 <?php
 /*
- * This file is a part of Hubbub, freely available at http://hubbub.sf.net
+ * This file is a part of Hubbub, available at:
+ * http://github.com/abcarroll/hubbub
  *
- * Copyright (c) 2015, Armond B. Carroll <ben@hl9.net>
+ * Copyright (c) 2015, A.B. Carroll <ben@hl9.net>
+ * Hubbub is distributed under a BSD-like license.
+ *
  * For full license terms, please view the LICENSE.txt file that was
- * distributed with this source code.
+ * distributed with this source code, or available at the URL above.
  */
 
 namespace Hubbub;
 
-/**
- * A logger interface that "looks like" the PSR-3 interface.
- * Note it does not technically, but practically, implements PsrLogLoggerInterface.
- * See https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-3-logger-interface.md
- *
- * @todo Actual PSR-3 usage.
- * @todo phpDoc Updates
- */
+    /**
+     * A logger interface that "looks like" the PSR-3 interface.
+     * Note it does not technically, but practically, implements PsrLogLoggerInterface.
+     * See https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-3-logger-interface.md
+     *
+     * @todo Actual PSR-3 usage.
+     * @todo phpDoc Updates
+     */
 
 /**
  * Class Logger
@@ -25,9 +28,9 @@ namespace Hubbub;
  */
 class Logger { // extends PsrLogAbstractLogger implements PsrLogLoggerInterface {
     /**
-     * @var Logger $instance
+     * @var Logger        $instance
      * @var Configuration $conf
-     * @var Resource $fp
+     * @var Resource      $fp
      */
     protected $instance, $conf, $fp;
 
@@ -63,7 +66,7 @@ class Logger { // extends PsrLogAbstractLogger implements PsrLogLoggerInterface 
             case 'warning':
                 // TODO Make configurable.  Off until then, this is really meant more for long running instances.
                 // $this->dumpContext($logText, $context);
-                break;
+            break;
         }
     }
 

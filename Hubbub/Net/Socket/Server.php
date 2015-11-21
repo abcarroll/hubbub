@@ -1,10 +1,13 @@
 <?php
 /*
- * This file is a part of Hubbub, freely available at http://hubbub.sf.net
+ * This file is a part of Hubbub, available at:
+ * http://github.com/abcarroll/hubbub
  *
- * Copyright (c) 2013, Armond B. Carroll <ben@hl9.net>
+ * Copyright (c) 2015, A.B. Carroll <ben@hl9.net>
+ * Hubbub is distributed under a BSD-like license.
+ *
  * For full license terms, please view the LICENSE.txt file that was
- * distributed with this source code.
+ * distributed with this source code, or available at the URL above.
  */
 
 /* Warning: broken */
@@ -68,7 +71,7 @@ class Server { // TODO implements Net Generic Server
     function send($socket, $data) {
         if(is_array($socket)) {
             $this->on_send($socket, $data);
-            foreach ($socket as $s) {
+            foreach($socket as $s) {
                 return socket_write($s, $data);
             }
         } else {
@@ -83,7 +86,7 @@ class Server { // TODO implements Net Generic Server
         $updated_sockets = $this->listen_socket + $this->client_sockets;
         $num_updated_sockets = socket_select($updated_sockets, $write, $except, 0, 0);
 
-        foreach ($updated_sockets as $socket) {
+        foreach($updated_sockets as $socket) {
             // A client connecting to one of our listening sockets
             if(in_array($socket, $this->server_sockets)) {
                 if(($client = socket_accept($socket)) < 0) {
@@ -136,7 +139,7 @@ class Server { // TODO implements Net Generic Server
     }
 
     function on_send($sockets, $data) {
-        foreach ($sockets as $s) {
+        foreach($sockets as $s) {
             socket_getpeername($s, $addr, $port);
             echo "[SEND=>] Client $addr:$port send data:\n";
             echo "[ -DATA] " . trim($data) . "\n";

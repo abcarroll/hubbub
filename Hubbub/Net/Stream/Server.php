@@ -1,11 +1,13 @@
 <?php
-
 /*
- * This file is a part of Hubbub, freely available at http://hubbub.sf.net
+ * This file is a part of Hubbub, available at:
+ * http://github.com/abcarroll/hubbub
  *
- * Copyright (c) 2013, Armond B. Carroll <ben@hl9.net>
+ * Copyright (c) 2015, A.B. Carroll <ben@hl9.net>
+ * Hubbub is distributed under a BSD-like license.
+ *
  * For full license terms, please view the LICENSE.txt file that was
- * distributed with this source code.
+ * distributed with this source code, or available at the URL above.
  */
 
 namespace Hubbub\Net\Stream;
@@ -66,7 +68,7 @@ abstract class Server implements \Hubbub\Net\Generic\Server {
 
         if(is_array($socket)) {
             $ret = [];
-            foreach ($socket as $s) {
+            foreach($socket as $s) {
                 $ret[] = stream_socket_sendto($socket, $data);
             }
         } else {
@@ -84,7 +86,7 @@ abstract class Server implements \Hubbub\Net\Generic\Server {
         $ready_sockets = [$this->server_socket] + $this->client_sockets;
         $ready_count = stream_select($ready_sockets, $write, $except, 0, 0); // resource &read, resource &write, resource &except, int tv_sec [, int tv_usec]
 
-        foreach ($ready_sockets as $socket) {
+        foreach($ready_sockets as $socket) {
             // A client is connecting to our listening socket
             if($socket === $this->server_socket) {
                 if(($client = stream_socket_accept($this->server_socket)) < 0) { // resource server_socket [, int timeout [, string &peername]]

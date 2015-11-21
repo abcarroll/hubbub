@@ -1,12 +1,14 @@
 <?php
 /*
- * This file is a part of Hubbub, freely available at http://hubbub.sf.net
+ * This file is a part of Hubbub, available at:
+ * http://github.com/abcarroll/hubbub
  *
- * Copyright (c) 2015, Armond B. Carroll <ben@hl9.net>
+ * Copyright (c) 2015, A.B. Carroll <ben@hl9.net>
+ * Hubbub is distributed under a BSD-like license.
+ *
  * For full license terms, please view the LICENSE.txt file that was
- * distributed with this source code.
+ * distributed with this source code, or available at the URL above.
  */
-
 /**
  * @todo phpDoc blocks
  */
@@ -78,12 +80,12 @@ class ErrorHandler {
 
         $this->logger->log($level, $message, $errContext);
 
-        switch ($errNo) {
+        switch($errNo) {
             case E_ERROR:
             case E_USER_ERROR:
             case E_RECOVERABLE_ERROR:
                 throw new \ErrorException($errStr, 0, $errNo, $errFile, $errLine);
-                break;
+            break;
         }
 
         return true;

@@ -1,14 +1,20 @@
 <?php
 /*
- * This file is a part of Hubbub, freely available at http://hubbub.sf.net
+ * This file is a part of Hubbub, available at:
+ * http://github.com/abcarroll/hubbub
  *
- * Copyright (c) 2015, Armond B. Carroll <ben@hl9.net>
+ * Copyright (c) 2014-2015, A.B. Carroll <ben@hl9.net>
+ * Hubbub is distributed under a BSD-like license.
+ *
  * For full license terms, please view the LICENSE.txt file that was
- * distributed with this source code.
- *
- * @todo Would be useful to have an auto bug submit (after approval/manually enabled) when the parser fails, i.e. receives unexpected data
- * @todo This function makes use of trigger_warning() which should be changed to use the internal logger class
+ * distributed with this source code, or available at the URL above.
  */
+
+
+/*
+* @todo Would be useful to have an auto bug submit (after approval/manually enabled) when the parser fails, i.e. receives unexpected data
+* @todo This function makes use of trigger_warning() which should be changed to use the internal logger class
+*/
 
 /*
  * The following large collection of callbacks (all private methods) are based on the following files:
@@ -177,7 +183,7 @@ trait Parser {
      * parse_privmsg() can parse PRIVMSG's and NOTICE's, and also CTCP messages which are carried by PRIVMSG's.  In the case of CTCP, an additional property
      * is added called 'ctcp' and the command is changed to 'ctcp'
      *
-     * @param StdClass $line A partially pre-parsed IRC protocol line
+     * @param StdClass $line      A partially pre-parsed IRC protocol line
      * @param bool     $checkCtcp Whether or not to attempt to parse it as a CTCP message
      *
      * @return mixed
@@ -300,7 +306,7 @@ trait Parser {
 
             try {
                 $serverCreatedDate = new \DateTime(str_replace(' at ', ' ', $serverCreated));
-            } catch (\Exception $e) {
+            } catch(\Exception $e) {
                 trigger_warning("Could not parse RPL_CREATED's date correctly in Parser: " . $e->getMessage(), E_USER_WARNING);
                 $serverCreatedDate = null;
             }
@@ -335,10 +341,17 @@ trait Parser {
 
         $myInfo = [];
         $explodedIndexes = [
-            'server-name', 'ircd-version', 'user-modes', 'chan-modes', 'chan-modes-parms', 'user-mode-parms', 'server-modes', 'server-modes-parms'
+            'server-name',
+            'ircd-version',
+            'user-modes',
+            'chan-modes',
+            'chan-modes-parms',
+            'user-mode-parms',
+            'server-modes',
+            'server-modes-parms'
         ];
 
-        foreach ($explodedIndexes as $index => $key) {
+        foreach($explodedIndexes as $index => $key) {
             if(isset($line->args[$index + 1])) {
                 $myInfo[$key] = $line->args[$index + 1];
             }
@@ -357,7 +370,8 @@ trait Parser {
      * Can also be interpreted as RPL_BOUNCE in it's deprecated form.  Parser can appropriatley detect and convert into a RPL_BOUNCE if necessary
      * Deprecated RPL_BOUNCE:
      * See also command 010.
-     * Sent by the server to a user to suggest an alternative server, sometimes used when the connection is refused because the server is already full. Also known as RPL_SLINE (AustHex), and RPL_REDIR
+     * Sent by the server to a user to suggest an alternative server, sometimes used when the connection is refused because the server is already full. Also
+     * known as RPL_SLINE (AustHex), and RPL_REDIR
      * :Try server <server_name>, port <port_number>
      *
      * @param  StdClass $line A partially pre-parsed IRC protocol line
@@ -384,7 +398,7 @@ trait Parser {
             $innerArg = substr($line->argData, $firstPos, $secondPos);
 
             $innerArg = explode(' ', $innerArg);
-            foreach ($innerArg as $iArg) {
+            foreach($innerArg as $iArg) {
                 if(strpos($iArg, '=') !== false) {
                     list($iargKey, $iargVal) = explode('=', $iArg, 2);
                     $iSupport[$iargKey] = $iargVal;
@@ -1208,8 +1222,8 @@ trait Parser {
 
     /**
      * 243 RPL_STATSOLINE. Originated from RFC1459.
-     * Reply to STATS (See RFC); The info field is an extension found in some IRC daemons, which returns info such as an e-mail address or the name/job of an operator
-     * O <hostmask> * <nick> [:<info>]
+     * Reply to STATS (See RFC); The info field is an extension found in some IRC daemons, which returns info such as an e-mail address or the name/job of an
+     * operator O <hostmask> * <nick> [:<info>]
      *
      * @param  StdClass $line A partially pre-parsed IRC protocol line
      *
@@ -1499,7 +1513,9 @@ trait Parser {
 
     /**
      * 256 RPL_ADMINME. Originated from RFC1459.
-     * Start of an RPL_ADMIN* reply. In practise, the server parameter is often never given, and instead the info field contains the text 'Administrative info about <server>'. Newer daemons seem to follow the RFC and output the server's hostname in the 'server' parameter, but also output the server name in the text as per traditional daemons.
+     * Start of an RPL_ADMIN* reply. In practise, the server parameter is often never given, and instead the info field contains the text 'Administrative info
+     * about <server>'. Newer daemons seem to follow the RFC and output the server's hostname in the 'server' parameter, but also output the server name in the
+     * text as per traditional daemons.
      * <server> :<info>
      *
      * @param  StdClass $line A partially pre-parsed IRC protocol line
@@ -1589,7 +1605,8 @@ trait Parser {
 
     /**
      * 263 RPL_TRYAGAIN. Originated from RFC2812.
-     * When a server drops a command without processing it, it MUST use this reply. Also known as RPL_LOAD_THROTTLED and RPL_LOAD2HI, I'm presuming they do the same thing.
+     * When a server drops a command without processing it, it MUST use this reply. Also known as RPL_LOAD_THROTTLED and RPL_LOAD2HI, I'm presuming they do the
+     * same thing.
      * <command> :<info>
      *
      * @param  StdClass $line A partially pre-parsed IRC protocol line
@@ -2202,7 +2219,8 @@ trait Parser {
 
     /**
      * 301 RPL_AWAY. Multiple responses mapped. Originated from KineIRCd.
-     * Identical to RPL_AWAY, however this includes the number of seconds the user has been away for. This is designed to discourage the need for people to use those horrible scripts which set the AWAY message every 30 seconds in order to include an 'away since' timer.
+     * Identical to RPL_AWAY, however this includes the number of seconds the user has been away for. This is designed to discourage the need for people to use
+     * those horrible scripts which set the AWAY message every 30 seconds in order to include an 'away since' timer.
      * <nick> <seconds away> :<message>
      *
      * @param  StdClass $line A partially pre-parsed IRC protocol line
@@ -2850,7 +2868,9 @@ trait Parser {
 
     /**
      * 341 RPL_INVITING. Originated from RFC1459.
-     * Returned by the server to indicate that the attempted INVITE message was successful and is being passed onto the end client. Note that RFC1459 documents the parameters in the reverse order. The format given here is the format used on production servers, and should be considered the standard reply above that given by RFC1459.
+     * Returned by the server to indicate that the attempted INVITE message was successful and is being passed onto the end client. Note that RFC1459 documents
+     * the parameters in the reverse order. The format given here is the format used on production servers, and should be considered the standard reply above
+     * that given by RFC1459.
      * <nick> <channel>
      *
      * @param  StdClass $line A partially pre-parsed IRC protocol line
@@ -2990,8 +3010,8 @@ trait Parser {
 
         $namReply = [
             'visibility' => $visibility,
-            'channel' => $line->args[2],
-            'names' => explode(' ', $line->args[3]),
+            'channel'    => $line->args[2],
+            'names'      => explode(' ', $line->args[3]),
         ];
 
         $line->{$line->cmd} = $namReply;
@@ -3001,7 +3021,8 @@ trait Parser {
 
     /**
      * 354 RPL_WHOSPCRPL. Originated from ircu.
-     * Reply to WHO, however it is a 'special' reply because it is returned using a non-standard (non-RFC1459) format. The format is dictated by the command given by the user, and can vary widely. When this is used, the WHO command was invoked in its 'extended' form, as announced by the 'WHOX' ISUPPORT tag.
+     * Reply to WHO, however it is a 'special' reply because it is returned using a non-standard (non-RFC1459) format. The format is dictated by the command
+     * given by the user, and can vary widely. When this is used, the WHO command was invoked in its 'extended' form, as announced by the 'WHOX' ISUPPORT tag.
      *
      * @param  StdClass $line A partially pre-parsed IRC protocol line
      *
@@ -3014,7 +3035,8 @@ trait Parser {
     /**
      * 355 RPL_NAMREPLY_. Originated from QuakeNet.
      * See also command 353.
-     * Reply to the "NAMES -d" command - used to show invisible users (when the channel is set +D, QuakeNet relative). The proper define name for this numeric is unknown at this time
+     * Reply to the "NAMES -d" command - used to show invisible users (when the channel is set +D, QuakeNet relative). The proper define name for this numeric
+     * is unknown at this time
      * ( '=' / '*' / '@' ) <channel> ' ' : [ '@' / '+' ] <nick> *( ' ' [ '@' / '+' ] <nick> )
      *
      * @param  StdClass $line A partially pre-parsed IRC protocol line
@@ -3504,7 +3526,8 @@ trait Parser {
 
     /**
      * 391 RPL_TIME. Conflicting. Multiple responses mapped. Originated from bdq-ircd.
-     * Timezone name is acronym style (eg. 'EST', 'PST' etc). The microseconds field is the number of microseconds since the UNIX epoch, however it is relative to the local timezone of the server. The timezone field is ambiguous, since it only appears to include American zones.
+     * Timezone name is acronym style (eg. 'EST', 'PST' etc). The microseconds field is the number of microseconds since the UNIX epoch, however it is relative
+     * to the local timezone of the server. The timezone field is ambiguous, since it only appears to include American zones.
      * <server> <timezone name> <microseconds> :<time string>
      *
      * @param  StdClass $line A partially pre-parsed IRC protocol line
@@ -3804,7 +3827,8 @@ trait Parser {
 
     /**
      * 416 ERR_TOOMANYMATCHES. Originated from IRCnet.
-     * Returned when too many matches have been found for a command and the output has been truncated. An example would be the WHO command, where by the mask '*' would match everyone on the network! Ouch!
+     * Returned when too many matches have been found for a command and the output has been truncated. An example would be the WHO command, where by the mask
+     * '*' would match everyone on the network! Ouch!
      * <command> [<mask>] :<info>
      *
      * @param  StdClass $line A partially pre-parsed IRC protocol line
@@ -3866,7 +3890,8 @@ trait Parser {
 
     /**
      * 423 ERR_NOADMININFO. Originated from RFC1459.
-     * Returned by a server in response to an ADMIN request when no information is available. RFC1459 mentions this in the list of numerics. While it's not listed as a valid reply in section 4.3.7 ('Admin command'), it's confirmed to exist in the real world.
+     * Returned by a server in response to an ADMIN request when no information is available. RFC1459 mentions this in the list of numerics. While it's not
+     * listed as a valid reply in section 4.3.7 ('Admin command'), it's confirmed to exist in the real world.
      * <server> :<reason>
      *
      * @param  StdClass $line A partially pre-parsed IRC protocol line
@@ -3939,7 +3964,8 @@ trait Parser {
 
     /**
      * 432 ERR_ERRONEUSNICKNAME. Could be used during registration. Originated from RFC1459.
-     * Returned after receiving a NICK message which contains a nickname which is considered invalid, such as it's reserved ('anonymous') or contains characters considered invalid for nicknames. This numeric is misspelt, but remains with this name for historical reasons :)
+     * Returned after receiving a NICK message which contains a nickname which is considered invalid, such as it's reserved ('anonymous') or contains
+     * characters considered invalid for nicknames. This numeric is misspelt, but remains with this name for historical reasons :)
      * <nick> :<reason>
      *
      * @param  StdClass $line A partially pre-parsed IRC protocol line
@@ -5712,7 +5738,8 @@ trait Parser {
 
     /**
      * 663 RPL_CHANREDIR. Originated from KineIRCd.
-     * Used to notify the client upon JOIN that they are joining a different channel than expected because the IRC Daemon has been set up to map the channel they attempted to join to the channel they eventually will join.
+     * Used to notify the client upon JOIN that they are joining a different channel than expected because the IRC Daemon has been set up to map the channel
+     * they attempted to join to the channel they eventually will join.
      * <old_chan> <new_chan> :<info>
      *
      * @param  StdClass $line A partially pre-parsed IRC protocol line
@@ -5738,7 +5765,8 @@ trait Parser {
 
     /**
      * 665 RPL_OTHERUMODEIS. Originated from KineIRCd.
-     * Reply to MODE <nickname> to return the user-modes of another user to help troubleshoot connections, etc. Similar to RPL_UMODEIS, however including the target
+     * Reply to MODE <nickname> to return the user-modes of another user to help troubleshoot connections, etc. Similar to RPL_UMODEIS, however including the
+     * target
      * <nickname> <modes>
      *
      * @param  StdClass $line A partially pre-parsed IRC protocol line
@@ -5829,7 +5857,10 @@ trait Parser {
 
     /**
      * 679 RPL_TIMEONSERVERIS. Originated from KineIRCd.
-     * Optionally sent upon connection, and/or sent as a reply to the TIME command. This returns the time on the server in a uniform manner. The seconds (and optionally nanoseconds) is the time since the UNIX Epoch, and is used since many existing timestamps in the IRC-2 protocol are done this way (i.e. ban lists). The timezone is hours and minutes each of Greenwich ('[+/-]HHMM'). Since all timestamps sent from the server are in a similar format, this numeric is designed to give clients the ability to provide accurate timestamps to their users.
+     * Optionally sent upon connection, and/or sent as a reply to the TIME command. This returns the time on the server in a uniform manner. The seconds (and
+     * optionally nanoseconds) is the time since the UNIX Epoch, and is used since many existing timestamps in the IRC-2 protocol are done this way (i.e. ban
+     * lists). The timezone is hours and minutes each of Greenwich ('[+/-]HHMM'). Since all timestamps sent from the server are in a similar format, this
+     * numeric is designed to give clients the ability to provide accurate timestamps to their users.
      * <seconds> [<nanoseconds> | '0'] <timezone> <flags> :<info>
      *
      * @param  StdClass $line A partially pre-parsed IRC protocol line
@@ -5884,7 +5915,9 @@ trait Parser {
 
     /**
      * 689 RPL_WHOISSTAFF. Originated from KineIRCd.
-     * The user is a staff member. The information may explain the user's job role, or simply state that they are a part of the network staff. Staff members are not IRC operators, but rather people who have special access in association with network services. KineIRCd uses this numeric instead of the existing numerics due to the overwhelming number of conflicts.
+     * The user is a staff member. The information may explain the user's job role, or simply state that they are a part of the network staff. Staff members
+     * are not IRC operators, but rather people who have special access in association with network services. KineIRCd uses this numeric instead of the
+     * existing numerics due to the overwhelming number of conflicts.
      * :<info>
      *
      * @param  StdClass $line A partially pre-parsed IRC protocol line
@@ -6106,7 +6139,8 @@ trait Parser {
 
     /**
      * 718 RPL_UMODEGMSG. Originated from RatBox.
-     * Sent to a user who is +g to inform them that someone has attempted to talk to them (via PRIVMSG/NOTICE), and that they will need to be accepted (via the ACCEPT command) before being able to talk to them
+     * Sent to a user who is +g to inform them that someone has attempted to talk to them (via PRIVMSG/NOTICE), and that they will need to be accepted (via the
+     * ACCEPT command) before being able to talk to them
      * <nick> <user>@<host> :<info>
      *
      * @param  StdClass $line A partially pre-parsed IRC protocol line
@@ -6298,7 +6332,8 @@ trait Parser {
 
     /**
      * 972 ERR_CANNOTDOCOMMAND. Originated from Unreal.
-     * Works similarly to all of KineIRCd's CANNOT* numerics. This one indicates that a command could not be performed for an arbitrary reason. For example, a halfop trying to kick an op.
+     * Works similarly to all of KineIRCd's CANNOT* numerics. This one indicates that a command could not be performed for an arbitrary reason. For example, a
+     * halfop trying to kick an op.
      *
      * @param  StdClass $line A partially pre-parsed IRC protocol line
      *
@@ -6349,7 +6384,9 @@ trait Parser {
 
     /**
      * 976 ERR_CANNOTSENDTONICK. Originated from KineIRCd.
-     * Returned from NOTICE, PRIVMSG or other commands to notify the user that they cannot send a message to a particular client. Similar to ERR_CANNOTSENDTOCHAN. KineIRCd uses this in conjunction with user-mode +R to allow users to block people who are not identified to services (spam avoidance)
+     * Returned from NOTICE, PRIVMSG or other commands to notify the user that they cannot send a message to a particular client. Similar to
+     * ERR_CANNOTSENDTOCHAN. KineIRCd uses this in conjunction with user-mode +R to allow users to block people who are not identified to services (spam
+     * avoidance)
      * <nick> :<reason>
      *
      * @param  StdClass $line A partially pre-parsed IRC protocol line
@@ -6388,7 +6425,9 @@ trait Parser {
 
     /**
      * 980 ERR_BADCHARENCODING. Originated from KineIRCd.
-     * Returned by any command which may have had the given data modified because one or more glyphs were incorrectly encoded in the current charset (given). Such a use would be where an invalid UTF-8 sequence was given which may be considered insecure, or defines a character which is invalid within that context. For safety reasons, the invalid character is not returned to the client.
+     * Returned by any command which may have had the given data modified because one or more glyphs were incorrectly encoded in the current charset (given).
+     * Such a use would be where an invalid UTF-8 sequence was given which may be considered insecure, or defines a character which is invalid within that
+     * context. For safety reasons, the invalid character is not returned to the client.
      * <command> <charset> :<info>
      *
      * @param  StdClass $line A partially pre-parsed IRC protocol line
@@ -6402,7 +6441,8 @@ trait Parser {
     /**
      * 981 ERR_TOOMANYLANGUAGES. Originated from KineIRCd.
      * More Info http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/kineircd/kineircd/doc/LANGUAGE?rev=HEAD
-     * Returned by the LANGUAGE command to tell the client they cannot set as many languages as they have requested. To assist the client, the maximum languages which can be set at one time is given, and the language settings are not changed.
+     * Returned by the LANGUAGE command to tell the client they cannot set as many languages as they have requested. To assist the client, the maximum
+     * languages which can be set at one time is given, and the language settings are not changed.
      * <max_langs> :<info>
      *
      * @param  StdClass $line A partially pre-parsed IRC protocol line
@@ -6429,7 +6469,8 @@ trait Parser {
 
     /**
      * 983 ERR_TEXTTOOSHORT. Originated from KineIRCd.
-     * Returned by any command requiring text (such as a message or a reason), which was not long enough to be considered valid. This was created initially to combat '/wallops foo' abuse, but is also used by DIE and RESTART commands to attempt to encourage meaningful reasons.
+     * Returned by any command requiring text (such as a message or a reason), which was not long enough to be considered valid. This was created initially to
+     * combat '/wallops foo' abuse, but is also used by DIE and RESTART commands to attempt to encourage meaningful reasons.
      * <command> :<info>
      *
      * @param  StdClass $line A partially pre-parsed IRC protocol line

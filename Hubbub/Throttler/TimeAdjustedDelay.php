@@ -1,14 +1,17 @@
 <?php
-
 /*
- * This file is a part of Hubbub, freely available at http://hubbub.sf.net
+ * This file is a part of Hubbub, available at:
+ * http://github.com/abcarroll/hubbub
  *
- * Copyright (c) 2013, Armond B. Carroll <ben@hl9.net>
+ * Copyright (c) 2015, A.B. Carroll <ben@hl9.net>
+ * Hubbub is distributed under a BSD-like license.
+ *
  * For full license terms, please view the LICENSE.txt file that was
- * distributed with this source code.
+ * distributed with this source code, or available at the URL above.
  */
 
 namespace Hubbub\Throttler;
+
 use Hubbub\Iterable;
 
 /**
@@ -28,11 +31,13 @@ class TimeAdjustedDelay extends Throttler implements Iterable {
         parent::__construct($conf, $logger);
         $this->last_iteration_start = microtime(1);
 
-        if($logger !== null)
+        if($logger !== null) {
             $this->setLogger($logger);
+        }
 
-        if($conf !== null)
+        if($conf !== null) {
             $this->setConf($conf);
+        }
     }
 
     /**

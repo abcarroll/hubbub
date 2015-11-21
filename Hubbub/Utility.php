@@ -1,10 +1,13 @@
 <?php
 /*
- * This file is a part of Hubbub, freely available at http://hubbub.sf.net
+ * This file is a part of Hubbub, available at:
+ * http://github.com/abcarroll/hubbub
  *
- * Copyright (c) 2015, Armond B. Carroll <ben@hl9.net>
+ * Copyright (c) 2013-2015, A.B. Carroll <ben@hl9.net>
+ * Hubbub is distributed under a BSD-like license.
+ *
  * For full license terms, please view the LICENSE.txt file that was
- * distributed with this source code.
+ * distributed with this source code, or available at the URL above.
  */
 
 namespace Hubbub;
@@ -31,12 +34,14 @@ class Utility {
         $suffix_gt1 = ['kilo', 'mega', 'giga', 'tera'];
         $suffix_lt1 = ['', 'milli', 'micro', 'nano', 'pico', 'femto', 'atto', 'zepto', 'yocto'];
         if($number >= 1) {
-            for ($i = 0; $number >= 1000 && $i < (count($suffix_gt1) - 1); $number /= 1000, $i++) ;
+            for($i = 0; $number >= 1000 && $i < (count($suffix_gt1) - 1); $number /= 1000, $i++) {
+                ;
+            }
 
             return (round($number, 2) . ' ' . $suffix_gt1[$i]);
         } else {
             $i = 0;
-            while ($number < 1 || empty($suffix_lt1[$i])) {
+            while($number < 1 || empty($suffix_lt1[$i])) {
                 $number *= 1000;
                 $i++;
             }
@@ -64,10 +69,10 @@ class Utility {
         if(!is_array($ports)) {
             $ports = array($ports);
         }
-        foreach ($ports as $p) {
+        foreach($ports as $p) {
             $p = explode('-', $p);
             if(count($p) > 1) {
-                for ($x = $p[0]; $x <= $p[1]; $x++) {
+                for($x = $p[0]; $x <= $p[1]; $x++) {
                     $return[] = $x;
                 }
             } else {

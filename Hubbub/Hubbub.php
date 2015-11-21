@@ -1,10 +1,13 @@
 <?php
 /*
- * This file is a part of Hubbub, freely available at http://hubbub.sf.net
+ * This file is a part of Hubbub, available at:
+ * http://github.com/abcarroll/hubbub
  *
- * Copyright (c) 2015, Armond B. Carroll <ben@hl9.net>
+ * Copyright (c) 2015, A.B. Carroll <ben@hl9.net>
+ * Hubbub is distributed under a BSD-like license.
+ *
  * For full license terms, please view the LICENSE.txt file that was
- * distributed with this source code.
+ * distributed with this source code, or available at the URL above.
  */
 
 namespace Hubbub;
@@ -28,7 +31,7 @@ class Hubbub {
 
     public function __construct(Array $dependants) {
         // Injects the $dependants array into this instance, which would be gathered from \Hubbub\Bootstrap in normal circumstance.
-        array_walk($dependants, function($dVal, $dKey) {
+        array_walk($dependants, function ($dVal, $dKey) {
             $this->$dKey = $dVal;
         });
 

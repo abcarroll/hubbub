@@ -14,7 +14,7 @@ $conf = [
     /* this is JUST an example to help better understand how to write the conf module*/
 
     'bootstrap' => [ // things just got weird..
-                     'chroot' => '',
+        'chroot' => '',
     ],
     'net'       => [
         // Which class to inject into the various objects?
@@ -52,11 +52,11 @@ $conf = [
                  * configuration is stuck somewhere in-between the IRC and BNC realm.
                  */
 
-                'ctcp'     => [
+                'ctcp' => [
                     'mode'    => 'static', // Needs a static mode, pass-thru mode, block mode, pass-thru-when-active (ie pass thru if bnc is active)
                     'version' => 'I use Hubbub, the php irc client: http://github.com/nezzario/hubbub'
                 ],
-                'dcc'      => [
+                'dcc'  => [
                     'file' => [
                         'file' => 'auto-accept|prompt|ignore|pass-thru',
                         'chat' => 'auto-accept|prompt|ignore|pass-thru',
@@ -70,7 +70,7 @@ $conf = [
             // Peg the server list to a dynamic server list.
             'serverListPegged' => 'freenode',
             // The list of servers, or if it is pegged, the cached/last updated copy of the server list
-            'serverList'          => [
+            'serverList'       => [
                 'irc.freenode.net:6667',
             ],
             'modules'          => [
