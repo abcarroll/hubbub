@@ -30,9 +30,14 @@ class Utility {
      * @todo Abbreviation mode -- m instead of milli (so you can say <?=siPrefix(0.001)?>s for 1ms)
      * @todo Import duration function that complements this
      */
-    static function SiPrefix($number) {
-        $suffix_gt1 = ['kilo', 'mega', 'giga', 'tera'];
-        $suffix_lt1 = ['', 'milli', 'micro', 'nano', 'pico', 'femto', 'atto', 'zepto', 'yocto'];
+
+    const SI_SUFFIX_TIME = [[''], ['', 'ms', 'us']];
+    const SI_SUFFIX_BYTES = [['KiB', 'MiB', 'GiB', 'TiB'], ['']];
+    const SI_SUFFIX_STD = [['kilo', 'mega', 'giga', 'tera'], ['', 'milli', 'micro', 'nano', 'pico', 'femto', 'atto', 'zepto', 'yocto']];
+
+    static public function siSuffix($number, $suffixSet = self::SI_SUFFIX_STD) {
+        $suffix_gt1 = $suffixSet[0];
+        $suffix_lt1 = $suffixSet[1];
         if($number >= 1) {
             for($i = 0; $number >= 1000 && $i < (count($suffix_gt1) - 1); $number /= 1000, $i++) {
                 ;
@@ -54,13 +59,12 @@ class Utility {
     /**
      * Converts a string represented port range (6667-7000) into an array covering the ports in the range.
      *
-     * @param string|int|array $str A port range, such as 6667-7000
+     * @param string|int|array $str    A port or port range, such as 6667-7000
+     * @param bool             $strict With strict mode true, anything not within the valid TCP/IP range of 0-65535 is rejected.
      *
      * @return array A list of individual ports covered in the range
-     *
-     * @todo Handle backwards port ranges (e.g. passing an array and getting 6667, 6668, 7000-8000)
      */
-    function portRange($str) {
+    static public function portRange($str, $strict = true) {
         $return = array();
         // remove any characters except digits ',' and '-'
         $str = preg_replace('/[^\d,-]/', '', $str);
@@ -83,4 +87,45 @@ class Utility {
         return $return;
     }
 
+    /**
+     * Converts either a array of integers or string of comma-separated integers to a natural english range, such as "1,2,3,5" to "1-3, 5".  It also supports
+     * floating point numbers, however with some perhaps unexpected / undefined behaviour if used within a range.
+     *
+     * @param string|array $items    Either an array (in any order, see $sort) or a comma-separated list of individual numbers.
+     * @param string       $itemSep  The string that separates sequential range groups.  Defaults to ', '.
+     * @param string       $rangeSep The string that separates ranges.  Defaults to '-'.  A plausible example otherwise would be ' to '.
+     * @param bool|true    $sort     Sort the array prior to iterating?  You'll likely always want to sort, but if not, you can set this to false.
+     *
+     * @return string
+     */
+    static function rangeToStr($items, $itemSep = ', ', $rangeSep = '-', $sort = true) {
+        if(!is_array($items)) {
+            $items = explode(',', $items);
+        }
+        if($sort) {
+            sort($items);
+        }
+        $point = null;
+        $range = false;
+        $str = '';
+        foreach($items as $i) {
+            if($point === null) {
+                $str .= $i;
+            } elseif(($point + 1) == $i) {
+                $range = true;
+            } else {
+                if($range) {
+                    $str .= $rangeSep . $point;
+                    $range = false;
+                }
+                $str .= $itemSep . $i;
+            }
+            $point = $i;
+        }
+        if($range) {
+            $str .= $rangeSep . $point;
+        }
+
+        return $str;
+    }
 }
