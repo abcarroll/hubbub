@@ -23,12 +23,10 @@ namespace Hubbub;
  *
  */
 class Configuration {
-
     protected $array;
 
-    public function __construct(\Hubbub\Logger $logger = null, \Hubbub\MessageBus $bus = null) {
+    public function __construct() {
         require 'conf/local-config.php';
-
         if(!empty($conf)) {
             $this->array = $conf;
         } else {
@@ -56,12 +54,6 @@ class Configuration {
             if(isset($current[$piece])) {
                 if(is_array($current[$piece]) && end($pieces) !== $piece) {
                     $current = $current[$piece];
-                }
-            } else {
-                if($this->logger instanceof Logger) {
-                    $this->logger->warning("Invalid configuration value: $value, couldn't find $piece inside $lastPiece");
-                } else {
-                    throw new \Exception("Can't find logger: the logger property instance not an instance of \\Hubbub\\Logger");
                 }
             }
             $lastPiece = $piece;

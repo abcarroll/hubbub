@@ -60,10 +60,6 @@ class TimeAdjustedDelay extends Throttler implements Iterable {
         $this->last_iteration_start = microtime(1);
     }
 
-    public function setBus(\Hubbub\MessageBus $bus) {
-        // @todo
-    }
-
     public function setConf(\Hubbub\Configuration $conf) {
         $this->conf = $conf;
         $this->frequency = $this->conf->get('throttler.frequency');

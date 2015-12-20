@@ -51,11 +51,12 @@ trait Parser {
 
         // It seems all server-to-client messages should be prefixed with ':'
         // However this function could be used to parse outgoing protocol data as well
+        // @todo Fix possible warnings here, remove warning suppression on list()
         if(substr($c, 0, 1) == ':') {
-            list($sender, $cmd, $arg) = explode(' ', $c, 3);
+            @list($sender, $cmd, $arg) = explode(' ', $c, 3);
         } else {
             // Should only be for client-to-server
-            list($cmd, $arg) = explode(' ', $c, 2);
+            @list($cmd, $arg) = explode(' ', $c, 2);
             $sender = null;
         }
 
@@ -104,7 +105,7 @@ trait Parser {
         if(method_exists($this, 'parse_' . $parsed->cmd)) {
             $parsed = $this->{'parse_' . $parsed->cmd}($parsed);
         } else {
-            trigger_error("I don't have a parser method for the previous command!", E_USER_WARNING);
+            $this->logger->warning("I don't have a parser method for the command: " . $parsed->cmd);
         }
 
         return $parsed;

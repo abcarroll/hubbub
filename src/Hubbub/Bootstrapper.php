@@ -114,6 +114,34 @@ class Bootstrapper {
     }
 
     /**
+     * @return \Dice\Dice
+     */
+    static public function factory() {
+        $factory = new \Dice\Dice();
+
+        // TODO move this to a configurable area
+        $factory->addRule('\Hubbub\Hubbub', [
+            'shared' => true
+        ]);
+        $factory->addRule('\Hubbub\Configuration', [
+            'shared' => true
+        ]);
+        $factory->addRule('\Hubbub\Throttler\Throttler', [
+            'shared' => true,
+            'instanceOf' => '\Hubbub\Throttler\TimeAdjustedDelay'
+        ]);
+        $factory->addRule('\Hubbub\Logger', [
+            'shared' => true
+        ]);
+
+        $factory->addRule('\Hubbub\Net\Client', [
+            'instanceOf' => '\Hubbub\Net\Stream\Client'
+        ]);
+
+        return $factory;
+    }
+
+    /**
      * Sets up the environment in early stages of execution. Bare minimum environment checks should go here.
      * @return void
      */

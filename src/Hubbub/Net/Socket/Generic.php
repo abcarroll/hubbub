@@ -136,6 +136,4 @@ abstract class Generic {
         socket_clear_error($socket);
         return "[$errorNumber] $errorMsg";
     }
-
-    abstract public function
 }

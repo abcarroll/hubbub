@@ -1,55 +1,51 @@
-# Hubbub: Messaging Hub #
-Hubbub is under heavy development.  Until we have more working software, I doubt you will find much information about it.
+# Hubbub: Universal Chat System
 
-## The Idea ##
-In a nutshell, Hubbub is meant to be a Proxy/BNC for all major IM protocols, including IRC.  Server and client components are independent, meaning you can theoretically create a translation gateway (X Network over Y Protocol) very easily, by only implementing the client or server component that Hubbub is missing.
+## The idea, history
 
-My philosophy is that instant messaging and communication is a core component of the internet.  I want to be able to harness all possible protocols and networks, in one place, and make it so other people can extend, automate, and use these protocols with ease. Especially with a simple, easy, well known language such as PHP (and, you could extend it to other languages easily as well.)  To be able to save and search chat logs, setup auto responses, and have 24/7 online presence.  In addition, not restricting a protocol to a specific arena – for example, there is no FooProtocol client on XYZ device?  That's OK if there is a BarProtocol client, we can make a gateway.
+mpiBot was originally meant to be a modular IRC bot.  I wrote mpiBot when I was 14 years old, over 10 years ago.  Hubbub is a fork of mpiBot's ideas
+and in fact still uses some of the same code for the IRC protocol.  All projects were also meant as programming exercises, and to push the PHP language to
+it's limits.
 
-## Coding Standards ##
-  * Just take a look at the code.  If you submit code, please try to phpDoc it.  A lot of the code isn't phpDoc'd, so it's not a requirement.
-  * If you submit code, I don't care if it's spaces or tabs, or badly formatted, because if you have a decent editor, it's a 1 second fix to convert back to tabs.  If you hate my formatting, and have a decent editor, it's a one second fix to change it to your preferred style.
-  * I do not use camel case for methods.  I originally tried to adhere to php-fig standards but some are very arbitrary and some ridiculous (but, some good).
+My philosophy is that instant messaging and communication is a core component of the internet.  I want to be able to harness all possible protocols and 
+networks, in one place, and make it so other people can extend, automate, and use these protocols with ease. Especially with a simple, easy, well known 
+language such as PHP (and, you could extend it to other languages easily as well.)  To be able to save and search chat logs, setup auto responses, and 
+have 24/7 online presence. 
 
-## History ##
-Hubbub is based on some code I wrote over 10 years ago when I was about 14 years old, called mpiBot.  You can still find the original project in all of it's glory, as well as a Wiki I setup about a year ago in attempts to revive the project, over at http://mpibot.sf.net.  mpiBot was meant to only be an IRC bot and BNC.  Hubbub is meant to be much more.
+In addition, by using the dead-simple messaging Bus, we can easily create protocol bridges.  A concrete example: If a device/platform such as Android does
+not have a client for Tox, but does have a client for IRC, we can connect to our Hubbub instance via IRC and use it to send and receive messages on Tox.
 
-## Status ##
-Hubbub isn't ready yet.  There is a mostly full featured IRC client, and partial IRC server (BNC-side) component.  There used to be interest in Skype however Skype stopped supporting sending messages through it's dbus API in Dec 2013.  If there is ever a way to accomplish this withotu legal ramifications, it will be so.  Right now, the main component missing is a reliable messaging hub to aid in moving chat messages around internally in a protocol-neutral way, and a configuration interface.  There is a lot of loose ends to be tied up yet.
+## Current Status
+Currently, Hubbub after several years of development is *almost* usable as an IRC client and BNC.  It has been written with very modernized coding techniques,
+and meticulously planned, and re-written several times to ensure a stable foundation to grow upon.
 
-I am *slowly* making progress.  This project is intended to be a very well laid out example of Object Oriented Programming with dependency injection & IoC techniques which are relatively new concepts to me.
+## Plans for the Future
+Ultimately, Hubbub will hopefully one day support dozens of protocols.  Among them that I would love to see: XMPP, SIP, Tox, Mumble, TextSecure, Twitter (API), 
+Reddit (API), and proprietary protocols such as Steam, OSCAR, YMSG, and MSNP.  
 
-## TODO ##
-  * ~~Modernize Code: Most of this code was written before true namespace support so you see PEAR-like class names.~~
-  * Finish the messaging bus, merge the two bus classes.  Possibly refactor into MessageBus not MsgBus.
-  * Write out all classes & namespaces.  Refactor into new namespaces and write Interfaces and Abstract classes where needed.
-    * Make sure the getters and setters are consistent.
-  * Refactor the IRC client considerably.  Get the modular bits working again.  Refactor to use proper camelCase callback methods.
-    Things such as channels, commands, and nicks should be objects.
-  * Move networking objects into DI injection on the Bnc/IRC Objects
-     - Fix client disconnection issue
-  * The bootstrapping is still a little over-done.  For the most part, it should work, but I believe the bootstrap and conf class needs to be refactored
-    into more than just those two classes.
-  * *Re-implement chroot() capabilities from mpiBot*
-  * Write basic configuration script as a demo.  Should ask:
-    * Logging options (to file, context dumps)
-    * Auto-detect or ask which Net class to use (socket, stream, fsockopen)
-    * Run BNC? Listening options, password
-    * Global IRC Options: Default nick/user/realname, ctcp & dcc options, global irc modules
-    * Add networks
-      * Per-server options: nick/user/realname, ctcp&dcc options, server modules
-        * Auto join, SASL, TLS, auto-login for services
-      * Add servers
-    * { .. repeat until satisfied }
-  * *Clean up circular reference issue.* (Somewhat done)
-  * Move Conf into a JSON loader.  Write a demo mySQL conf class.
-  * Ensure all headers are up-to-date
-  * Ensure all phpDocs are up-to-date.
-  * Ensure all throttlers have a consistent API.
-  * Attempt to complete the CpuAdjustedDelay Throttler.
-  * Refactor code to make better use of Built-in Spl Classes such as ArrayObject, or the SplObserver/SplSubject for the
-    message bus (or is our's too different from that specific implementation?)
+Skype support will likely never happen, unfortunately.  Microsoft has demonstrated they will do everything within their legal capabilities to bar anyone
+else from creating a competing client.  A few years ago, Microsoft invoked DMCA and killed a project to reverse engineer the protocol directly.  Using something
+such as Skype4Py is a possibility. However it is my understanding that Skype/Microsoft is also actively targeting these projects by removing the DBus interface,
+making it all but impossible to interface with Skype.  My best advice: Do not use Skype.
 
+In addition to writing protocol support, a high priority for the project is to write a universal web client, so that ultimately one could use your web browser
+to chat over any protocol that Hubbub supports.  These would be local installations, not SaaS.  The goal/idea being that you could install Hubbub on a cheap
+VPS, and be able to log-in to your Hubbub instance anywhere in the world on any device that has a quasi-modern web browser.
+
+## Architecture
+Hubbub is meant to be totally self-contained aside from modules you may elect to install.  It uses a built-in copy of "Dice", by Tom Butler for dependency 
+injection.  Dice is distributed under the BSD license.  Some extras from the git repository were removed and only the minimum necessary files are left.
+
+Hubbub has a few main components:
+
+ - Start / Bootstrap Routine: start.php and the autoloader.  Hubbub uses PSR-4 compatible autoloading with the namespace root under 'src/'.
+ - \Net objects are networking objects: Two types of networking exist, 'Stream' and 'Socket' which correspond to stream_* and socket_* functions in PHP.  
+ - \Protocol objects are a few thin interfaces in which protocol objects (eg. IRC\Client) implement
+ - Protocol objects are event handlers, Networking objects are event-producers.  The system in which this works uses a poor OO pattern, admittedly.  See setProtocol().
+ - Aside, there is a configuration object, a logger object (PSR-3 compatible), an iterator (poor name for it), and messaging bus which is a subscribe/publish pattern.
+ - The messaging bus is meant to make protocol-agnostic messaging possible between unlike chat protocols.  Also, to extend the system by subscribing to relevant
+ events.  For example, you could subscribe to all private messages across all protocols, and write a module that responds to commands that start with '@' without 
+ worrying about the underlying protocol.
+ 
 ## Getting help
 Hubbub has an official IRC channel on Freenode, at `#hubbub`.  You are welcome to join, and idle.  You can test your Hubbub in `#hubbub-test`.  We'd love to see your bot/bnc.
 
@@ -57,10 +53,10 @@ Hubbub has an official IRC channel on Freenode, at `#hubbub`.  You are welcome t
 
 ### Authors
 
-> Hubbub is written by:
+> Hubbub is written and maintained by:
  - A.B. Carroll <ben@hl9.net>
 
-### Contributers
+### Contributors
 
 > Creative Support, Technical Information, Code Review Provided by:
  - Rob DeHart <rob@1606inc.com>
@@ -69,8 +65,15 @@ Hubbub has an official IRC channel on Freenode, at `#hubbub`.  You are welcome t
 > Additionally, some low level protocol formats, numeric and mode tables  were created with the help of data from
 > Simon Butcher pickle@alien.net.au
 
-## License ##
-Hubbub is available under a BSD-like license.  Please see LICENSE.txt for full license text.  Some files do not have a copyright header, those files are still subject to my copyright, unless specifically  noted with a separate copyright header.
+> Some helpful insights into proper Dependency Injection patterns provided by regulars of Freenode / ##php channel.
 
-While you are not legally required to do so, I kindly ask if you make commercial use of my software, even as a service, you just simply link back to the SourceForge homepage, at http://hubbub.sf.net
+> Hubbub uses DICE 2.0, which is (C) Copyright 2012-2015 Tom Butler <tom@r.je> | https://r.je/dice.html and distirbuted under the BSD license.  A built in
+version of Dice is distributed with Hubbub in 'src/Dice/'.
+
+## License ##
+Hubbub is available under a BSD-like license.  Please see LICENSE.txt for full license text.  Some files do not have a copyright header, those files are still
+subject to my copyright, unless specifically noted with a separate copyright header.
+
+While you are not legally required to do so, I kindly ask if you make commercial use of my software, even as a service, you just simply link back to the official
+GitHub project page, http://github.com/abcarroll/hubbub
 

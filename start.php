@@ -15,7 +15,7 @@ namespace Hubbub;
 
 // PSR-4 autoloader
 spl_autoload_register(function ($class) {
-    $file = __DIR__ . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $class) . '.php';
+    $file = __DIR__ . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $class) . '.php';
     if(file_exists($file)) {
         if(is_readable($file)) {
             require $file;
@@ -26,9 +26,6 @@ spl_autoload_register(function ($class) {
 });
 
 Bootstrapper::Sunrise();
-
-new Hubbub(Bootstrapper::loadDependencies(
-    Bootstrapper::getDependenciesArray()
-));
-
+$factory = Bootstrapper::factory();
+$factory->create('\Hubbub\Hubbub', [$factory]);
 Bootstrapper::Sunset();

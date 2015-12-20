@@ -12,12 +12,14 @@
 
 namespace Hubbub\Throttler;
 
+use Hubbub\Iterable;
+
 /**
  * Class Throttler
  * @package Hubbub\Throttler
  * @todo    I'm not 100% sure this class is necessary as it does very little.  Perhaps an interface would be more appropriate?
  */
-abstract class Throttler {
+abstract class Throttler implements Iterable {
     protected $conf, $logger, $iteration;
 
     /**

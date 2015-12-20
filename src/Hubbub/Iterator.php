@@ -13,11 +13,11 @@
 namespace Hubbub;
 
 /**
- * Class RootIterator
+ * Class Iterator
  *
  * @package Hubbub
  */
-class Iterator extends Injectable {
+class Iterator {
 
     protected $modules;
     protected $run = true;
@@ -117,20 +117,4 @@ class Iterator extends Injectable {
 
         return $itemList;
     }
-
-    /*
-     * These setters allow the bus & throttler to be added to the iterator stack via the \Hubbub\Bootstrap routines.
-     * TODO Modify the bootstrap to make these no longer necessary, possibly by using a generic inject() method, and the conf, and logger can use
-     * TODO the inject() method to call their own setConf/setLogger methods.
-     */
-
-    public function setBus($bus) {
-        $this->add($bus, 'bus');
-    }
-
-    public function setThrottler($throttler) {
-        $this->add($throttler, 'throttler');
-    }
-
-
 }

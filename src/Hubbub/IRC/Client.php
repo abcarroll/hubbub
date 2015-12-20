@@ -11,26 +11,25 @@
  */
 
 namespace Hubbub\IRC;
-
 use StdClass;
 
 /**
- * Thoughts: Instead of extending \Hubbub\Net\Stream\Client perhaps it should use dependency injection instead so you could
- * actually use the other kinds of Networking if necessary?
- */
-
-/**
  * Class Client
- *
- * @package Hubbub\Modules\IRC
+ * @package Hubbub\IRC
  */
-class Client extends \Hubbub\Net\Client {
+class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
     use Parser;
     use Senders;
 
+    /**
+     * @var \Hubbub\Net\Client
+     */
+    protected $net;
+    protected $logger, $bus, $conf;
+
     /** @var  \Hubbub\Net\Generic\Client */
     protected $protocol = 'irc';
-    protected $state;
+    protected $state = 'initialize';
 
     protected $recvBuffer = ''; // Where incomplete, fragmented commands go for temporary storage
 
@@ -42,13 +41,28 @@ class Client extends \Hubbub\Net\Client {
         'realname' => 'Bob Marley',
     ];
 
-    public function __construct(\Hubbub\Hubbub $hubbub = null, $confName) {
-        parent::__construct($hubbub);
+    protected $currentServerIdx = 0;
+    protected $nextAction = 'connect';
+    protected $nextActionTime = 0;
+
+    public function __construct(\Hubbub\Net\Client $net, \Hubbub\Logger $logger, \Hubbub\MessageBus $bus, \Hubbub\Configuration $conf, $name) {
+        $this->net = $net;
+        $this->logger = $logger;
+        $this->bus = $bus;
+        $this->conf = $conf;
+
+        // Set the network's protocol to ths IRC object; the IRC object will receive event notifications via the network handler
+        $this->net->setProtocol($this);
+
+        $this->serverList = $this->conf->get($name . '.serverList');
+        $this->connectNext();
+    }
+
+    protected function connectNext() {
         $this->state = 'pre-auth';
-
-        $this->serverList = $this->hubbub->conf->get($confName . '.serverList');
-
-        $this->net->connect("tcp://{$this->serverList[0]}");
+        $nextServer = $this->serverList[($this->currentServerIdx++ % count($this->serverList))];
+        $this->logger->info("Connecting to: $nextServer");
+        $this->net->connect("tcp://$nextServer");
     }
 
     /* --- Properly set states on connect and disconnect --- */
@@ -59,12 +73,15 @@ class Client extends \Hubbub\Net\Client {
     }
 
     public function send($data) {
-        var_dump($data);
         return $this->net->send("$data\n");
     }
 
+
     public function on_disconnect() {
-        echo "\\Hubbub\\IRC\\Client::on_disconnect() called\n";
+        $this->state = 'disconnected';
+        $this->nextAction = 'connect';
+        $this->nextActionTime = time() + 30;
+        $this->logger->info("IRC Client Disconnected.  Trying again in 30 seconds.");
     }
 
     public function on_send($data) {
@@ -72,6 +89,16 @@ class Client extends \Hubbub\Net\Client {
     }
 
     public function iterate() {
+        if($this->nextActionTime <= time()) {
+            if($this->nextAction == 'connect') {
+                $this->connectNext();
+            } elseif($this->nextAction !== null) {
+                $this->logger->warning("nextAction not handled");
+            }
+            $this->nextAction = null;
+        }
+
+        //$this->logger->debug("IRC\\Client State: " . $this->state);
         $this->net->iterate();
     }
 
@@ -85,7 +112,7 @@ class Client extends \Hubbub\Net\Client {
         $incomplete = '';
         if($commands[$lastIdx] !== "") {
             $incomplete .= $commands[$lastIdx - 1];
-            $this->hubbub->logger->debug("Last command was a fragement; storing in buffer: {$commands[$lastIdx - 1]}");
+            $this->logger->debug("Last command was a fragment; storing in buffer: {$commands[$lastIdx - 1]}");
         }
 
         $this->recvBuffer = $incomplete;
@@ -96,15 +123,12 @@ class Client extends \Hubbub\Net\Client {
     }
 
     public function on_recv_irc($rawData) {
-        echo " => $rawData\n";
+        $this->logger->debug("RAW: $rawData");
 
         /** @var \StdClass $data */
         $data = $this->parseIrcCommand($rawData);
-
-        print_r($data);
-
         if($data->cmd == 'ping') {
-            $this->sendPong($data['parm']);
+            $this->sendPong($data->parm);
         } else {
             if(method_exists($this, 'on_' . $data->cmd)) {
                 $data = $this->{'on_' . $data->cmd}($data);
@@ -126,7 +150,7 @@ class Client extends \Hubbub\Net\Client {
 
 
             // Finally should do something like this
-            /*$this->hubbub->bus->publish([
+            /*$this->bus->publish([
               'protocol' => $this->protocol,
               //'network'  => $this->network,
               'event'    => 'msg',
@@ -142,10 +166,7 @@ class Client extends \Hubbub\Net\Client {
     }
 
     protected function on_join(StdClass $cmd) {
-
-
-        var_dump($cmd);
-
+        // todo Implement on_join() method
     }
 
     /*

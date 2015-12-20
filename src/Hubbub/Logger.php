@@ -32,12 +32,14 @@ class Logger { // extends PsrLogAbstractLogger implements PsrLogLoggerInterface 
      * @var Configuration $conf
      * @var Resource      $fp
      */
-    protected $instance, $conf, $fp;
+    protected $conf, $fp;
 
-    //public function __construct($parent, $config) {
     public function __construct(\Hubbub\Configuration $conf = null) {
-        if($conf !== null) {
-            $this->setConf($conf);
+        $this->conf = $conf;
+        if(!empty($this->conf->get('logger.logToFile'))) {
+            $this->fp = fopen($this->conf->get('logger.logToFile'), 'a+');
+        } else {
+            $this->fp = null;
         }
     }
 
@@ -54,7 +56,7 @@ class Logger { // extends PsrLogAbstractLogger implements PsrLogLoggerInterface 
 
         echo $logText . "\n";
         if($this->fp) {
-            fwrite($this->fp, $logText);
+            fwrite($this->fp, $logText . "\n");
         }
 
         // Print a "context dump" (think core dump) on severe errors
@@ -123,20 +125,4 @@ class Logger { // extends PsrLogAbstractLogger implements PsrLogLoggerInterface 
             fwrite(STDERR, "\n** ** ** Could not write context dump to file: $fileName *\n\n");
         }
     }
-
-    public function setConf(\Hubbub\Configuration $conf) {
-
-
-        $this->conf = $conf;
-        if(!empty($this->conf->get('logger.logToFile'))) {
-            $this->fp = fopen($this->conf->get('logger.logToFile'), 'a+');
-        } else {
-            $this->fp = null;
-        }
-    }
-
-    public function setBus(\Hubbub\MessageBus $bus) {
-        $this->bus = $bus;
-    }
-
 }
