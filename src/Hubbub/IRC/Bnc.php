@@ -13,46 +13,49 @@
 
 namespace Hubbub\IRC;
 
-    /**
-     * Thoughts: This might should just be called IRC server.  Or implement a basic server and then extend that out to a bnc...
-     * Also, same with IRC server, it should probably use dependency injection for the Net Stream Server instead of extending it.
-     *
-     * @todo Move clients table and on_client_recv to a $client->on_recv() .. Should likely do both
-     */
-
 /**
  * Class Bnc
+ * @package Hubbub\IRC
  */
-class Bnc extends \Hubbub\Net\Stream\Server {
-    use Generic;
+class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
+    /*
+     * Thoughts: This might should be called \Hubbub\IRC\Server and then extend-out a BNC based on the generic IRC server implementation, in the future.
+     * @todo: Move clients table and on_client_recv() to $client->on_recv().
+     */
+    //use Generic;
 
-    protected $hubbub, $config, $logger, $bus;
-    protected $clients;
+    protected $net, $conf, $logger, $bus;
+    protected $clients = [];
 
-    public function __construct(\Hubbub\Hubbub $hubub, \Hubbub\Configuration $config, \Hubbub\Logger $logger, \Hubbub\MessageBus $bus) {
-        $this->hubbub = $hubub;
-        $this->config = $config;
+    public function __construct(\Hubbub\Net\Server $net, \Hubbub\Configuration $config, \Hubbub\Logger $logger, \Hubbub\MessageBus $bus, $name) {
+        $this->conf = $config;
         $this->logger = $logger;
         $this->bus = $bus;
 
-        parent::__construct($this->config['listen']);
+        $this->net = $net;
+        $this->net->setProtocol($this);
 
-        $this->bus->subscribe($this, [
+        $this->bus->subscribe([$this, 'busMessageHandler'], [
             'protocol' => 'irc'
         ]);
 
-        // InternalBus Method
-        /*$this->bus->subscribe([
-            'protocol' => 'irc'
-        ], [$this, 'on_notify']);*/
+        $listen = $this->conf->get('irc.bnc.listen');
+        $this->net->server('tcp://' . $listen);
     }
 
     /*public function clientDisconnect($socket) {
         stream_socket_shutdown($socket, STREAM_SHUT_RDWR);
     }*/
 
+    public function busMessageHandler($message) {
+        foreach($this->clients as $c) {
+            /** @var \Hubbub\IRC\BncClient $c */
+            $c->onBusMessage($message);
+        }
+    }
+
     function on_client_connect($socket) {
-        $newClient = new BncClient($this->hubbub, $this, $socket);
+        $newClient = new BncClient($this, $this->logger, $this->conf, $this->bus, $socket);
         $newClient->iterate(); // Iterate once after connection automatically
         $this->clients[(int) $socket] = $newClient;
     }
@@ -62,6 +65,8 @@ class Bnc extends \Hubbub\Net\Stream\Server {
     }
 
     function on_client_recv($socket, $data) {
+        $this->logger->debug("Received data from client: $data");
+
         /** @var \Hubbub\IRC\BncClient $client */
         $client = $this->clients[(int) $socket];
         $client->on_recv($data);
@@ -72,20 +77,6 @@ class Bnc extends \Hubbub\Net\Stream\Server {
            when data is sent. */
 
         $this->logger->debug("BNC::on_client_send: " . $data);
-    }
-
-
-    /**
-     * Iterates the connected clients
-     */
-    function on_iterate() {
-        if(count($this->clients) > 0) {
-            foreach($this->clients as $c) {
-                /** @var $c BncClient */
-                $c->iterate();
-            }
-        }
-        //$this->hubbub->logger->debug("BNC Server was iterated with " . count($this->clients) . " clients");
     }
 
     /* Does this trigger??? */
@@ -103,5 +94,29 @@ class Bnc extends \Hubbub\Net\Stream\Server {
 
     function on_notify($n) {
         print_r($n);
+    }
+
+    function on_listen() {
+        // TODO: Implement on_listen() method.
+    }
+
+    function on_send($client, $data) {
+        // TODO: Implement on_send() method.
+    }
+
+    function iterate() {
+        $this->net->iterate();
+
+        if(count($this->clients) > 0) {
+            foreach($this->clients as $c) {
+                /** @var $c BncClient */
+                $c->iterate();
+            }
+        }
+        $this->logger->debug("BNC Server was iterated with " . count($this->clients) . " clients");
+    }
+
+    public function send($who, $what) {
+        return $this->net->send($who, $what);
     }
 }

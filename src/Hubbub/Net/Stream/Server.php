@@ -17,27 +17,35 @@ namespace Hubbub\Net\Stream;
  *
  * @package Hubbub\Net\Stream
  */
-abstract class Server implements \Hubbub\Net\Generic\Server {
-    private $location, $transport, $address, $port;
+class Server implements \Hubbub\Net\Server {
+    protected $location, $transport, $address, $port;
 
-    private $guess_server_flags = [];
+    /**
+     * @var \Hubbub\Protocol\Server
+     */
+    protected $protocol;
+    protected $guess_server_flags = [
+        'tcp'     => STREAM_SERVER_BIND | STREAM_SERVER_LISTEN,
+        'udp'     => STREAM_SERVER_BIND,
+        'unix'    => STREAM_SERVER_BIND | STREAM_SERVER_LISTEN,
+        'udg'     => STREAM_SERVER_BIND | STREAM_SERVER_LISTEN,
+        'ssl'     => STREAM_SERVER_BIND | STREAM_SERVER_LISTEN,
+        'sslv3'   => STREAM_SERVER_BIND | STREAM_SERVER_LISTEN,
+        'tls'     => STREAM_SERVER_BIND | STREAM_SERVER_LISTEN,
+        'default' => STREAM_SERVER_BIND | STREAM_SERVER_LISTEN,
+    ];
 
-    private $server_socket = [];
-    private $client_sockets = [];
+    protected $server_socket;
+    protected $client_sockets = [];
 
-    public function __construct($location) {
-        $this->guess_server_flags = [
-            'tcp'     => STREAM_SERVER_BIND | STREAM_SERVER_LISTEN,
-            'udp'     => STREAM_SERVER_BIND,
-            'unix'    => STREAM_SERVER_BIND | STREAM_SERVER_LISTEN,
-            'udg'     => STREAM_SERVER_BIND | STREAM_SERVER_LISTEN,
-            'ssl'     => STREAM_SERVER_BIND | STREAM_SERVER_LISTEN,
-            'sslv3'   => STREAM_SERVER_BIND | STREAM_SERVER_LISTEN,
-            'tls'     => STREAM_SERVER_BIND | STREAM_SERVER_LISTEN,
-            'default' => STREAM_SERVER_BIND | STREAM_SERVER_LISTEN,
-        ];
+    protected $logger;
 
-        $this->server($location);
+    public function __construct(\Hubbub\Logger $logger) {
+        $this->logger = $logger;
+    }
+
+    public function setProtocol(\Hubbub\Protocol\Server $protocol) {
+        $this->protocol = $protocol;
     }
 
     public function server($location, $flags = 'auto') {
@@ -47,14 +55,13 @@ abstract class Server implements \Hubbub\Net\Generic\Server {
             if(isset($this->guess_server_flags[$location_parsed['scheme']])) {
                 $flags = $this->guess_server_flags[$location_parsed['scheme']];
             } else {
-                trigger_error("Could not autoselect flags for transport '{$location_parsed['scheme']}', using defaults", E_USER_WARNING);
+                trigger_error("Could not auto-select flags for transport '{$location_parsed['scheme']}', using defaults", E_USER_WARNING);
                 $flags = $this->guess_server_flags['default'];
             }
         }
 
         // Known Transports:
         // tcp, udp, unix, udg, ssl, sslv3, tls
-
         $this->server_socket = stream_socket_server($location, $errno, $errstr);
 
         if($this->server_socket === false) {
@@ -64,12 +71,12 @@ abstract class Server implements \Hubbub\Net\Generic\Server {
 
     public function send($socket, $data) {
         //$data = $this->on_client_send($socket, $data);
-        $this->on_client_send($socket, $data);
+        $this->protocol->on_client_send($socket, $data);
 
         if(is_array($socket)) {
             $ret = [];
             foreach($socket as $s) {
-                $ret[] = stream_socket_sendto($socket, $data);
+                $ret[] = stream_socket_sendto($s, $data);
             }
         } else {
             $ret = stream_socket_sendto($socket, $data);
@@ -90,20 +97,23 @@ abstract class Server implements \Hubbub\Net\Generic\Server {
             // A client is connecting to our listening socket
             if($socket === $this->server_socket) {
                 if(($client = stream_socket_accept($this->server_socket)) < 0) { // resource server_socket [, int timeout [, string &peername]]
-                    trigger_error("Socket accept failed", E_USER_WARNING);
+                    $this->logger->alert("socket_accept() has failed!");
                 } else {
+                    $this->logger->debug("New client socket accepted");
                     $this->client_sockets[(int) $client] = $client;
-                    $this->on_client_connect($client);
+                    $this->protocol->on_client_connect($client);
                 }
             } else {
                 $data = $this->recv($socket);
 
                 // A client has disconnected from our listening socket
                 if($data === 0) {
-                    $this->on_client_disconnect($socket);
+                    $this->protocol->on_client_disconnect($socket);
                     unset($this->client_sockets[(int) $socket]);
+                    $this->logger->debug("Client disconnected from socket");
                 } else {
-                    $this->on_client_recv($socket, $data);
+                    $this->logger->debug("Data received from client");
+                    $this->protocol->on_client_recv($socket, $data);
                 }
             }
         }
@@ -114,18 +124,7 @@ abstract class Server implements \Hubbub\Net\Generic\Server {
     }
 
     public function iterate() {
-        $this->on_iterate();
+        $this->logger->debug("Iterating server sockets");
         $this->poll_sockets();
     }
-
-    // Callbacks
-    abstract public function on_client_connect($socket);
-
-    abstract public function on_client_disconnect($socket);
-
-    abstract public function on_client_recv($socket, $data);
-
-    abstract public function on_client_send($socket, $data);
-
-    abstract public function on_iterate();
 }

@@ -18,15 +18,11 @@ namespace Hubbub;
  *
  * @package Hubbub
  */
-class MessageBus implements Iterable { // @todo not actually an iterable module ?
-    protected $subscriptions;
+class MessageBus {
+    protected $logger;
+    protected $subscriptions = [];
 
-    /**
-     * @param Configuration|null $conf   The configuration object
-     * @param Logger|null        $logger The logger object
-     */
-    public function __construct(\Hubbub\Configuration $conf = null, \Hubbub\Logger $logger = null) {
-        $this->conf = $conf;
+    public function __construct(\Hubbub\Logger $logger) {
         $this->logger = $logger;
     }
 
@@ -38,8 +34,8 @@ class MessageBus implements Iterable { // @todo not actually an iterable module 
      */
     public function subscribe($callback, $filter = null) {
         $this->subscriptions[] = [
-            'filter'   => $filter,
             'callback' => $callback,
+            'filter'   => $filter,
         ];
 
         return key(end($this->subscriptions));
@@ -53,15 +49,10 @@ class MessageBus implements Iterable { // @todo not actually an iterable module 
     }
 
     public function publish($message) {
-
-    }
-
-    public function setConf(\Hubbub\Configuration $conf) {
-        // @todo
-    }
-
-    public function setLogger(\Hubbub\Logger $logger) {
-        // @todo
+        $this->logger->debug("I have " . count($this->subscriptions) . " subscriptions I'm about to publish a received message to...");
+        foreach($this->subscriptions as $s) {
+            $s['callback']($message); // call the callable
+        }
     }
 
     public function iterate() {

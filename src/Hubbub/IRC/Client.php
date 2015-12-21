@@ -11,6 +11,7 @@
  */
 
 namespace Hubbub\IRC;
+
 use StdClass;
 
 /**
@@ -27,7 +28,6 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
     protected $net;
     protected $logger, $bus, $conf;
 
-    /** @var  \Hubbub\Net\Generic\Client */
     protected $protocol = 'irc';
     protected $state = 'initialize';
 
@@ -44,6 +44,8 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
     protected $currentServerIdx = 0;
     protected $nextAction = 'connect';
     protected $nextActionTime = 0;
+
+    protected $modules = []; // sub-modules, this system is currently disabled
 
     public function __construct(\Hubbub\Net\Client $net, \Hubbub\Logger $logger, \Hubbub\MessageBus $bus, \Hubbub\Configuration $conf, $name) {
         $this->net = $net;
@@ -134,30 +136,34 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
                 $data = $this->{'on_' . $data->cmd}($data);
             }
 
-            /* foreach($this->modules as $m) {
-                $method_name = 'on_' . $d['cmd'];
-                cout(odebug, "Trying method $method_name for class '" . get_class($m) . "'");
+            // Disabled code for sub-modules or per-protocol modules
+            foreach($this->modules as $m) {
+                $method_name = 'on_' . $data->cmd;
+                $this->logger->debug("Trying method $method_name for class '" . get_class($m) . "'");
                 if(method_exists($m, $method_name)) {
-                    $m->$method_name($this, $d);
+                    $m->$method_name($this, $data);
                 } elseif(isset($cmd['cmd_numeric'])) {
                     $method_name = 'on_numeric_' . $cmd['cmd_numeric'];
-                    cout(odebug, "Trying method $method_name for class '" . get_class($m) . "'");
+                    $this->logger->debug("Trying method $method_name for class '" . get_class($m) . "'");
                     if(method_exists($m, $method_name)) {
-                        $m->$method_name($this, $d);
+                        $m->$method_name($this, $data);
                     }
                 }
-            } */ # end foreach($commands
+            }
 
+            // Send this data across the bus for other modules to handle
+            $this->logger->debug("Sending bus message:");
 
-            // Finally should do something like this
-            /*$this->bus->publish([
-              'protocol' => $this->protocol,
-              //'network'  => $this->network,
-              'event'    => 'msg',
-              'from'     => $data['sender'],
-              'data'     => $data['data'],
-              'irc'      => $data,
-          ]);*/
+            $busMessage = [
+                'protocol' => $this->protocol,
+                //'network'  => $this->network,
+                //'event'    => 'msg',
+                //'from'     => $data->sender,
+                //'data'     => $data->data,
+                'raw'      => $data->data,
+            ];
+            $this->logger->debug(print_r($busMessage, true));
+            $this->bus->publish($busMessage);
         }
     }
 

@@ -24,10 +24,6 @@ interface Client extends \Hubbub\Iterable {
      * @return void
      */
     public function setProtocol(\Hubbub\Protocol\Client $protocol);
-    public function connect($dsn);
-    public function disconnect();
-    public function send($data);
-    public function recv();
 
     /**
      * @param bool $mode True to set blocking, false to set non-blocking
@@ -35,4 +31,54 @@ interface Client extends \Hubbub\Iterable {
      * @return bool Whether or not the operation completed
      */
     public function set_blocking($mode);
+
+    /**
+     * @param $where
+     *
+     * @return bool
+     */
+    function connect($where);
+
+    /**
+     * @return bool
+     */
+    function disconnect();
+
+    /**
+     * @param $data
+     *
+     * @return mixed
+     */
+    function send($data);
+
+    /**
+     * @param $length
+     *
+     * @return bool|string The data received or false on failure.
+     */
+    function recv($length);
+
+    /**
+     * @return mixed
+     */
+    function on_connect();
+
+    /**
+     * @return mixed
+     */
+    function on_disconnect();
+
+    /**
+     * @param $data
+     *
+     * @return mixed
+     */
+    function on_send($data);
+
+    /**
+     * @param $data
+     *
+     * @return mixed
+     */
+    function on_recv($data);
 }

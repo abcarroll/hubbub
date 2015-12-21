@@ -4,25 +4,46 @@
  */
 
 $conf = [
+    // These are the objects to auto-create
+    'hubbub'    => [
+        'freenode' => [
+            'class' => '\Hubbub\IRC\Client',
+            'conf'  => 'irc.freenode'
+        ],
+        'bnc'      => [
+            'class' => '\Hubbub\IRC\Bnc',
+            'conf'  => 'irc.bnc'
+        ]
+    ],
+
+    // This actually works
     'logger'    => [
         'logToFile'    => 'hubbub.log',
         'contextDumps' => true, // TODO Does not care about this setting
     ],
+
+    // This actually works
     'throttler' => [
         'frequency' => 250000,
     ],
-    /* this is JUST an example to help better understand how to write the conf module*/
 
-    'bootstrap' => [ // things just got weird..
+    // Doesn't work
+    'bootstrap' => [
         'chroot' => '',
     ],
+
+    // TODO this is actually hard-coded in Bootstrapper.php as DICE rules
     'net'       => [
         // Which class to inject into the various objects?
         'client'  => '\Hubbub\Net\Stream\Client',
         'server'  => '\Hubbub\Net\Stream\Server',
-        // Connection timeout
+        // Connection timeout [doesn't work]
         'timeout' => '10',
     ],
+
+    // these are the rules ...
+    // they aren't actually merged at all...
+    // but *some* of them do work
     'irc'       => [
         'global'   => [
             'nickname'  => 'HubTest-' . mt_rand(0, 999),
@@ -76,7 +97,7 @@ $conf = [
             'modules'          => [
 
                 /*
-                 * What is the best way to de-couple, or possibly rather properly couple, things such as channel management (keep topic, keep modues,
+                 * What is the best way to de-couple, or possibly rather properly couple, things such as channel management (keep topic, keep modules,
                  * services integration, etc) along with more simpler aspects such as auto-join, etc?
                  *
                  * Or more confusingly, say we want to log only #a and #b but not #c, -- this creates friction with the Logger.
@@ -88,11 +109,11 @@ $conf = [
             ]
 
         ],
+        'bnc'      => [
+            'listen'    => '0.0.0.0:1337',
+            'password'  => '1234',
+            'motd_file' => 'LICENSE.txt',
+        ]
     ],
-    'hubbub'    => [
-        'freenode' => [
-            'class' => '\Hubbub\IRC\Client',
-            'conf'  => 'irc.freenode'
-        ],
-    ]
+
 ];
