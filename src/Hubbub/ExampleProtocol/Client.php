@@ -10,18 +10,29 @@
  * distributed with this source code, or available at the URL above.
  */
 
-namespace Hubbub\ExProto;
+namespace Hubbub\ExampleProtocol;
 
 /**
  * Class Client
- * @package Hubbub\ExProto
+ * @package Hubbub\ExampleProtocol
  */
-class Client extends \Hubbub\Net\Client {
-    public function __construct(\Hubbub\Hubbub $hubbub) {
-        parent::__construct($hubbub);
+class Client implements \Hubbub\Protocol\Client {
+    /*
+     * This is an example protocol that shows how the system works:
+     *  - You extend \Hubbub\Protocol\Client, which is itself an extension of Iterable
+     *  - Ask for any objects you want in the constructor: Logger, Conf, Bus, etc.
+     *  - You'll want a \Hubbub\Net\Client object passed-in to handle networking ($net)
+     *  - Now, just fill in your event handlers (on_connect, on_disconnect, etc)
+     */
+
+    /**
+     * @var \Hubbub\Net\Client
+     */
+    protected $net;
+
+    public function __construct(\Hubbub\Net\Client $net, \Hubbub\Hubbub $hubbub) {
         $this->net->connect('127.0.0.1:80');
     }
-
 
     /**
      * Must implement these methods, they are abstracted in \Hubbub\Net\Client:
