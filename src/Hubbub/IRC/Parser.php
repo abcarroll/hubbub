@@ -13,7 +13,7 @@
 
 /*
 * @todo Would be useful to have an auto bug submit (after approval/manually enabled) when the parser fails, i.e. receives unexpected data
-* @todo This function makes use of trigger_warning() which should be changed to use the internal logger class
+* @todo This function makes use of trigger_error() which should be changed to use the internal logger class
 */
 
 /*
@@ -318,11 +318,11 @@ trait Parser {
             try {
                 $serverCreatedDate = new \DateTime(str_replace(' at ', ' ', $serverCreated));
             } catch(\Exception $e) {
-                trigger_warning("Could not parse RPL_CREATED's date correctly in Parser: " . $e->getMessage(), E_USER_WARNING);
+                trigger_error("Could not parse RPL_CREATED's date correctly in Parser: " . $e->getMessage(), E_USER_WARNING);
                 $serverCreatedDate = null;
             }
         } else {
-            trigger_warning("Could not parse RPL_CREATED correctly in Parser", E_USER_WARNING);
+            trigger_error("Could not parse RPL_CREATED correctly in Parser", E_USER_WARNING);
             $serverCreated = null;
             $serverCreatedDate = null;
         }
