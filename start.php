@@ -13,18 +13,7 @@
 
 namespace Hubbub;
 
-// PSR-4 autoloader
-spl_autoload_register(function ($class) {
-    $file = __DIR__ . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $class) . '.php';
-    if(file_exists($file)) {
-        if(is_readable($file)) {
-            require $file;
-        } else {
-            trigger_error("The file '$file' was not auto-loaded: It exists but is not readable.", E_USER_WARNING);
-        }
-    }
-});
-
+require __DIR__ . '/src' . '/autoload.php';
 
 $main = function() {
     Bootstrapper::Sunrise();
