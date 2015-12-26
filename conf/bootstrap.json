@@ -1,0 +1,24 @@
+{
+  "\\Hubbub\\Hubbub": {
+    "shared": true
+  },
+  "\\Hubbub\\Logger": {
+    "shared": true
+  },
+  "\\Hubbub\\Configuration": {
+    "shared": true
+  },
+  "\\Hubbub\\MessageBus": {
+    "shared": true
+  },
+  "\\Hubbub\\Throttler\\Throttler": {
+    "instanceOf": "\\Hubbub\\Throttler\\TimeAdjustedDelay",
+    "shared": true
+  },
+  "\\Hubbub\\Net\\Client": {
+    "instanceOf": "\\Hubbub\\Net\\Stream\\Client"
+  },
+  "\\Hubbub\\Net\\Server": {
+    "instanceOf": "\\Hubbub\\Net\\Stream\\Server"
+  }
+}

@@ -23,29 +23,50 @@ use Hubbub\Throttler\Throttler;
  * @package Hubbub
  */
 class Hubbub {
-    /** @var Configuration */
-    public $conf;
-    /** @var Logger */
-    public $logger;
-    /** @var \Hubbub\MessageBus */
-    public $bus;
-    /** @var Throttler */
-    public $throttler;
-    /** @var Iterator */
-    public $iterator;
-
-    /** @var \Dice\Dice */
+    /**
+     * @var \Dice\Dice
+     */
     public $factory;
+
+    /**
+     * @var Configuration
+     */
+    public $conf;
+
+    /**
+     * @var Logger
+     */
+    public $logger;
+
+    /**
+     * @var \Hubbub\MessageBus
+     */
+    public $bus;
 
     public function __construct(\Dice\Dice $factory, Configuration $conf, MessageBus $bus, Iterator $iterator, Logger $logger) {
         $this->factory = $factory;
         $this->conf = $conf;
-        $this->iterator = $iterator;
         $this->bus = $bus;
+        $this->iterator = $iterator;
         $this->logger = $logger;
 
-        $this->init();
-        $this->run();
+        /*
+         * Subscribe our event handler
+         */
+        $this->bus->subscribe([$this, 'handleBusMessage'], [
+            'protocol' => 'meta'
+        ]);
+
+        foreach($this->conf->get('hubbub') as $alias => $instanceOf) {
+            $module = $this->createProtocol($instanceOf, $alias);
+            $this->iterator->add($module, $alias);
+        }
+
+        $this->iterator->add($this->factory->create('\Hubbub\Throttler\Throttler'));
+    }
+
+    public function handleBusMessage($bus) {
+        // TODO: Create / add objects to iterator based on bus messages
     }
 
     protected function createProtocol($class, $name = null) {
@@ -53,24 +74,10 @@ class Hubbub {
         return $this->factory->create($class, [$name]);
     }
 
-    public function handleBusMessage($bus) {
-        //$this->createProtocol($bus[])
-    }
-
-    public function init() {
-        $this->bus->subscribe([$this, 'handleBusMessage'], [
-            'protocol' => 'meta'
-        ]);
-
-        foreach($this->conf->get('hubbub') as $alias => $init) {
-            $new = $this->createProtocol($init['class'], $init['conf']);
-            $this->iterator->add($new, $alias);
-        }
-
-        $this->iterator->add($this->factory->create('\Hubbub\Throttler\Throttler'));
-    }
-
-    public function run() {
+    /**
+     * This function is called in the start / bootstrap code to loop for a very long time
+     */
+    public function loop() {
         $this->iterator->run();
     }
 }

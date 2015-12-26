@@ -116,39 +116,9 @@ class Bootstrapper {
     /**
      * @return \Dice\Dice
      */
-    static public function factory() {
-        $factory = new \Dice\Dice();
-
-        // TODO move this to a configurable area
-        $factory->addRule('\Hubbub\Hubbub', [
-            'shared' => true
-        ]);
-
-        $factory->addRule('\Hubbub\Logger', [
-            'shared' => true
-        ]);
-
-        $factory->addRule('\Hubbub\Configuration', [
-            'shared' => true
-        ]);
-
-        $factory->addRule('\Hubbub\MessageBus', [
-            'shared' => true
-        ]);
-
-        $factory->addRule('\Hubbub\Throttler\Throttler', [
-            'shared' => true,
-            'instanceOf' => '\Hubbub\Throttler\TimeAdjustedDelay'
-        ]);
-
-        $factory->addRule('\Hubbub\Net\Client', [
-            'instanceOf' => '\Hubbub\Net\Stream\Client'
-        ]);
-
-        $factory->addRule('\Hubbub\Net\Server', [
-            'instanceOf' => '\Hubbub\Net\Stream\Server'
-        ]);
-
+    static public function getFactory() {
+        $factory = new \Dice\Loader\Json();
+        $factory = $factory->load('conf/bootstrap.json');
         return $factory;
     }
 

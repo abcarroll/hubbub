@@ -6,14 +6,9 @@
 $conf = [
     // These are the objects to auto-create
     'hubbub'    => [
-        'freenode' => [
-            'class' => '\Hubbub\IRC\Client',
-            'conf'  => 'irc.freenode'
-        ],
-        'bnc'      => [
-            'class' => '\Hubbub\IRC\Bnc',
-            'conf'  => 'irc.bnc'
-        ]
+        'example' => '\Hubbub\ExampleProtocol\Client',
+        'freenode' => '\Hubbub\IRC\Client',
+        'bnc'      => '\Hubbub\IRC\Bnc',
     ],
 
     // This actually works
@@ -87,6 +82,7 @@ $conf = [
 
             ]
         ],
+
         'freenode' => [
             // Peg the server list to a dynamic server list.
             'serverListPegged' => 'freenode',

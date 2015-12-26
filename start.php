@@ -25,7 +25,24 @@ spl_autoload_register(function ($class) {
     }
 });
 
-Bootstrapper::Sunrise();
-$factory = Bootstrapper::factory();
-$factory->create('\Hubbub\Hubbub', [$factory]);
-Bootstrapper::Sunset();
+
+$main = function() {
+    Bootstrapper::Sunrise();
+
+    /**
+     * @var \Dice\Dice $factory
+     */
+
+    $factory = Bootstrapper::getFactory();
+
+    /**
+     * @var \Hubbub\Hubbub $hubbub
+     */
+
+    $hubbub = $factory->create('\Hubbub\Hubbub', [$factory]);;
+    $hubbub->loop();
+
+    Bootstrapper::Sunset();
+};
+
+$main();
