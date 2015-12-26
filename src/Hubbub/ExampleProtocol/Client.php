@@ -16,7 +16,7 @@ namespace Hubbub\ExampleProtocol;
  * Class Client
  * @package Hubbub\ExampleProtocol
  */
-class Client implements \Hubbub\Protocol\Client {
+class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
     /*
      * This is an example protocol that shows how the system works:
      *  - You extend \Hubbub\Protocol\Client, which is itself an extension of Iterable
@@ -30,25 +30,38 @@ class Client implements \Hubbub\Protocol\Client {
      */
     protected $net;
 
-    public function __construct(\Hubbub\Net\Client $net, \Hubbub\Hubbub $hubbub) {
+    /**
+     * @var \Hubbub\Logger
+     */
+    protected $logger;
+
+    public function __construct(\Hubbub\Net\Client $net, \Hubbub\Logger $logger, $name) {
+        $this->net = $net;
+        $this->logger = $logger;
         $this->net->connect('127.0.0.1:80');
+
+        $this->logger->info("Created ExampleProtocol client named: $name");
     }
 
     /**
-     * Must implement these methods, they are abstracted in \Hubbub\Net\Client:
+     * Must implement these methods, they are abstracted in \Hubbub\Protocol\Client:
      */
     public function iterate() {
     }
 
     public function on_connect() {
+        $this->logger->debug("Connected to my designated server");
     }
 
     public function on_disconnect() {
+        $this->logger->debug("Disconnected from my designated server");
     }
 
     public function on_send($data) {
+        $this->logger->debug("Sent some data to my designated server");
     }
 
     public function on_recv($data) {
+        $this->logger->debug("Received some data from my designated server");
     }
 }

@@ -124,7 +124,7 @@ class Server implements \Hubbub\Net\Server {
     }
 
     public function iterate() {
-        $this->logger->debug("Iterating server sockets");
+        //$this->logger->debug("Iterating server sockets");
         $this->poll_sockets();
     }
 }

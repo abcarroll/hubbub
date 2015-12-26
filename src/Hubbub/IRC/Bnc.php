@@ -27,6 +27,8 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
     protected $net, $conf, $logger, $bus;
     protected $clients = [];
 
+    protected $channels = [];
+
     public function __construct(\Hubbub\Net\Server $net, \Hubbub\Configuration $config, \Hubbub\Logger $logger, \Hubbub\MessageBus $bus, $name) {
         $this->conf = $config;
         $this->logger = $logger;
@@ -48,6 +50,12 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
     }*/
 
     public function busMessageHandler($message) {
+
+        // group subscribe, group join, i_join, i_subscribe, ... etc
+        /*if($message->action == 'group_subscribe') {
+
+        }*/
+
         foreach($this->clients as $c) {
             /** @var \Hubbub\IRC\BncClient $c */
             $c->onBusMessage($message);
@@ -113,7 +121,7 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
                 $c->iterate();
             }
         }
-        $this->logger->debug("BNC Server was iterated with " . count($this->clients) . " clients");
+        //$this->logger->debug("BNC Server was iterated with " . count($this->clients) . " clients");
     }
 
     public function send($who, $what) {

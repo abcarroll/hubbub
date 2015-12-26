@@ -86,7 +86,7 @@ class Iterator {
             if(count($this->modules) > 0) {
                 /** @var \Hubbub\Iterable $m */
                 foreach($this->modules as $m) {
-                    $this->logger->debug("Iterating module: " . get_class($m));
+                    //$this->logger->debug("Iterating module: " . get_class($m));
                     $m->iterate();
                 }
             } else {

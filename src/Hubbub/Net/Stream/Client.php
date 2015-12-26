@@ -26,7 +26,6 @@ class Client implements \Hubbub\Net\Client {
     private $socketState = 'disconnected';
 
     protected $logger;
-
     public function __construct(\Hubbub\Logger $logger) { // in reality this would be a generic interface
         $this->logger = $logger;
     }
@@ -92,7 +91,7 @@ class Client implements \Hubbub\Net\Client {
         return $result;
     }
 
-    public function recv($length = 4096) {
+    public function recv($length = 8192) {
         $data = fread($this->socket, $length);
         if(strlen($data) > 0) {
             $this->on_recv($data);
@@ -155,25 +154,21 @@ class Client implements \Hubbub\Net\Client {
 
     function on_disconnect($context = null, $errno = null, $errstr = null) {
         if($this->protocol != null) {
-            $this->logger->debug(" > calling parent on_disconnect($context, $errno, $errstr)\n");
+            $this->logger->debug(" > calling parent on_disconnect($context, $errno, $errstr)");
             $this->protocol->on_disconnect($context, $errno, $errstr);
         }
     }
 
     function on_send($data) {
-        $this->logger->debug(__CLASS__ . " sending data: " . $data);
-
         if($this->protocol != null) {
-            $this->logger->debug(" > calling parent on_send()\n");
+            //$this->logger->debug(" > calling parent on_send()");
             $this->protocol->on_send($data);
         }
     }
 
     function on_recv($data) {
-        $this->logger->debug(__CLASS__ . " receiving data: " . $data);
-
         if($this->protocol != null) {
-            $this->logger->debug(" > calling parent on_recv()\n");
+            //$this->logger->debug(" > calling parent on_recv()");
             $this->protocol->on_recv($data);
         }
     }

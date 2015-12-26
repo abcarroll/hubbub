@@ -49,7 +49,7 @@ class MessageBus {
     }
 
     public function publish($message) {
-        $this->logger->debug("I have " . count($this->subscriptions) . " subscriptions I'm about to publish a received message to...");
+        //$this->logger->debug("I have " . count($this->subscriptions) . " subscriptions I'm about to publish a received message to...");
         foreach($this->subscriptions as $s) {
             $s['callback']($message); // call the callable
         }

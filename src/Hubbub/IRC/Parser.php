@@ -45,26 +45,35 @@ trait Parser {
     public function parseIrcCommand($c) {
         $parsed = new StdClass();
         $parsed->protocol = 'irc';
-        $parsed->data = $c;
+        $parsed->raw = $c;
 
         $c = trim($c); // May already have been trimmed by the time it gets here, but it can't hurt
 
         // It seems all server-to-client messages should be prefixed with ':'
         // However this function could be used to parse outgoing protocol data as well
-        // @todo Fix possible warnings here, remove warning suppression on list()
         if(substr($c, 0, 1) == ':') {
-            @list($sender, $cmd, $arg) = explode(' ', $c, 3);
+            list($from, $cmd, $arg) = explode(' ', $c, 3);
         } else {
             // Should only be for client-to-server
-            @list($cmd, $arg) = explode(' ', $c, 2);
-            $sender = null;
+            list($cmd, $arg) = explode(' ', $c, 2);
+            $from = null;
         }
 
-        $parsed->cmdData = $cmd;
-        $parsed->argData = $arg;
-        $parsed->from = $this->parseIrcHostmask($sender);
+        // Original protocol data
+        $irc = new StdClass();
+        $irc->cmd = $cmd;
+        $irc->arg = $arg;
+        $parsed->irc = $irc;
 
-        // Turn numeric commands into their string equivilants.  Numeric commands will still be accessible in ->cmdData
+        $parsed->hostmask = $this->parseIrcHostmask($from);
+
+        if(!empty($parsed->hostmask->server)) {
+            $parsed->from = $parsed->hostmask->server;
+        } else {
+            $parsed->from = $from;
+        }
+
+        // Turn numeric commands into their string equivalents.  Numeric commands will still be accessible in ->irc->cmd
         if(is_numeric($cmd)) { // @todo while no irc commands meet this, keep in mind this will return true for e.x. '+01' and '0x0F'
             $newCommand = $this->numericToCommand($cmd);
             if($newCommand === false) {
@@ -73,6 +82,7 @@ trait Parser {
                 $cmd = $newCommand;
             }
         }
+
         $parsed->cmd = strtolower($cmd);
 
         // Now gracefully parse arguments taking into account the trailingArg as defined
@@ -381,10 +391,10 @@ trait Parser {
      */
     private function parse_rpl_isupport(StdClass $line) {
         // @todo Needs testing.  Never tested against an actual production ircd.
-        if(preg_match('/Try (.*), port (.*)/i', $arg, $m)) {
+        if(preg_match('/Try (.*), port (.*)/i', $line->args[0], $m)) {
             $line->cmd = 'rpl_bounce';
             $line->cmdTranslated = true;
-            $line->{$this->cmd} = [
+            $line->{$line->cmd} = [
                 'server' => $m[1],
                 'port'   => $m[2]
             ];
@@ -393,10 +403,9 @@ trait Parser {
         } else { // @todo No error checking..
             $iSupport = [];
 
-            $firstPos = (strpos($line->argData, ' ') + 1);
-            $secondPos = strpos($line->argData, ' :') - $firstPos;
-
-            $innerArg = substr($line->argData, $firstPos, $secondPos);
+            $firstPos = (strpos($line->irc->arg, ' ') + 1);
+            $secondPos = strpos($line->irc->arg, ' :') - $firstPos;
+            $innerArg = substr($line->irc->arg, $firstPos, $secondPos);
 
             $innerArg = explode(' ', $innerArg);
             foreach($innerArg as $iArg) {
@@ -3214,9 +3223,10 @@ trait Parser {
      *
      * @return StdClass       A StdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_motd(StdClass $line) {
+    private function parse_rpl_motd(StdClass $line) {
+        $line->motdLine = $line->args[1];
         return $line;
-    }*/
+    }
 
     /**
      * 373 RPL_INFOSTART. Obsolete. Originated from RFC1459.

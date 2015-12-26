@@ -57,16 +57,12 @@ trait Senders {
     }
 
     /**
-     * Sends a PONG to the server, generally after a PING has been receieved.
+     * Sends a PONG to the server, generally after a PING has been received.
      *
      * @param string $server
      */
     public function sendPong($server) {
-        if(is_array($server)) {
-            $this->send("PONG " . implode(' ', $server));
-        } else {
-            $this->send("PONG $server");
-        }
+        $this->send("PONG :$server");
     }
 
     /*
@@ -91,6 +87,7 @@ trait Senders {
      * @param string $nick
      */
     public function sendNick($nick) {
+        $this->nick = $nick;
         $this->send('NICK ' . $nick);
     }
 

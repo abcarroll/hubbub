@@ -45,6 +45,9 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
     protected $nextAction = 'connect';
     protected $nextActionTime = 0;
 
+    protected $serverMotd = '';
+    protected $nick; // the current nickname
+    protected $channels = [];
     protected $modules = []; // sub-modules, this system is currently disabled
 
     public function __construct(\Hubbub\Net\Client $net, \Hubbub\Logger $logger, \Hubbub\MessageBus $bus, \Hubbub\Configuration $conf, $name) {
@@ -71,10 +74,14 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
     public function on_connect($socket = null) {
         $this->sendUser($this->cfg['username'], $this->cfg['realname']);
         $this->sendNick($this->cfg['nickname']);
+        $this->nick = $this->cfg['nickname'];
         $this->state = 'gave-auth';
     }
 
     public function send($data) {
+        file_put_contents("raw-protocol.txt", " > $data\n", FILE_APPEND);
+        $this->logger->debug("RAW > $data");
+
         return $this->net->send("$data\n");
     }
 
@@ -105,35 +112,48 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
     }
 
     public function on_recv($data) {
-
         $this->recvBuffer .= $data;
+        $pos = strrpos($this->recvBuffer, "\r\n");
+        // If the recvBuffer contains no fragmented messages
+        if($pos !== false) {
+            if(substr($this->recvBuffer, -2) == "\r\n") {
+                $completeLines = substr($this->recvBuffer, 0, -2);
+                $this->recvBuffer = '';
+            } else {
+                // else, there is a partially received message at the end.  so pull out the complete line(s) and tack the end fragment onto the buffer
+                $completeLines = substr($this->recvBuffer, 0, $pos);
+                $this->recvBuffer = substr($this->recvBuffer, $pos + 2);
+            }
 
-        $commands = explode("\r\n", $this->recvBuffer);
-        $lastIdx = count($commands) - 1;
-
-        $incomplete = '';
-        if($commands[$lastIdx] !== "") {
-            $incomplete .= $commands[$lastIdx - 1];
-            $this->logger->debug("Last command was a fragment; storing in buffer: {$commands[$lastIdx - 1]}");
-        }
-
-        $this->recvBuffer = $incomplete;
-
-        foreach($commands as $line) {
-            $this->on_recv_irc($line);
+            $lines = explode("\r\n", $completeLines);
+            foreach($lines as $line) {
+                $this->logger->debug("RAW < $line");
+                file_put_contents("raw-protocol.txt", " < $line\n", FILE_APPEND);
+                $this->on_recv_irc($line);
+            }
         }
     }
 
     public function on_recv_irc($rawData) {
-        $this->logger->debug("RAW: $rawData");
-
         /** @var \StdClass $data */
         $data = $this->parseIrcCommand($rawData);
+
+        ob_start();
+        var_dump($data);
+        $contents = ob_get_contents();
+        ob_end_clean();
+        file_put_contents('parsed.txt', $contents . "\n\n", FILE_APPEND);
+
+
         if($data->cmd == 'ping') {
-            $this->sendPong($data->parm);
+            $this->sendPong($data->args[0]);
         } else {
             if(method_exists($this, 'on_' . $data->cmd)) {
-                $data = $this->{'on_' . $data->cmd}($data);
+                // Ideally this wouldn't need the additional logic
+                $callbackResult = $this->{'on_' . $data->cmd}($data);
+                if($callbackResult !== null) {
+                    $data = $callbackResult;
+                }
             }
 
             // Disabled code for sub-modules or per-protocol modules
@@ -152,27 +172,82 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
             }
 
             // Send this data across the bus for other modules to handle
-            $this->logger->debug("Sending bus message:");
-
-            $busMessage = [
+            $this->bus->publish([
                 'protocol' => $this->protocol,
                 //'network'  => $this->network,
                 //'event'    => 'msg',
                 //'from'     => $data->sender,
                 //'data'     => $data->data,
-                'raw'      => $data->data,
-            ];
-            $this->logger->debug(print_r($busMessage, true));
-            $this->bus->publish($busMessage);
+                'raw'      => $data->raw,
+            ]);
         }
+    }
+
+    protected function bPublish($extra) {
+        $extra['protocol'] = $this->protocol;
+        $extra['network'] = 'freenode';
+        $this->bus->publish($extra);
+    }
+
+    protected function on_err_nicknameinuse(StdClass $cmd) {
+        $nick = $this->cfg['nickname'] . '-' . mt_rand(1111, 9999);
+        $this->nick = $nick;
+        $this->sendNick($nick);
     }
 
     protected function on_rpl_welcome(StdClass $cmd) {
         $this->sendJoin("#hubbub");
     }
 
+    protected function on_rpl_motd(StdClass $line) {
+        $this->serverMotd .= $line->motdLine;
+    }
+
     protected function on_join(StdClass $cmd) {
-        // todo Implement on_join() method
+        if($this->nick == $cmd->hostmask->nick) {
+            $this->logger->debug("You have joined some channel(s)");
+            foreach($cmd->join['channels'] as $channel) {
+                $this->logger->debug("Adding $channel to joined chanenl list");
+                $this->channels[$channel] = [
+                    'joinedSince' => time(),
+                    'names'       => [],
+                    'topic'       => null,
+                ];
+
+                $this->bPublish([
+                    'cmd'     => 'join',
+                    'who'     => null,
+                    'channel' => $channel,
+                ]);
+            }
+
+        } else {
+            $this->logger->debug("your nick: {$this->nick} and cmd->hostmask->nick: {$cmd->hostmask->nick}");
+        }
+    }
+
+    protected function on_rpl_topic(StdClass $line) {
+        $channel = $line->rpl_topic['channel'];
+        $topic = $line->rpl_topic['topic'];
+        if(isset($this->channels[$channel])) {
+            $this->logger->debug("Set $channel topic to $topic");
+            $this->channels[$channel]['topic'] = $topic;
+        } else {
+            $this->logger->alert("Got RPL_TOPIC for channel $channel that I haven't JOIN'd yet");
+        }
+    }
+
+    protected function on_rpl_namreply(StdClass $line) {
+        $channel = $line->rpl_namreply['channel'];
+        if(isset($this->channels[$channel])) {
+            foreach($line->rpl_namreply['names'] as $name) {
+                $this->logger->debug("Added '$name' to $channel name list");
+                $this->channels[$channel]['names'][] = $name;
+            }
+        } else {
+            $this->logger->alert("Got RPL_NAMREPLY for channel $channel that I haven't JOIN'd yet");
+        }
+
     }
 
     /*

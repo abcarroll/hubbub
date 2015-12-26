@@ -16,20 +16,19 @@ not have a client for Tox, but does have a client for IRC, we can connect to our
 
 ## Current Status
 Currently, Hubbub after several years of development is *almost* usable as an IRC client and BNC.  It has been written with very modernized coding techniques,
-and meticulously planned, and re-written several times to ensure a stable foundation to grow upon.
+and meticulously planned, and re-written several times to ensure a stable foundation to grow upon.  Hubbub will, upon running, immediately connect to Freenode
+and join #hubbub as an IRC client.
 
 ## Plans for the Future
-Ultimately, Hubbub will hopefully one day support dozens of protocols.  Among them that I would love to see: XMPP, SIP, Tox, Mumble, TextSecure, Twitter (API), 
-Reddit (API), and proprietary protocols such as Steam, OSCAR, YMSG, and MSNP.  
+Ultimately, Hubbub will hopefully one day support dozens of protocols.  Among them that I would love to see:
 
-Skype support will likely never happen, unfortunately.  Microsoft has demonstrated they will do everything within their legal capabilities to bar anyone
-else from creating a competing client.  A few years ago, Microsoft invoked DMCA and killed a project to reverse engineer the protocol directly.  Using something
-such as Skype4Py is a possibility. However it is my understanding that Skype/Microsoft is also actively targeting these projects by removing the DBus interface,
-making it all but impossible to interface with Skype.  My best advice: Do not use Skype.
+ * **Open:** IRC, MTProto/Telegram, Mumble, SIP, TextSecure, TOX (Based on DHT), XMPP, Zephr
+ * **Proprietary:** Skype (via API), Steam, OSCAR, YMSG, MSNP
+ * **Website API:** Reddit, Twitter, Facebook (XMPP with special additions)
 
 In addition to writing protocol support, a high priority for the project is to write a universal web client, so that ultimately one could use your web browser
 to chat over any protocol that Hubbub supports.  These would be local installations, not SaaS.  The goal/idea being that you could install Hubbub on a cheap
-VPS, and be able to log-in to your Hubbub instance anywhere in the world on any device that has a quasi-modern web browser.
+VPS, and be able to log-in to your Hubbub instance anywhere in the world on any device that has a quasi-modern web browser.  
 
 ## Architecture
 Hubbub is meant to be totally self-contained aside from modules you may elect to install.  It uses a built-in copy of "Dice", by Tom Butler for dependency 
