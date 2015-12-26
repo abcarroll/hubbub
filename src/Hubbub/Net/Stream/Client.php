@@ -61,7 +61,7 @@ class Client implements \Hubbub\Net\Client {
          * to hang indefinitely for all we know.
          */
 
-        $where = 'tcp://130.239.18.119:6667';
+        //$where = 'tcp://130.239.18.119:6667';
         ini_set('default_socket_timeout', '1');
         $this->logger->debug("Connecting to: $where");
         $this->socket = @stream_socket_client($where, $errorNo, $errorStr, 1, STREAM_CLIENT_ASYNC_CONNECT);

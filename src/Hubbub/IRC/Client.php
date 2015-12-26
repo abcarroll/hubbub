@@ -59,15 +59,17 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
         // Set the network's protocol to ths IRC object; the IRC object will receive event notifications via the network handler
         $this->net->setProtocol($this);
 
-        $this->serverList = $this->conf->get($name . '.serverList');
+        $this->serverList = $this->conf->get($this->protocol . '.' . $name . '.serverList');
         $this->connectNext();
     }
 
     protected function connectNext() {
-        $this->state = 'pre-auth';
-        $nextServer = $this->serverList[($this->currentServerIdx++ % count($this->serverList))];
-        $this->logger->info("Connecting to: $nextServer");
-        $this->net->connect("tcp://$nextServer");
+        if(count($this->serverList) > 0) {
+            $this->state = 'pre-auth';
+            $nextServer = $this->serverList[($this->currentServerIdx++ % count($this->serverList))];
+            $this->logger->info("Connecting to: $nextServer");
+            $this->net->connect("tcp://$nextServer");
+        }
     }
 
     /* --- Properly set states on connect and disconnect --- */
