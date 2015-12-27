@@ -128,4 +128,11 @@ class Utility {
 
         return $str;
     }
+
+    /**
+     * @return string The directory / git repository root where Hubbub is installed
+     */
+    static function baseDir() {
+        return realpath(__DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..');
+    }
 }
