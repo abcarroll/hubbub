@@ -14,13 +14,11 @@ namespace Hubbub;
 
 /**
  * Class Configuration
- *
- * @package Hubbub
- *
  * The idea here is that with our get() method, we define a very standard way to get configuration data.  We don't use it as an object, or array, because
  *          doing so gives us a bit of a precondition, a -- specific way we must define and use the configuration system.  Using the simple/flexible dotted
  *          notation, we can have the backed configuration stored in any way we choose.
  *
+ * @package Hubbub
  */
 class Configuration {
     protected $array;
