@@ -1,3 +1,9 @@
 .idea/
 *.log
 
+# phpdoc generation & output scripts
+phpdoc.sh
+output/
+
+# our private configuration
+conf/local-config.php
