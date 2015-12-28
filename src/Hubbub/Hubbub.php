@@ -43,6 +43,12 @@ class Hubbub {
      */
     public $bus;
 
+    /**
+     * @var array
+     * A queue of objects to create in the case that we're creating a very large amount of objects
+     */
+    protected $createQueue = [];
+
     public function __construct(\Dice\Dice $factory, Configuration $conf, MessageBus $bus, Iterator $iterator, Logger $logger) {
         $this->factory = $factory;
         $this->conf = $conf;
@@ -57,27 +63,35 @@ class Hubbub {
             'protocol' => 'meta'
         ]);
 
+        // Add all the objects to the queue
         foreach($this->conf->get('hubbub') as $alias => $instanceOf) {
-            $module = $this->createProtocol($instanceOf, $alias);
-            $this->iterator->add($module, $alias);
-        }
-
-        $this->iterator->add($this->factory->create('\Hubbub\Throttler\Throttler'));
+            $this->createQueue[] = [$instanceOf, $alias];
+        } // and the throttler last, so that we can initialize without throttling$this->createQueue[] = ['\Hubbub\Throttler\Throttler', 'throttler'];
+        $this->createQueue[] = ['\Hubbub\Throttler\Throttler', 'throttler'];
     }
 
     public function handleBusMessage($bus) {
         // TODO: Create / add objects to iterator based on bus messages
     }
 
-    protected function createProtocol($class, $name = null) {
-        $this->logger->debug("Creating new '$class' in createProtocol()");
-        return $this->factory->create($class, [$name]);
+    protected function newProtocol($class, $alias = null) {
+        $this->logger->debug("Creating new '$class' in newProtocol()");
+        $module = $this->factory->create($class, [$alias]);
+        $this->iterator->add($module, $alias);
     }
 
     /**
      * This function is called in the start / bootstrap code to loop for a very long time
      */
     public function loop() {
-        $this->iterator->run();
+        for(; ;) {
+            if(count($this->createQueue) > 0) {
+                $nextModule = array_shift($this->createQueue);
+                $this->newProtocol($nextModule[0], $nextModule[1]);
+            }
+
+            $this->iterator->run();
+
+        }
     }
 }

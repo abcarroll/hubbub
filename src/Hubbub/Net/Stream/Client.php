@@ -138,7 +138,7 @@ class Client implements \Hubbub\Net\Client {
                 $this->logger->debug("Socket resource is false while CONNECTING");
                 $this->disconnect();
             } else {
-                $this->logger->debug("The socket is in a disconnected state...");
+                // $this->logger->debug("The socket is in a disconnected state...");
             }
         }
     }

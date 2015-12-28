@@ -320,11 +320,13 @@ trait Parser {
             } catch(\Exception $e) {
                 trigger_error("Could not parse RPL_CREATED's date correctly in Parser: " . $e->getMessage(), E_USER_WARNING);
                 $serverCreatedDate = null;
+                return $line;
             }
         } else {
             trigger_error("Could not parse RPL_CREATED correctly in Parser", E_USER_WARNING);
             $serverCreated = null;
             $serverCreatedDate = null;
+            return $line;
         }
 
         $line->{$line->cmd} = [

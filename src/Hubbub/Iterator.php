@@ -21,6 +21,7 @@ class Iterator {
 
     protected $modules;
     protected $run = true;
+    protected $loopCount = 0;
 
     /**
      * @param Configuration|null $conf   The configuration object
@@ -78,11 +79,18 @@ class Iterator {
         }
     }
 
+    protected $loopAvg = 0;
+
     /**
      * @return bool True if the run was ended 'gracefully', false if the iterator ran out of subjects to iterate over.
      */
+
+    protected $loopTime = 0;
     public function run() {
-        while($this->run) {
+        //while($this->run) {
+            $this->loopCount++;
+
+            $startTime = microtime(1);
             if(count($this->modules) > 0) {
                 /** @var \Hubbub\Iterable $m */
                 foreach($this->modules as $m) {
@@ -92,7 +100,21 @@ class Iterator {
             } else {
                 return false;
             }
-        }
+            $endTime = microtime(1);
+
+            $this->loopTime += ($endTime - $startTime);
+
+            if(($this->loopCount % 300) == 0) {
+                $avgTime = $this->loopTime / $this->loopCount;
+
+                $this->logger->info("Iterator: " . count($this->modules) . " modules loaded, performed " . $this->loopCount . " iterations");
+                $this->logger->info("Average iteration time: " . Utility::siSuffix($avgTime));
+
+                $moduleNames = array_keys($this->modules);
+                $this->logger->info("Modules iterating: " . implode(', ', $moduleNames));
+            }
+
+        //}
 
         return true;
     }

@@ -12,6 +12,7 @@
 
 namespace Hubbub\IRC;
 
+use Hubbub\Utility;
 use StdClass;
 
 /**
@@ -29,7 +30,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
     protected $logger, $bus, $conf;
 
     protected $protocol = 'irc';
-    protected $state = 'initialize';
+    protected $state = 'disconnected';
 
     protected $recvBuffer = ''; // Where incomplete, fragmented commands go for temporary storage
 
@@ -41,9 +42,22 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
         'realname' => 'Bob Marley',
     ];
 
+    protected $currentServer, $currentPort;
     protected $currentServerIdx = 0;
-    protected $nextAction = 'connect';
+    protected $nextAction;
     protected $nextActionTime = 0;
+
+    /**
+     * @var int
+     * How many times we've tried to reconnect, as a way to introduce reconnection throttling.
+     * This needs to be reset to zero at some point, beyond RPL_WELCOME, after the connection has been established for a significant amount of time.
+     * That is, we're not just connecting, and being disconnected (kicked, banned, whatever) shortly after..
+     */
+    protected $reconnectAttempt = 0;
+
+    protected $currentServerIpAddr;
+    protected $waitingForHostResolve;
+    protected $resolveStarted = 0;
 
     protected $serverMotd = '';
     protected $nick; // the current nickname
@@ -56,20 +70,60 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
         $this->bus = $bus;
         $this->conf = $conf;
 
+        $this->bus->publish([
+
+        ]);
+
         // Set the network's protocol to ths IRC object; the IRC object will receive event notifications via the network handler
         $this->net->setProtocol($this);
 
+        // Setup our mbus subscription
+        $this->bus->subscribe([$this, 'handleBusMessage']);
+
         $this->serverList = $this->conf->get($this->protocol . '.' . $name . '.serverList');
-        $this->connectNext();
+        $this->tryNext();
+    }
+
+    public function handleBusMessage($msg) {
+        if(isset($msg['action']) && $msg['action'] == 'resolve-complete' && $this->state == 'attempt-resolve' && $this->currentServer == $msg['host']) {
+            if(!empty($msg['result'])) {
+                $this->logger->info("Resolved to: " . $msg['result']);
+                $this->state = 'pre-auth';
+                $this->currentServerIpAddr = $msg['result'];
+                $this->connectNext();
+            } else {
+                $this->logger->notice("DNS lookup failed!");
+            }
+        }
+    }
+
+    protected function tryNext() {
+        if(count($this->serverList) > 0) {
+            $this->state = 'attempt-resolve';
+            $this->resolveStarted = time();
+            $nextServer = $this->serverList[($this->currentServerIdx++ % count($this->serverList))];
+
+            if(strpos($nextServer, ':') !== null) {
+                list($host, $port) = explode(':', $nextServer);
+                $this->currentServer = $host;
+                $this->currentPort = $port;
+            } else {
+                $this->currentServer = $nextServer;
+                $this->currentPort = 6667;
+            }
+
+            $this->logger->info("Attempting to resolve hostname (AIHF): $nextServer");
+            $this->bus->publish([
+                'protocol' => 'dns',
+                'action'   => 'resolve',
+                'host'     => $this->currentServer
+            ]);
+        }
     }
 
     protected function connectNext() {
-        if(count($this->serverList) > 0) {
-            $this->state = 'pre-auth';
-            $nextServer = $this->serverList[($this->currentServerIdx++ % count($this->serverList))];
-            $this->logger->info("Connecting to: $nextServer");
-            $this->net->connect("tcp://$nextServer");
-        }
+        $this->logger->info("Connecting to " . $this->currentServer . ':' . $this->currentPort . ' (' . $this->currentServerIpAddr . ')');
+        $this->net->connect("tcp://" . $this->currentServerIpAddr . ':' . $this->currentPort);
     }
 
     /* --- Properly set states on connect and disconnect --- */
@@ -81,7 +135,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
     }
 
     public function send($data) {
-        file_put_contents("raw-protocol.txt", " > $data\n", FILE_APPEND);
+        file_put_contents("log/raw-protocol.txt", " > $data\n", FILE_APPEND);
         $this->logger->debug("RAW > $data");
 
         return $this->net->send("$data\n");
@@ -91,8 +145,18 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
     public function on_disconnect() {
         $this->state = 'disconnected';
         $this->nextAction = 'connect';
-        $this->nextActionTime = time() + 30;
-        $this->logger->info("IRC Client Disconnected.  Trying again in 30 seconds.");
+
+        $connectionDelay = (pow(2, $this->reconnectAttempt) * 30);
+
+        if($connectionDelay > (3600 * 2)) {
+            $connectionDelay = (3600 * 2);
+        }
+
+        $this->nextActionTime = time() + $connectionDelay;
+
+        $this->reconnectAttempt++;
+        $this->logger->info("IRC Client Disconnected.  Trying again in $connectionDelay seconds. (Attempt " . $this->reconnectAttempt . ")");
+
     }
 
     public function on_send($data) {
@@ -102,11 +166,16 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
     public function iterate() {
         if($this->nextActionTime <= time()) {
             if($this->nextAction == 'connect') {
-                $this->connectNext();
+                echo "next action...\n";
+                $this->tryNext();
             } elseif($this->nextAction !== null) {
                 $this->logger->warning("nextAction not handled");
             }
             $this->nextAction = null;
+        }
+
+        if($this->state == 'attempt-resolve' && ($this->resolveStarted + 60) > time()) {
+
         }
 
         //$this->logger->debug("IRC\\Client State: " . $this->state);
@@ -217,7 +286,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
                 ];
 
                 $this->bPublish([
-                    'cmd'     => 'join',
+                    'action'  => 'join',
                     'who'     => null,
                     'channel' => $channel,
                 ]);

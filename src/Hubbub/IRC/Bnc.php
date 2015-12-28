@@ -26,8 +26,7 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
 
     protected $net, $conf, $logger, $bus;
     protected $clients = [];
-
-    protected $channels = [];
+    protected $networks = [];
 
     public function __construct(\Hubbub\Net\Server $net, \Hubbub\Configuration $config, \Hubbub\Logger $logger, \Hubbub\MessageBus $bus, $name) {
         $this->conf = $config;
