@@ -44,7 +44,12 @@ Hubbub has a few main components:
  - The messaging bus is meant to make protocol-agnostic messaging possible between unlike chat protocols.  Also, to extend the system by subscribing to relevant
  events.  For example, you could subscribe to all private messages across all protocols, and write a module that responds to commands that start with '@' without 
  worrying about the underlying protocol.
- 
+ A good example of the messaging bus usage is DNS lookups.  If you load the ShellResolver module into Hubbub, you may publish a message resembling:
+ ``['protocol' => 'dns', 'action' => 'resolve', 'host' => 'www.google.com']``.  
+ The module will perform a DNS lookup and eventually respond with a message resembling  
+ ``['protocol' => 'dns', 'action' => 'resolve-complete', 'host' => 'www.google.com', 'result' => '<ip>']``.  
+ It is, in this case, the requesting module's responsibility to keep track of requested DNS lookups and correlate them appropriately. 
+
 ## Getting help
 Hubbub has an official IRC channel on Freenode, at `#hubbub`.  You are welcome to join, and idle.  You can test your Hubbub in `#hubbub-test`.  We'd love to see your bot/bnc.
 
