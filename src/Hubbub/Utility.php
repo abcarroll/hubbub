@@ -13,28 +13,32 @@
 namespace Hubbub;
 
 /**
- * Class Utility
+ * Utility class providing assorted functionality that doesn't fit elsewhere.
  *
  * @package Hubbub
  */
 class Utility {
+    const SI_SUFFIX_TIME = [[''], ['', 'ms', 'us']];
+    const SI_SUFFIX_BYTES = [['KiB', 'MiB', 'GiB', 'TiB'], ['']];
+    const SI_SUFFIX_STD = [['kilo', 'mega', 'giga', 'tera'], ['', 'milli', 'micro', 'nano', 'pico', 'femto', 'atto', 'zepto', 'yocto']];
+
     /**
-     * Converts an integer into a string using the best SI prefix.  For example 0.003 converts to '3 milli'.
+     * Converts an integer into a string using a SI suffix, e.g. 0.003 converts to '3 milli'.
      *
-     * @param int $number The number to add a si prefix to.
+     * siSuffix will add the proper SI unit suffix for various units.  The default suffixSet, Utility::SI_SUFFIX_STD will add 'kilo', 'mega', 'giga', etc for
+     * integers above 1, and for integers below 1, will add 'milli', 'micro', etc.  You may specify other suffix sets: SI_SUFFIX_STD, SI_SUFFIX_BYTES,
+     * or SI_SUFFIX_TIME.
      *
-     * @return string A string with the original number passed + prefix, for instance "1234 giga"
+     * @param       $number
+     * @param array $suffixSet
+     *
+     * @return string
      *
      * @todo Should we have an IECPrefix for base 2?
      * @todo Possibly add $asArray, or also "force" as a specific prefix, e.g. always show milli
      * @todo Abbreviation mode -- m instead of milli (so you can say <?=siPrefix(0.001)?>s for 1ms)
      * @todo Import duration function that complements this
      */
-
-    const SI_SUFFIX_TIME = [[''], ['', 'ms', 'us']];
-    const SI_SUFFIX_BYTES = [['KiB', 'MiB', 'GiB', 'TiB'], ['']];
-    const SI_SUFFIX_STD = [['kilo', 'mega', 'giga', 'tera'], ['', 'milli', 'micro', 'nano', 'pico', 'femto', 'atto', 'zepto', 'yocto']];
-
     static public function siSuffix($number, $suffixSet = self::SI_SUFFIX_STD) {
         $suffix_gt1 = $suffixSet[0];
         $suffix_lt1 = $suffixSet[1];
@@ -88,8 +92,10 @@ class Utility {
     }
 
     /**
-     * Converts either a array of integers or string of comma-separated integers to a natural english range, such as "1,2,3,5" to "1-3, 5".  It also supports
-     * floating point numbers, however with some perhaps unexpected / undefined behaviour if used within a range.
+     * Converts a set of numbers to their shorthand ranges, for example "1,2,3,9,10" to "1-3,9-10".
+     *
+     * You may use either a array of integers or string of comma-separated integers to convert to a natural English range, such as "1,2,3,5" to "1-3, 5".
+     * Floating point numbers will not be discarded, but may have unxpected behaviour.
      *
      * @param string|array $items    Either an array (in any order, see $sort) or a comma-separated list of individual numbers.
      * @param string       $itemSep  The string that separates sequential range groups.  Defaults to ', '.
@@ -130,6 +136,8 @@ class Utility {
     }
 
     /**
+     * Returns the base directory of the installation.
+     *
      * @return string The directory / git repository root where Hubbub is installed
      */
     static function baseDir() {
