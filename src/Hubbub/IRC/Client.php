@@ -135,7 +135,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
     }
 
     public function send($data) {
-        file_put_contents("log/raw-protocol.txt", " > $data\n", FILE_APPEND);
+        file_put_contents("log/raw-protocol.log", " > $data\n", FILE_APPEND);
         $this->logger->debug("RAW > $data");
 
         return $this->net->send("$data\n");
@@ -199,7 +199,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
             $lines = explode("\r\n", $completeLines);
             foreach($lines as $line) {
                 $this->logger->debug("RAW < $line");
-                file_put_contents("raw-protocol.txt", " < $line\n", FILE_APPEND);
+                file_put_contents("log/raw-protocol.log", " < $line\n", FILE_APPEND);
                 $this->on_recv_irc($line);
             }
         }
@@ -213,7 +213,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
         var_dump($data);
         $contents = ob_get_contents();
         ob_end_clean();
-        file_put_contents('parsed.txt', $contents . "\n\n", FILE_APPEND);
+        file_put_contents('log/parsed.log', $contents . "\n\n", FILE_APPEND);
 
 
         if($data->cmd == 'ping') {

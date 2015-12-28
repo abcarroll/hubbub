@@ -14,8 +14,7 @@ return [
 
     // This actually works
     'logger'             => [
-        'logToFile'    => 'hubbub.log',
-        'contextDumps' => true, // TODO Does not care about this setting
+        'logToFile' => 'log/console.log',
     ],
 
     // This actually works
@@ -24,7 +23,7 @@ return [
     ],
 
     // Our local "test" configuration; this should be removed once we are beyond a certain point of usability
-    'irc' => [
+    'irc'                => [
         'freenode' => [
             // Peg the server list to a dynamic server list.
             'serverListPegged' => 'freenode',
@@ -54,7 +53,6 @@ return [
             'motd_file' => 'LICENSE.txt',
         ]
     ],
-
 
     // This is meant to be the default configuration for this class, but it doesn't work yet
     '\Hubbub\IRC\Client' => [
@@ -97,8 +95,6 @@ return [
                     'chat' => 'auto-accept|prompt|ignore|pass-thru',
                 ]
             ]
-
-
         ]
     ],
 ];
