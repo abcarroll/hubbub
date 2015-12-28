@@ -24,11 +24,20 @@ class Configuration {
     protected $array;
 
     public function __construct() {
-        require 'conf/local-config.php';
-        if(!empty($conf)) {
-            $this->array = $conf;
+
+        $globalConfig = [];
+        $confFiles = glob("conf/*.conf.php");
+
+        foreach($confFiles as $filename) {
+            // TODO: Improve merge algorithm for configuration merging
+            // We should probably use a better merge here so that specifically non-array conflicts are overwritten instead of forming a child array
+            $globalConfig = array_merge_recursive($globalConfig, include($filename));
+        }
+
+        if(!empty($globalConfig)) {
+            $this->array = $globalConfig;
         } else {
-            throw new \Exception("Local configuration file does not contain a global \$conf variable!");
+            throw new \Exception("No configuration values were loaded.  Check that a minimal config exists in conf/");
         }
     }
 

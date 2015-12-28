@@ -1,9 +1,14 @@
+# jetbrains IDE and log files
 .idea/
-*.log
+log/
 
 # phpdoc generation & output scripts
 phpdoc.sh
 output/
 
-# our private configuration
-conf/local-config.php
+# include default.conf.php file but not others
+conf/*.conf.php
+!conf/default.conf.php
+
+# misc. workbench files
+workbench/servlist_.conf
