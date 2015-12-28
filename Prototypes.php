@@ -1,4 +1,14 @@
 <?php
+/**
+ * Just an example architecture for reference.
+ *
+ * This file is meant to be a reference architecture / example to show how Hubbub might work.  That is, a high level overview of either how Hubbub might
+ * currently work or how it may work in the future.  This code is not meant to be used by any other packages.
+ *
+ * @copyright A.B. Carroll <ben@hl9.net>
+ * @package Hubbub/Prototype
+ */
+
 namespace Hubbub\Prototype;
 
 // Iterator, Cycler, Poller, PollTaker, ModuleList, ThreadIterator, ThreadQueue,
@@ -47,9 +57,13 @@ interface LoggerInterface {
 // MessageBus, Bus,... this might could also act as a queue
 interface MessageBusInterface {
     public function subscribe();
+
     public function unsubscribe();
+
     public function broadcast();
+
     public function publish();
+
     public function send();
 }
 
