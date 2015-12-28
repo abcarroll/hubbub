@@ -13,6 +13,11 @@
 
 namespace Hubbub;
 
+/**
+ * Calls bootstrapping processes and begins the infinite loop to run the application.
+ * @package Hubbub
+ */
+
 require __DIR__ . '/src' . '/autoload.php';
 
 $main = function() {
