@@ -40,6 +40,8 @@ class TimeAdjustedDelay extends Throttler implements Iterable {
         }
     }
 
+    protected $totalRunTime = 0;
+
     /**
      * Throttles for 'frequency' sec minus how long the previous iteration lasted.
      *
@@ -48,7 +50,13 @@ class TimeAdjustedDelay extends Throttler implements Iterable {
     function iterate() {
         parent::throttle();
 
+
+
         $iteration_length = round((microtime(1) - $this->last_iteration_start) * 1000000);
+
+
+        $this->totalRunTime += $iteration_length;
+
         $iteration_sleep = $this->frequency - $iteration_length;
         if($iteration_sleep > 0) {
             usleep($iteration_sleep);
