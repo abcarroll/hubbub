@@ -85,7 +85,7 @@ class MessageBus {
      * @param array $message An associative array containing the message to pass to subscribed callbacks.
      */
     public function publish($message) {
-        //$this->logger->debug("I have " . count($this->subscriptions) . " subscriptions I'm about to publish a received message to...");
+        //$this->logger->info("Publishing to " . count($this->subscriptions) . " subscriptions: " . Utility::varDump($message));
         foreach($this->subscriptions as $s) {
             // call the callable
             $s['callback']($message);

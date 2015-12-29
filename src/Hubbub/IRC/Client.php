@@ -26,8 +26,8 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
     /**
      * @var \Hubbub\Net\Client
      */
-    protected $net;
-    protected $logger, $bus, $conf;
+    protected $net, $logger, $bus, $conf;
+    protected $name;
 
     protected $protocol = 'irc';
     protected $state = 'disconnected';
@@ -71,7 +71,10 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
         $this->conf = $conf;
 
         $this->bus->publish([
-
+            'protocol'  => 'irc',
+            'action'    => 'created',
+            'network'   => $name,
+            'shorthand' => $name,
         ]);
 
         // Set the network's protocol to ths IRC object; the IRC object will receive event notifications via the network handler
@@ -85,21 +88,25 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
     }
 
     public function handleBusMessage($msg) {
-        if(isset($msg['action']) && $msg['action'] == 'resolve-complete' && $this->state == 'attempt-resolve' && $this->currentServer == $msg['host']) {
-            if(!empty($msg['result'])) {
-                $this->logger->info("Resolved to: " . $msg['result']);
-                $this->state = 'pre-auth';
-                $this->currentServerIpAddr = $msg['result'];
-                $this->connectNext();
-            } else {
-                $this->logger->notice("DNS lookup failed!");
+        // Incoming DNS messages
+        if(isset($msg['protocol']) && $msg['protocol'] == 'dns') {
+            if(isset($msg['action']) && $msg['action'] == 'response' && $this->state == 'attempt-resolve' && $this->currentServer == $msg['host']) {
+                if(!empty($msg['result'])) {
+                    $result = $msg['result'][0];
+                    $this->logger->info("Resolved to: " . $result);
+                    $this->setState('pre-auth');
+                    $this->currentServerIpAddr = $result;
+                    $this->connectNext();
+                } else {
+                    $this->logger->notice("DNS lookup failed for hostname " . $this->currentServer . ": " . $msg['message']);
+                }
             }
         }
     }
 
     protected function tryNext() {
         if(count($this->serverList) > 0) {
-            $this->state = 'attempt-resolve';
+            $this->setState('attempt-resolve');
             $this->resolveStarted = time();
             $nextServer = $this->serverList[($this->currentServerIdx++ % count($this->serverList))];
 
@@ -114,7 +121,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
 
             if(filter_var($this->currentServer, FILTER_VALIDATE_IP)) {
                 // It's an IP address, no need to resolve the hostname...
-                $this->state = 'pre-auth';
+                $this->setState('pre-auth');
                 $this->currentServerIpAddr = $this->currentServer;
                 $this->connectNext();
             } else {
@@ -138,7 +145,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
         $this->sendUser($this->cfg['username'], $this->cfg['realname']);
         $this->sendNick($this->cfg['nickname']);
         $this->nick = $this->cfg['nickname'];
-        $this->state = 'gave-auth';
+        $this->setState('gave-auth');
     }
 
     public function send($data) {
@@ -149,8 +156,19 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
     }
 
 
+    protected function setState($state) {
+        $this->state = $state;
+
+        $this->bus->publish([
+            'protocol' => 'irc',
+            'network' => $this->name,
+            'action' => 'state-change',
+            'state' => $state,
+        ]);
+    }
+
     public function on_disconnect() {
-        $this->state = 'disconnected';
+        $this->setState('disconnected');
         $this->nextAction = 'connect';
 
         $connectionDelay = (pow(2, $this->reconnectAttempt) * 30);

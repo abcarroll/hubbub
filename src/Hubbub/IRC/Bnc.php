@@ -48,16 +48,17 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
         stream_socket_shutdown($socket, STREAM_SHUT_RDWR);
     }*/
 
-    public function busMessageHandler($message) {
+    public function busMessageHandler($msg) {
+        if($msg['protocol'] == 'irc') {
+            // group subscribe, group join, i_join, i_subscribe, ... etc
+            /*if($message->action == 'group_subscribe') {
 
-        // group subscribe, group join, i_join, i_subscribe, ... etc
-        /*if($message->action == 'group_subscribe') {
-
-        }*/
+            }*/
+        }
 
         foreach($this->clients as $c) {
             /** @var \Hubbub\IRC\BncClient $c */
-            $c->onBusMessage($message);
+            $c->onBusMessage($msg);
         }
     }
 
