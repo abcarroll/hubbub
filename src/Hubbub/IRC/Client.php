@@ -112,12 +112,19 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
                 $this->currentPort = 6667;
             }
 
-            $this->logger->info("Attempting to resolve hostname (AIHF): $nextServer");
-            $this->bus->publish([
-                'protocol' => 'dns',
-                'action'   => 'resolve',
-                'host'     => $this->currentServer
-            ]);
+            if(filter_var($this->currentServer, FILTER_VALIDATE_IP)) {
+                // It's an IP address, no need to resolve the hostname...
+                $this->state = 'pre-auth';
+                $this->currentServerIpAddr = $this->currentServer;
+                $this->connectNext();
+            } else {
+                $this->logger->info("Attempting to resolve hostname: $nextServer");
+                $this->bus->publish([
+                    'protocol' => 'dns',
+                    'action'   => 'resolve',
+                    'host'     => $this->currentServer
+                ]);
+            }
         }
     }
 
