@@ -143,4 +143,41 @@ class Utility {
     static function baseDir() {
         return realpath(__DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..');
     }
+
+    /**
+     * Returns a simple one-line dump of the value passed, appropriate for passing into a line-by-line logger.
+     *
+     * Utility::varDump() is a recursive function which attempts to produce a one-lined dump that is or is nearly runnable PHP code.  If enabled, the second
+     * parameter $showTypes will additionally show the variable data type as a cast before the value print.  It is not guaranteed that the output be valid PHP
+     * code.  There are many situations where it will not be valid, such as passing resources, or newlines in the value.
+     *
+     * @param            $var
+     * @param bool|false $showTypes
+     *
+     * @return string
+     *
+     * @todo Try to improve 'run-ability' for output.  Change escape sequence str_replace to automatically replace any/all non-alphanumeric sequences.
+     */
+    static function varDump($var, $showTypes = false) {
+        $b = '';
+        if(is_array($var)) {
+            $b .= '[';
+            foreach($var as $k => $v) {
+                $b .= "'" . addslashes($k) . "' => " . self::varDump($v) . ", ";
+            }
+            $b = substr($b, 0, -2) . '], ';
+        } elseif($var === null) {
+            $b .= 'NULL, ';
+        } elseif(is_string($var) || is_int($var) || is_float($var) || is_double($var)) {
+            $b .= '(' . gettype($var) . ') ';
+            $var = str_replace("\t", '\n', $var);
+            $var = str_replace("\r", '\n', $var);
+            $var = str_replace("\n", '\n', $var);
+            $b .= "'" . addslashes($var) . "'";
+        } else {
+            $b .= '(' . gettype($var) . ')';
+        }
+
+        return $b;
+    }
 }
