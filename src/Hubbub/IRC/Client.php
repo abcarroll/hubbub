@@ -13,7 +13,7 @@
 namespace Hubbub\IRC;
 
 use Hubbub\Utility;
-use StdClass;
+use stdClass;
 
 /**
  * Class Client
@@ -231,7 +231,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
     }
 
     public function on_recv_irc($rawData) {
-        /** @var \StdClass $data */
+        /** @var \stdClass $data */
         $data = $this->parseIrcCommand($rawData);
 
         ob_start();
@@ -285,21 +285,21 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
         $this->bus->publish($extra);
     }
 
-    protected function on_err_nicknameinuse(StdClass $cmd) {
+    protected function on_err_nicknameinuse(stdClass $cmd) {
         $nick = $this->cfg['nickname'] . '-' . mt_rand(1111, 9999);
         $this->nick = $nick;
         $this->sendNick($nick);
     }
 
-    protected function on_rpl_welcome(StdClass $cmd) {
+    protected function on_rpl_welcome(stdClass $cmd) {
         $this->sendJoin("#hubbub");
     }
 
-    protected function on_rpl_motd(StdClass $line) {
+    protected function on_rpl_motd(stdClass $line) {
         $this->serverMotd .= $line->motdLine;
     }
 
-    protected function on_join(StdClass $cmd) {
+    protected function on_join(stdClass $cmd) {
         if($this->nick == $cmd->hostmask->nick) {
             $this->logger->debug("You have joined some channel(s)");
             foreach($cmd->join['channels'] as $channel) {
@@ -311,8 +311,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
                 ];
 
                 $this->bPublish([
-                    'action'  => 'join',
-                    'who'     => null,
+                    'action'  => 'subscribe',
                     'channel' => $channel,
                 ]);
             }
@@ -322,7 +321,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
         }
     }
 
-    protected function on_rpl_topic(StdClass $line) {
+    protected function on_rpl_topic(stdClass $line) {
         $channel = $line->rpl_topic['channel'];
         $topic = $line->rpl_topic['topic'];
         if(isset($this->channels[$channel])) {
@@ -333,7 +332,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
         }
     }
 
-    protected function on_rpl_namreply(StdClass $line) {
+    protected function on_rpl_namreply(stdClass $line) {
         $channel = $line->rpl_namreply['channel'];
         if(isset($this->channels[$channel])) {
             foreach($line->rpl_namreply['names'] as $name) {
@@ -350,47 +349,47 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
      * Informational Replies
      */
 
-    protected function on_rpl_yourhost(StdClass $cmd) {
+    protected function on_rpl_yourhost(stdClass $cmd) {
         $this->serverInfo = array_merge($this->serverInfo, [$cmd->cmd => $cmd->{$cmd->cmd}]);
     }
 
-    protected function on_rpl_created(StdClass $cmd) {
+    protected function on_rpl_created(stdClass $cmd) {
         $this->serverInfo = array_merge($this->serverInfo, [$cmd->cmd => $cmd->{$cmd->cmd}]);
     }
 
-    protected function on_rpl_myinfo(Stdclass $cmd) {
+    protected function on_rpl_myinfo(stdClass $cmd) {
         $this->serverInfo = array_merge($this->serverInfo, [$cmd->cmd => $cmd->{$cmd->cmd}]);
     }
 
-    protected function on_rpl_isupport(Stdclass $cmd) {
+    protected function on_rpl_isupport(stdClass $cmd) {
         $this->serverInfo = array_merge($this->serverInfo, [$cmd->cmd => $cmd->{$cmd->cmd}]);
     }
 
-    protected function on_rpl_luserclient(Stdclass $cmd) {
+    protected function on_rpl_luserclient(stdClass $cmd) {
         $this->serverInfo = array_merge($this->serverInfo, [$cmd->cmd => $cmd->{$cmd->cmd}]);
     }
 
-    protected function on_rpl_luserop(Stdclass $cmd) {
+    protected function on_rpl_luserop(stdClass $cmd) {
         $this->serverInfo = array_merge($this->serverInfo, [$cmd->cmd => $cmd->{$cmd->cmd}]);
     }
 
-    protected function on_rpl_luserunknown(Stdclass $cmd) {
+    protected function on_rpl_luserunknown(stdClass $cmd) {
         $this->serverInfo = array_merge($this->serverInfo, [$cmd->cmd => $cmd->{$cmd->cmd}]);
     }
 
-    protected function on_rpl_luserchannels(Stdclass $cmd) {
+    protected function on_rpl_luserchannels(stdClass $cmd) {
         $this->serverInfo = array_merge($this->serverInfo, [$cmd->cmd => $cmd->{$cmd->cmd}]);
     }
 
-    protected function on_rpl_luserme(Stdclass $cmd) {
+    protected function on_rpl_luserme(stdClass $cmd) {
         $this->serverInfo = array_merge($this->serverInfo, [$cmd->cmd => $cmd->{$cmd->cmd}]);
     }
 
-    protected function on_rpl_localusers(Stdclass $cmd) {
+    protected function on_rpl_localusers(stdClass $cmd) {
         $this->serverInfo = array_merge($this->serverInfo, [$cmd->cmd => $cmd->{$cmd->cmd}]);
     }
 
-    protected function on_rpl_globalusers(Stdclass $cmd) {
+    protected function on_rpl_globalusers(stdClass $cmd) {
         $this->serverInfo = array_merge($this->serverInfo, [$cmd->cmd => $cmd->{$cmd->cmd}]);
     }
 }
