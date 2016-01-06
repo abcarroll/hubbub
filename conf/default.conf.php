@@ -62,7 +62,7 @@ return [
     ],
 
     'bnc' => [
-        'listen'    => '0.0.0.0:1338',
+        'listen'    => '0.0.0.0:1337',
         'password'  => '1234',
         'motd_file' => 'LICENSE.txt',
     ]
