@@ -115,7 +115,7 @@ trait Parser {
         if(method_exists($this, 'parse_' . $parsed->cmd)) {
             $parsed = $this->{'parse_' . $parsed->cmd}($parsed);
         } else {
-            $this->logger->warning("I don't have a parser method for the command: " . $parsed->cmd);
+            $this->logger->notice("I don't have a parser method for the command: " . $parsed->cmd);
         }
 
         return $parsed;
@@ -312,29 +312,35 @@ trait Parser {
      * @return StdClass       A StdClass that has additional information parsed, if available.
      */
     private function parse_rpl_created(StdClass $line) {
-        if(preg_match("/was created (.*)/i", $line->args[1], $m)) {
-            $serverCreated = $m[1];
+        $text = str_replace(['(', ')', ','], '', $line->args[1]);
+        if(preg_match('/[a-z]{3} +\d{1,2} +(?:\d{4}|\d{2})/i', $text, $dateMatch)) {
+            $createdString = $dateMatch[0];
+            // note that we deliberately do not match the tz here because there are certainly servers that report timezones not in a standard tz db
+            // ultimately, it would be best if we could check the tz against the local machine's db, and if valid, use it, if not, then drop it..
+            // timezone: (?: [A-Z]{3,4})?
+            if(preg_match('/\d{2}:\d{2}:\d{2}/', $line, $timeMatch)) {
+                $createdString .= ' ' . $timeMatch[0];
+            }
 
             try {
-                $serverCreatedDate = new \DateTime(str_replace(' at ', ' ', $serverCreated));
+                $serverCreatedDate = new \DateTime($createdString);
             } catch(\Exception $e) {
-                trigger_error("Could not parse RPL_CREATED's date correctly in Parser: " . $e->getMessage(), E_USER_WARNING);
+                $this->logger->warning("Could not parse RPL_CREATED's date correctly in Parser: " . $e->getMessage());
                 $serverCreatedDate = null;
                 return $line;
             }
         } else {
-            trigger_error("Could not parse RPL_CREATED correctly in Parser", E_USER_WARNING);
+            $this->logger->warning("No date was found in RPL_CREATED");
             $serverCreated = null;
             $serverCreatedDate = null;
             return $line;
         }
 
         $line->{$line->cmd} = [
-            'text'      => $serverCreated,
+            'text'      => $createdString,
             'dateTime'  => $serverCreatedDate,
             'timestamp' => $serverCreatedDate->getTimestamp(),
         ];
-
         return $line;
     }
 
