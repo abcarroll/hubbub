@@ -33,29 +33,27 @@ use stdClass;
 
 trait Parser {
     use Numerics;
-
     /**
-     * @param string $c A raw, unformatted IRC protocol line.
+     * Parses a single IRC protocol line using a formal parser, plus modularized parser segments.
      *
-     * @return array A parsed, structured array containing formatted IRC data.
+     * @param string $line A raw, un-parsed IRC protocol line.
      *
-     * This is the main IRC protocol processing method.  It returns a pretty array with the following indexes:
-     * @todo finalize docs when done
+     * @return stdClass
      */
-    public function parseIrcCommand($c) {
+    public function parseIrcCommand($line) {
         $parsed = new stdClass();
         $parsed->protocol = 'irc';
-        $parsed->raw = $c;
+        $parsed->raw = $line;
 
-        $c = trim($c); // May already have been trimmed by the time it gets here, but it can't hurt
+        $line = trim($line); // May already have been trimmed by the time it gets here, but it can't hurt
 
         // It seems all server-to-client messages should be prefixed with ':'
         // However this function could be used to parse outgoing protocol data as well
-        if(substr($c, 0, 1) == ':') {
-            list($from, $cmd, $arg) = explode(' ', $c, 3);
+        if(substr($line, 0, 1) == ':') {
+            list($from, $cmd, $arg) = explode(' ', $line, 3);
         } else {
             // Should only be for client-to-server
-            list($cmd, $arg) = explode(' ', $c, 2);
+            list($cmd, $arg) = explode(' ', $line, 2);
             $from = null;
         }
 
