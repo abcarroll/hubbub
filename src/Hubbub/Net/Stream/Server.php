@@ -90,6 +90,17 @@ class Server implements \Hubbub\Net\Server {
     }
 
     public function poll_sockets() {
+        // Forcefully disconnected sockets
+        // I've been unable to figure out a way to handle this otherwise; this is caused from fclose()'ing a socket to forcefully disconnect it, then fclose()
+        // instantly pushes it out of resource state into an integer
+        foreacH($this->client_sockets as $cIdx => $cSocket) {
+            if(!is_resource($cSocket)) {
+                $this->logger->debug("Forcefully removed socket id #$cIdx");
+                unset($this->client_sockets[$cIdx]);
+                $this->protocol->on_client_disconnect($cSocket);
+            }
+        }
+
         $ready_sockets = [$this->server_socket] + $this->client_sockets;
         $ready_count = stream_select($ready_sockets, $write, $except, 0, 0); // resource &read, resource &write, resource &except, int tv_sec [, int tv_usec]
 
@@ -108,8 +119,7 @@ class Server implements \Hubbub\Net\Server {
 
                 // A client has disconnected from our listening socket
                 if($data === 0) {
-                    $this->protocol->on_client_disconnect($socket);
-                    unset($this->client_sockets[(int) $socket]);
+                    $this->disconnectClient($socket);
                     $this->logger->debug("Client disconnected from socket");
                 } else {
                     $this->logger->debug("Data received from client");
@@ -117,6 +127,13 @@ class Server implements \Hubbub\Net\Server {
                 }
             }
         }
+    }
+
+    public function disconnectClient($socket) {
+        $sIdx = (int) $socket;
+        $this->protocol->on_client_disconnect($socket);
+        fclose($socket);
+        unset($this->client_sockets[$sIdx]);
     }
 
     public function set_blocking($blocking) {
