@@ -180,4 +180,21 @@ class Utility {
 
         return $b;
     }
+
+    /**
+     * Returns a hexadecimal representation of either time() or microtime().  Do NOT use this for a unique ID.
+     *
+     * @param bool|false $microtime Whether or not to return the microtime portion in hex.
+     *
+     * @return string A unix timestamp (or timestamp+microtime) represeted as hexadecimal
+     */
+    static function hexTime($microtime = false) {
+        if(!$microtime) {
+            return $time = sprintf("%08x", time());
+        } else {
+            $m = explode(' ', microtime());
+            $time = sprintf("%08x%05x", $m[1], ($m[0] * 1000000));
+            return $time;
+        }
+    }
 }
