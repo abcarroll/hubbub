@@ -18,48 +18,32 @@ namespace Hubbub\Protocol;
  */
 interface Server {
     /**
-     * @param $socket
-     * @param $data
-     *
-     * @return mixed
-     */
-    //function send($socket, $data);
-
-    /**
-     * @param $socket resource
-     * @param $length int
-     *
-     * @return mixed
-     */
-    //function recv($socket, $length);
-
-    /**
-     * @param $socket resource The newly connected socket resource
+     * @param $clientId int Socket ID for the newly connected socket
      *
      * @return void
      */
-    function on_client_connect($socket);
+    function on_client_connect($clientId);
 
     /**
-     * @param $socket resource The recently disconnected socket resource
+     * @param $clientId int Socket ID for the recently disconnected socket
      *
      * @return void
      */
-    function on_client_disconnect($socket);
+    function on_client_disconnect($clientId);
 
     /**
-     * @param $socket resource The socket that is sending data
-     * @param $data   string The data that is being sent
+     * @param $clientId int    Socket ID for the client sending the data
+     * @param $data     string The data that is being sent
      *
      * @return void
      */
-    function on_client_send($socket, $data);
+    function on_client_send($clientId, $data);
 
     /**
-     * @param $socket resource The client that received the data.
-     * @param $data   string The data received. This data may be binary or ASCII text.
+     * @param $clientId int    The Socket ID for the client that received the data.
+     * @param $data     string The data received. This could be a full, or partial message.
      *
      * @return mixed
      */
-    function on_client_recv($socket, $data);
+    function on_client_recv($clientId, $data);
 }

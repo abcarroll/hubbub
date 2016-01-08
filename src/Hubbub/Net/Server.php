@@ -25,7 +25,7 @@ interface Server extends \Hubbub\Iterable {
      */
     public function setProtocol(\Hubbub\Protocol\Server $protocol);
     public function server($location);
-    public function send($socket, $data);
-    public function recv($socket, $length);
-    public function poll_sockets();
+    public function pollSockets();
+    public function clientSend($socketId, $data);
+    public function clientDisconnect($socketId);
 }

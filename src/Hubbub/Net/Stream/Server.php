@@ -36,12 +36,12 @@ class Server implements \Hubbub\Net\Server {
     ];
 
     protected $server_socket;
-    protected $client_sockets = [];
+    protected $clientSockets = [];
 
-    protected $logger;
+    //protected $logger;
 
-    public function __construct(\Hubbub\Logger $logger) {
-        $this->logger = $logger;
+    public function __construct() { //\Hubbub\Logger $logger
+        //$this->logger = $logger;
     }
 
     public function setProtocol(\Hubbub\Protocol\Server $protocol) {
@@ -62,16 +62,16 @@ class Server implements \Hubbub\Net\Server {
 
         // Known Transports:
         // tcp, udp, unix, udg, ssl, sslv3, tls
-        $this->server_socket = stream_socket_server($location, $errno, $errstr);
+        $this->server_socket = stream_socket_server($location, $errno, $errstr, $flags);
 
         if($this->server_socket === false) {
             trigger_error("Server socket creation failed: [$errno] $errstr", E_USER_WARNING);
         }
     }
 
-    public function send($socket, $data) {
-        //$data = $this->on_client_send($socket, $data);
-        $this->protocol->on_client_send($socket, $data);
+    public function clientSend($clientId, $data) {
+        $socket = $this->clientSockets[$clientId];
+        $this->protocol->on_client_send($clientId, $data);
 
         if(is_array($socket)) {
             $ret = [];
@@ -85,63 +85,73 @@ class Server implements \Hubbub\Net\Server {
         return $ret;
     }
 
-    public function recv($socket, $length = 8192) {
-        return fread($socket, $length);
+    public function clientDisconnect($clientId) {
+        //$this->logger->debug("clientDisconnect() forcefully called for clientId# $clientId");
+        $socket = $this->clientSockets[$clientId];
+        $this->disconnectSocket($socket);
     }
 
-    public function poll_sockets() {
-        // Forcefully disconnected sockets
-        // I've been unable to figure out a way to handle this otherwise; this is caused from fclose()'ing a socket to forcefully disconnect it, then fclose()
-        // instantly pushes it out of resource state into an integer
-        foreacH($this->client_sockets as $cIdx => $cSocket) {
-            if(!is_resource($cSocket)) {
-                $this->logger->debug("Forcefully removed socket id #$cIdx");
-                unset($this->client_sockets[$cIdx]);
-                $this->protocol->on_client_disconnect($cSocket);
-            }
+    /**
+     * Internal disconnection.  If not already disconnected, disconnect the socket.  Remove the socket from the lookup table and trigger the callback.
+     *
+     * @param resource $socket The socket resource to disconnect & cleanup
+     */
+    protected function disconnectSocket($socket) {
+        $clientId = (int) $socket;
+        $this->protocol->on_client_disconnect($clientId);
+        unset($this->clientSockets[$clientId]);
+        if(is_resource($socket)) {
+            fclose($socket);
         }
-
-        $ready_sockets = [$this->server_socket] + $this->client_sockets;
-        $ready_count = stream_select($ready_sockets, $write, $except, 0, 0); // resource &read, resource &write, resource &except, int tv_sec [, int tv_usec]
-
-        foreach($ready_sockets as $socket) {
-            // A client is connecting to our listening socket
-            if($socket === $this->server_socket) {
-                if(($client = stream_socket_accept($this->server_socket)) < 0) { // resource server_socket [, int timeout [, string &peername]]
-                    $this->logger->alert("socket_accept() has failed!");
-                } else {
-                    $this->logger->debug("New client socket accepted");
-                    $this->client_sockets[(int) $client] = $client;
-                    $this->protocol->on_client_connect($client);
-                }
-            } else {
-                $data = $this->recv($socket);
-
-                // A client has disconnected from our listening socket
-                if($data === 0) {
-                    $this->disconnectClient($socket);
-                    $this->logger->debug("Client disconnected from socket");
-                } else {
-                    $this->logger->debug("Data received from client");
-                    $this->protocol->on_client_recv($socket, $data);
-                }
-            }
-        }
-    }
-
-    public function disconnectClient($socket) {
-        $sIdx = (int) $socket;
-        $this->protocol->on_client_disconnect($socket);
-        fclose($socket);
-        unset($this->client_sockets[$sIdx]);
+        //$this->logger->debug("Client disconnected from clientId# $clientId");
     }
 
     public function set_blocking($blocking) {
         stream_set_blocking($this->server_socket, $blocking);
     }
 
+    public function pollSockets() {
+        // Forcefully disconnected sockets
+        // I've been unable to figure out a way to handle this otherwise; this is caused from fclose()'ing a socket to forcefully disconnect it, then fclose()
+        // instantly pushes it out of resource state into an integer
+        foreacH($this->clientSockets as $clientId => $cSocket) {
+            if(!is_resource($cSocket) || is_resource($cSocket) && feof($cSocket)) {
+                //$this->logger->debug("Real socket no longer valid, forcefully disconnecting clientId# " . $clientId);
+                $this->disconnectSocket($cSocket);
+            }
+        }
+
+        $ready_sockets = [$this->server_socket] + $this->clientSockets;
+        stream_select($ready_sockets, $write, $except, 0, 0); // resource &read, resource &write, resource &except, int tv_sec [, int tv_usec]
+
+        foreach($ready_sockets as $socket) {
+            // A client is connecting to our listening socket
+            if($socket === $this->server_socket) {
+                if(($client = stream_socket_accept($this->server_socket)) < 0) { // resource server_socket [, int timeout [, string &peername]]
+                    //$this->logger->alert("socket_accept() has failed!");
+                } else {
+                    $clientId = (int) $client;
+                    //$this->logger->debug("New client socket accepted, clientId# $clientId");
+                    $this->clientSockets[$clientId] = $client;
+                    $this->protocol->on_client_connect($clientId);
+                }
+            } else {
+                $clientId = (int) $socket;
+                $data = fread($socket, 8192);
+
+                // A client has disconnected from our listening socket
+                if($data === 0) {
+                    //$this->logger->debug("data === 0, disconnected clientId# $clientId");
+                    $this->disconnectSocket($socket);
+                } else {
+                    //$this->logger->debug("Data received from clientId# $clientId");
+                    $this->protocol->on_client_recv($clientId, $data);
+                }
+            }
+        }
+    }
+
     public function iterate() {
-        //$this->logger->debug("Iterating server sockets");
-        $this->poll_sockets();
+        $this->pollSockets();
     }
 }
