@@ -203,23 +203,31 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
             'require-pass' => $givenPassword,
         ];
 
+        $authMethods = 0;
         foreach($compare as $confName => $givenValue) {
             $confValue = $this->conf->get('irc.bnc.' . $confName);
-            if($confValue !== null && $confValue !== $givenValue) {
-                $this->logger->debug("Failing loggin: $confName was set, $confValue !== $givenValue");
-                $authPassed = false;
-                break;
+            if($confValue !== null) {
+                if($confValue !== $givenValue) {
+                    $this->logger->debug("Failing loggin: $confName was set, $confValue !== $givenValue");
+                    $authPassed = false;
+                    break;
+                }
+                $authMethods++;
             }
         }
 
-        if($authPassed) {
-            $client->setState('registered');
-            $this->welcome($client);
+        if($authMethods > 0 || $this->conf->get('irc.bnc.no-authentication') === true) {
+            if($authPassed) {
+                $client->setState('registered');
+                $this->welcome($client);
+            } else {
+                $client->sendNotice("*", "*** DISCONNECTED: One or more of your login parameters were incorrect.  Please try again later. ");
+                $client->disconnect();
+            }
         } else {
-            $client->sendNotice("*", "*** DISCONNECTED: One or more of your login parameters were incorrect.  Please try again later. ");
+            $client->sendNotice("*", "*** DISCONNECTED: Please configure at least one authentication method. ");
             $client->disconnect();
         }
-
     }
 
     protected function recv_pass(BncClient $client, $line) {
@@ -235,9 +243,9 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
         $client->setState('registered');
 
         $client->send(":Hubbub 001 {$client->nick} WELCOME");
-        $motdFile = $this->conf->get('irc.bnc.motd_file');
+        $motdFile = $this->conf->get('irc.bnc.motd-file');
         if(is_readable($motdFile)) {
-            $f = file($this->conf->get('irc.bnc.motd_file'));
+            $f = file($this->conf->get('irc.bnc.motd-file'));
         } else {
             $f = ["The config value irc.bnc.motd_file was unreadable"];
         }
