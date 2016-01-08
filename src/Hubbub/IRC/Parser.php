@@ -33,6 +33,7 @@ use stdClass;
 
 trait Parser {
     use Numerics;
+
     /**
      * Parses a single IRC protocol line using a formal parser, plus modularized parser segments.
      *
@@ -197,7 +198,7 @@ trait Parser {
      *
      * @return mixed
      */
-    private function parse_privmsg($line, $checkCtcp = true) {
+    protected function parse_privmsg($line, $checkCtcp = true) {
         if(!empty($line->from->server)) {
             $line->type = 'server-message';
         } else {
@@ -234,7 +235,7 @@ trait Parser {
      *
      * @return mixed
      */
-    private function parse_notice($line) {
+    protected function parse_notice($line) {
         return $this->parse_privmsg($line, false); // False will turn off CTCP checking.
     }
 
@@ -243,11 +244,11 @@ trait Parser {
      *
      * @return mixed
      */
-    /*private function parse_cap($line) {
+    /*protected function parse_cap($line) {
         return $line;
     }*/
 
-    private function parse_join(stdClass $cmd) {
+    protected function parse_join(stdClass $cmd) {
         $cmd->join = [
             'channels' => $cmd->args
         ];
@@ -268,7 +269,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    private function parse_rpl_welcome(stdClass $line) {
+    protected function parse_rpl_welcome(stdClass $line) {
         return $line;
     }
 
@@ -281,7 +282,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    private function parse_rpl_yourhost(stdClass $line) {
+    protected function parse_rpl_yourhost(stdClass $line) {
 
         if(preg_match("/Your host is (.*), running version (.*)/i", $line->args[1], $m)) {
             $yourHost = $m[1];
@@ -309,7 +310,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    private function parse_rpl_created(stdClass $line) {
+    protected function parse_rpl_created(stdClass $line) {
         $text = str_replace(['(', ')', ','], '', $line->args[1]);
         if(preg_match('/[a-z]{3} +\d{1,2} +(?:\d{4}|\d{2})/i', $text, $dateMatch)) {
             $createdString = $dateMatch[0];
@@ -325,12 +326,14 @@ trait Parser {
             } catch(\Exception $e) {
                 $this->logger->warning("Could not parse RPL_CREATED's date correctly in Parser: " . $e->getMessage());
                 $serverCreatedDate = null;
+
                 return $line;
             }
         } else {
             $this->logger->warning("No date was found in RPL_CREATED");
             $serverCreated = null;
             $serverCreatedDate = null;
+
             return $line;
         }
 
@@ -339,6 +342,7 @@ trait Parser {
             'dateTime'  => $serverCreatedDate,
             'timestamp' => $serverCreatedDate->getTimestamp(),
         ];
+
         return $line;
     }
 
@@ -354,7 +358,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    private function parse_rpl_myinfo(stdClass $line) {
+    protected function parse_rpl_myinfo(stdClass $line) {
 
         $myInfo = [];
         $explodedIndexes = [
@@ -395,7 +399,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    private function parse_rpl_isupport(stdClass $line) {
+    protected function parse_rpl_isupport(stdClass $line) {
         // @todo Needs testing.  Never tested against an actual production ircd.
         if(preg_match('/Try (.*), port (.*)/i', $line->args[0], $m)) {
             $line->cmd = 'rpl_bounce';
@@ -436,7 +440,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /* private function parse_rpl_map(stdClass $line) {
+    /* protected function parse_rpl_map(stdClass $line) {
         return $line;
     } */
 
@@ -447,7 +451,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /* private function parse_rpl_mapend(stdClass $line) {
+    /* protected function parse_rpl_mapend(stdClass $line) {
         return $line;
     } */
 
@@ -459,7 +463,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_snomask(stdClass $line) {
+    /*protected function parse_rpl_snomask(stdClass $line) {
         return $line;
     }*/
 
@@ -470,7 +474,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statmemtot(stdClass $line) {
+    /*protected function parse_rpl_statmemtot(stdClass $line) {
         return $line;
     }*/
 
@@ -483,7 +487,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_bounce(stdClass $line) {
+    /*protected function parse_rpl_bounce(stdClass $line) {
         return $line;
     }*/
 
@@ -494,7 +498,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statmem(stdClass $line) {
+    /*protected function parse_rpl_statmem(stdClass $line) {
         return $line;
     }*/
 
@@ -505,7 +509,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_yourcookie(stdClass $line) {
+    /*protected function parse_rpl_yourcookie(stdClass $line) {
         return $line;
     }*/
 
@@ -516,7 +520,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /* private function parse_rpl_map(stdClass $line) {
+    /* protected function parse_rpl_map(stdClass $line) {
         return $line;
     } */
 
@@ -527,7 +531,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_mapmore(stdClass $line) {
+    /*protected function parse_rpl_mapmore(stdClass $line) {
         return $line;
     }*/
 
@@ -538,7 +542,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_mapend(stdClass $line) {
+    /*protected function parse_rpl_mapend(stdClass $line) {
         return $line;
     }*/
 
@@ -549,7 +553,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_yourid(stdClass $line) {
+    /*protected function parse_rpl_yourid(stdClass $line) {
         return $line;
     }*/
 
@@ -562,7 +566,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_savenick(stdClass $line) {
+    /*protected function parse_rpl_savenick(stdClass $line) {
         return $line;
     }*/
 
@@ -573,7 +577,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_attemptingjunc(stdClass $line) {
+    /*protected function parse_rpl_attemptingjunc(stdClass $line) {
         return $line;
     }*/
 
@@ -584,7 +588,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_attemptingreroute(stdClass $line) {
+    /*protected function parse_rpl_attemptingreroute(stdClass $line) {
         return $line;
     }*/
 
@@ -601,7 +605,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_tracelink(stdClass $line) {
+    /*protected function parse_rpl_tracelink(stdClass $line) {
         return $line;
     }*/
 
@@ -614,7 +618,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_traceconnecting(stdClass $line) {
+    /*protected function parse_rpl_traceconnecting(stdClass $line) {
         return $line;
     }*/
 
@@ -627,7 +631,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_tracehandshake(stdClass $line) {
+    /*protected function parse_rpl_tracehandshake(stdClass $line) {
         return $line;
     }*/
 
@@ -640,7 +644,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_traceunknown(stdClass $line) {
+    /*protected function parse_rpl_traceunknown(stdClass $line) {
         return $line;
     }*/
 
@@ -653,7 +657,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_traceoperator(stdClass $line) {
+    /*protected function parse_rpl_traceoperator(stdClass $line) {
         return $line;
     }*/
 
@@ -666,7 +670,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_traceuser(stdClass $line) {
+    /*protected function parse_rpl_traceuser(stdClass $line) {
         return $line;
     }*/
 
@@ -679,7 +683,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_traceserver(stdClass $line) {
+    /*protected function parse_rpl_traceserver(stdClass $line) {
         return $line;
     }*/
 
@@ -692,7 +696,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_traceservice(stdClass $line) {
+    /*protected function parse_rpl_traceservice(stdClass $line) {
         return $line;
     }*/
 
@@ -705,7 +709,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_tracenewtype(stdClass $line) {
+    /*protected function parse_rpl_tracenewtype(stdClass $line) {
         return $line;
     }*/
 
@@ -718,7 +722,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_traceclass(stdClass $line) {
+    /*protected function parse_rpl_traceclass(stdClass $line) {
         return $line;
     }*/
 
@@ -729,7 +733,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_tracereconnect(stdClass $line) {
+    /*protected function parse_rpl_tracereconnect(stdClass $line) {
         return $line;
     }*/
 
@@ -741,7 +745,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_stats(stdClass $line) {
+    /*protected function parse_rpl_stats(stdClass $line) {
         return $line;
     }*/
 
@@ -754,7 +758,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statslinkinfo(stdClass $line) {
+    /*protected function parse_rpl_statslinkinfo(stdClass $line) {
         return $line;
     }*/
 
@@ -767,7 +771,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statscommands(stdClass $line) {
+    /*protected function parse_rpl_statscommands(stdClass $line) {
         return $line;
     }*/
 
@@ -780,7 +784,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statscline(stdClass $line) {
+    /*protected function parse_rpl_statscline(stdClass $line) {
         return $line;
     }*/
 
@@ -793,7 +797,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsnline(stdClass $line) {
+    /*protected function parse_rpl_statsnline(stdClass $line) {
         return $line;
     }*/
 
@@ -806,7 +810,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsiline(stdClass $line) {
+    /*protected function parse_rpl_statsiline(stdClass $line) {
         return $line;
     }*/
 
@@ -819,7 +823,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statskline(stdClass $line) {
+    /*protected function parse_rpl_statskline(stdClass $line) {
         return $line;
     }*/
 
@@ -830,7 +834,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsqline(stdClass $line) {
+    /*protected function parse_rpl_statsqline(stdClass $line) {
         return $line;
     }*/
 
@@ -841,7 +845,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statspline(stdClass $line) {
+    /*protected function parse_rpl_statspline(stdClass $line) {
         return $line;
     }*/
 
@@ -854,7 +858,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsyline(stdClass $line) {
+    /*protected function parse_rpl_statsyline(stdClass $line) {
         return $line;
     }*/
 
@@ -867,7 +871,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofstats(stdClass $line) {
+    /*protected function parse_rpl_endofstats(stdClass $line) {
         return $line;
     }*/
 
@@ -878,7 +882,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statspline(stdClass $line) {
+    /*protected function parse_rpl_statspline(stdClass $line) {
         return $line;
     }*/
 
@@ -889,7 +893,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsbline(stdClass $line) {
+    /*protected function parse_rpl_statsbline(stdClass $line) {
         return $line;
     }*/
 
@@ -902,7 +906,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_umodeis(stdClass $line) {
+    /*protected function parse_rpl_umodeis(stdClass $line) {
         return $line;
     }*/
 
@@ -913,7 +917,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_modlist(stdClass $line) {
+    /*protected function parse_rpl_modlist(stdClass $line) {
         return $line;
     }*/
 
@@ -924,7 +928,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_sqline_nick(stdClass $line) {
+    /*protected function parse_rpl_sqline_nick(stdClass $line) {
         return $line;
     }*/
 
@@ -935,7 +939,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsbline(stdClass $line) {
+    /*protected function parse_rpl_statsbline(stdClass $line) {
         return $line;
     }*/
 
@@ -946,7 +950,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statseline(stdClass $line) {
+    /*protected function parse_rpl_statseline(stdClass $line) {
         return $line;
     }*/
 
@@ -957,7 +961,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsgline(stdClass $line) {
+    /*protected function parse_rpl_statsgline(stdClass $line) {
         return $line;
     }*/
 
@@ -968,7 +972,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsfline(stdClass $line) {
+    /*protected function parse_rpl_statsfline(stdClass $line) {
         return $line;
     }*/
 
@@ -979,7 +983,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statstline(stdClass $line) {
+    /*protected function parse_rpl_statstline(stdClass $line) {
         return $line;
     }*/
 
@@ -990,7 +994,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsdline(stdClass $line) {
+    /*protected function parse_rpl_statsdline(stdClass $line) {
         return $line;
     }*/
 
@@ -1001,7 +1005,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statszline(stdClass $line) {
+    /*protected function parse_rpl_statszline(stdClass $line) {
         return $line;
     }*/
 
@@ -1012,7 +1016,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statseline(stdClass $line) {
+    /*protected function parse_rpl_statseline(stdClass $line) {
         return $line;
     }*/
 
@@ -1023,7 +1027,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statscount(stdClass $line) {
+    /*protected function parse_rpl_statscount(stdClass $line) {
         return $line;
     }*/
 
@@ -1034,7 +1038,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsnline(stdClass $line) {
+    /*protected function parse_rpl_statsnline(stdClass $line) {
         return $line;
     }*/
 
@@ -1045,7 +1049,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsgline(stdClass $line) {
+    /*protected function parse_rpl_statsgline(stdClass $line) {
         return $line;
     }*/
 
@@ -1056,7 +1060,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsvline(stdClass $line) {
+    /*protected function parse_rpl_statsvline(stdClass $line) {
         return $line;
     }*/
 
@@ -1067,7 +1071,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsqline(stdClass $line) {
+    /*protected function parse_rpl_statsqline(stdClass $line) {
         return $line;
     }*/
 
@@ -1078,7 +1082,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_serviceinfo(stdClass $line) {
+    /*protected function parse_rpl_serviceinfo(stdClass $line) {
         return $line;
     }*/
 
@@ -1089,7 +1093,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofservices(stdClass $line) {
+    /*protected function parse_rpl_endofservices(stdClass $line) {
         return $line;
     }*/
 
@@ -1100,7 +1104,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_rules(stdClass $line) {
+    /*protected function parse_rpl_rules(stdClass $line) {
         return $line;
     }*/
 
@@ -1111,7 +1115,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_service(stdClass $line) {
+    /*protected function parse_rpl_service(stdClass $line) {
         return $line;
     }*/
 
@@ -1124,7 +1128,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_servlist(stdClass $line) {
+    /*protected function parse_rpl_servlist(stdClass $line) {
         return $line;
     }*/
 
@@ -1137,7 +1141,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_servlistend(stdClass $line) {
+    /*protected function parse_rpl_servlistend(stdClass $line) {
         return $line;
     }*/
 
@@ -1149,7 +1153,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsverbose(stdClass $line) {
+    /*protected function parse_rpl_statsverbose(stdClass $line) {
         return $line;
     }*/
 
@@ -1161,7 +1165,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsengine(stdClass $line) {
+    /*protected function parse_rpl_statsengine(stdClass $line) {
         return $line;
     }*/
 
@@ -1173,7 +1177,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsfline(stdClass $line) {
+    /*protected function parse_rpl_statsfline(stdClass $line) {
         return $line;
     }*/
 
@@ -1184,7 +1188,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsiauth(stdClass $line) {
+    /*protected function parse_rpl_statsiauth(stdClass $line) {
         return $line;
     }*/
 
@@ -1195,7 +1199,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsvline(stdClass $line) {
+    /*protected function parse_rpl_statsvline(stdClass $line) {
         return $line;
     }*/
 
@@ -1206,7 +1210,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsxline(stdClass $line) {
+    /*protected function parse_rpl_statsxline(stdClass $line) {
         return $line;
     }*/
 
@@ -1219,7 +1223,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statslline(stdClass $line) {
+    /*protected function parse_rpl_statslline(stdClass $line) {
         return $line;
     }*/
 
@@ -1232,7 +1236,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsuptime(stdClass $line) {
+    /*protected function parse_rpl_statsuptime(stdClass $line) {
         return $line;
     }*/
 
@@ -1245,7 +1249,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsoline(stdClass $line) {
+    /*protected function parse_rpl_statsoline(stdClass $line) {
         return $line;
     }*/
 
@@ -1258,7 +1262,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statshline(stdClass $line) {
+    /*protected function parse_rpl_statshline(stdClass $line) {
         return $line;
     }*/
 
@@ -1269,7 +1273,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statssline(stdClass $line) {
+    /*protected function parse_rpl_statssline(stdClass $line) {
         return $line;
     }*/
 
@@ -1280,7 +1284,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsping(stdClass $line) {
+    /*protected function parse_rpl_statsping(stdClass $line) {
         return $line;
     }*/
 
@@ -1291,7 +1295,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statstline(stdClass $line) {
+    /*protected function parse_rpl_statstline(stdClass $line) {
         return $line;
     }*/
 
@@ -1302,7 +1306,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsuline(stdClass $line) {
+    /*protected function parse_rpl_statsuline(stdClass $line) {
         return $line;
     }*/
 
@@ -1313,7 +1317,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsbline(stdClass $line) {
+    /*protected function parse_rpl_statsbline(stdClass $line) {
         return $line;
     }*/
 
@@ -1324,7 +1328,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsxline(stdClass $line) {
+    /*protected function parse_rpl_statsxline(stdClass $line) {
         return $line;
     }*/
 
@@ -1335,7 +1339,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsgline(stdClass $line) {
+    /*protected function parse_rpl_statsgline(stdClass $line) {
         return $line;
     }*/
 
@@ -1346,7 +1350,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsuline(stdClass $line) {
+    /*protected function parse_rpl_statsuline(stdClass $line) {
         return $line;
     }*/
 
@@ -1357,7 +1361,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsdefine(stdClass $line) {
+    /*protected function parse_rpl_statsdefine(stdClass $line) {
         return $line;
     }*/
 
@@ -1369,7 +1373,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsuline(stdClass $line) {
+    /*protected function parse_rpl_statsuline(stdClass $line) {
         return $line;
     }*/
 
@@ -1380,7 +1384,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsdebug(stdClass $line) {
+    /*protected function parse_rpl_statsdebug(stdClass $line) {
         return $line;
     }*/
 
@@ -1391,7 +1395,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsdline(stdClass $line) {
+    /*protected function parse_rpl_statsdline(stdClass $line) {
         return $line;
     }*/
 
@@ -1402,7 +1406,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsconn(stdClass $line) {
+    /*protected function parse_rpl_statsconn(stdClass $line) {
         return $line;
     }*/
 
@@ -1415,7 +1419,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    private function parse_rpl_luserclient(stdClass $line) {
+    protected function parse_rpl_luserclient(stdClass $line) {
         if(!preg_match('/There are (.*) users and (.*) invisible on (.*) servers/i', $line->args[1], $matches)) {
             // Try again a little more loosely..
             if(!preg_match_all('/(\d+)/', $line->args[1], $matches)) {
@@ -1451,7 +1455,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    private function parse_rpl_luserop(stdClass $line) {
+    protected function parse_rpl_luserop(stdClass $line) {
         $line->{$line->cmd} = [
             'ircop-online' => $line->args[1]
         ];
@@ -1468,7 +1472,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    private function parse_rpl_luserunknown(stdClass $line) {
+    protected function parse_rpl_luserunknown(stdClass $line) {
         $line->{$line->cmd} = [
             'unknown-connections' => $line->args[1]
         ];
@@ -1485,7 +1489,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    private function parse_rpl_luserchannels(stdClass $line) {
+    protected function parse_rpl_luserchannels(stdClass $line) {
         $line->{$line->cmd} = [
             'channels-formed' => $line->args[1]
         ];
@@ -1502,7 +1506,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    private function parse_rpl_luserme(stdClass $line) {
+    protected function parse_rpl_luserme(stdClass $line) {
         if(!preg_match('/I have (.*) clients and (.*) servers/i', $line->args[1], $matches)) {
             // Try again a little more loosely..
             if(!preg_match_all('/(\d+)/', $line->args[1], $matches)) {
@@ -1538,7 +1542,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_adminme(stdClass $line) {
+    /*protected function parse_rpl_adminme(stdClass $line) {
         return $line;
     }*/
 
@@ -1551,7 +1555,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_adminloc1(stdClass $line) {
+    /*protected function parse_rpl_adminloc1(stdClass $line) {
         return $line;
     }*/
 
@@ -1564,7 +1568,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_adminloc2(stdClass $line) {
+    /*protected function parse_rpl_adminloc2(stdClass $line) {
         return $line;
     }*/
 
@@ -1577,7 +1581,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_adminemail(stdClass $line) {
+    /*protected function parse_rpl_adminemail(stdClass $line) {
         return $line;
     }*/
 
@@ -1590,7 +1594,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_tracelog(stdClass $line) {
+    /*protected function parse_rpl_tracelog(stdClass $line) {
         return $line;
     }*/
 
@@ -1602,7 +1606,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_traceping(stdClass $line) {
+    /*protected function parse_rpl_traceping(stdClass $line) {
         return $line;
     }*/
 
@@ -1615,7 +1619,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_traceend(stdClass $line) {
+    /*protected function parse_rpl_traceend(stdClass $line) {
         return $line;
     }*/
 
@@ -1629,7 +1633,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_tryagain(stdClass $line) {
+    /*protected function parse_rpl_tryagain(stdClass $line) {
         return $line;
     }*/
 
@@ -1641,7 +1645,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    private function parse_rpl_localusers(stdClass $line) {
+    protected function parse_rpl_localusers(stdClass $line) {
 
         $line->{$line->cmd} = [
             'local-users'     => $line->args[1],
@@ -1659,7 +1663,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    private function parse_rpl_globalusers(stdClass $line) {
+    protected function parse_rpl_globalusers(stdClass $line) {
 
         $line->{$line->cmd} = [
             'global-users'     => $line->args[1],
@@ -1676,7 +1680,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_start_netstat(stdClass $line) {
+    /*protected function parse_rpl_start_netstat(stdClass $line) {
         return $line;
     }*/
 
@@ -1687,7 +1691,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_netstat(stdClass $line) {
+    /*protected function parse_rpl_netstat(stdClass $line) {
         return $line;
     }*/
 
@@ -1698,7 +1702,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_end_netstat(stdClass $line) {
+    /*protected function parse_rpl_end_netstat(stdClass $line) {
         return $line;
     }*/
 
@@ -1709,7 +1713,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_privs(stdClass $line) {
+    /*protected function parse_rpl_privs(stdClass $line) {
         return $line;
     }*/
 
@@ -1720,7 +1724,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_silelist(stdClass $line) {
+    /*protected function parse_rpl_silelist(stdClass $line) {
         return $line;
     }*/
 
@@ -1731,7 +1735,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofsilelist(stdClass $line) {
+    /*protected function parse_rpl_endofsilelist(stdClass $line) {
         return $line;
     }*/
 
@@ -1742,7 +1746,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_notify(stdClass $line) {
+    /*protected function parse_rpl_notify(stdClass $line) {
         return $line;
     }*/
 
@@ -1753,7 +1757,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endnotify(stdClass $line) {
+    /*protected function parse_rpl_endnotify(stdClass $line) {
         return $line;
     }*/
 
@@ -1764,7 +1768,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsdelta(stdClass $line) {
+    /*protected function parse_rpl_statsdelta(stdClass $line) {
         return $line;
     }*/
 
@@ -1775,7 +1779,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_statsdline(stdClass $line) {
+    /*protected function parse_rpl_statsdline(stdClass $line) {
         return $line;
     }*/
 
@@ -1786,7 +1790,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_vchanexist(stdClass $line) {
+    /*protected function parse_rpl_vchanexist(stdClass $line) {
         return $line;
     }*/
 
@@ -1797,7 +1801,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_vchanlist(stdClass $line) {
+    /*protected function parse_rpl_vchanlist(stdClass $line) {
         return $line;
     }*/
 
@@ -1808,7 +1812,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_vchanhelp(stdClass $line) {
+    /*protected function parse_rpl_vchanhelp(stdClass $line) {
         return $line;
     }*/
 
@@ -1819,7 +1823,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_glist(stdClass $line) {
+    /*protected function parse_rpl_glist(stdClass $line) {
         return $line;
     }*/
 
@@ -1830,7 +1834,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofglist(stdClass $line) {
+    /*protected function parse_rpl_endofglist(stdClass $line) {
         return $line;
     }*/
 
@@ -1841,7 +1845,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_acceptlist(stdClass $line) {
+    /*protected function parse_rpl_acceptlist(stdClass $line) {
         return $line;
     }*/
 
@@ -1852,7 +1856,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofaccept(stdClass $line) {
+    /*protected function parse_rpl_endofaccept(stdClass $line) {
         return $line;
     }*/
 
@@ -1863,7 +1867,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_jupelist(stdClass $line) {
+    /*protected function parse_rpl_jupelist(stdClass $line) {
         return $line;
     }*/
 
@@ -1874,7 +1878,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_alist(stdClass $line) {
+    /*protected function parse_rpl_alist(stdClass $line) {
         return $line;
     }*/
 
@@ -1885,7 +1889,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofjupelist(stdClass $line) {
+    /*protected function parse_rpl_endofjupelist(stdClass $line) {
         return $line;
     }*/
 
@@ -1896,7 +1900,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofalist(stdClass $line) {
+    /*protected function parse_rpl_endofalist(stdClass $line) {
         return $line;
     }*/
 
@@ -1907,7 +1911,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_feature(stdClass $line) {
+    /*protected function parse_rpl_feature(stdClass $line) {
         return $line;
     }*/
 
@@ -1918,7 +1922,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_glist_hash(stdClass $line) {
+    /*protected function parse_rpl_glist_hash(stdClass $line) {
         return $line;
     }*/
 
@@ -1929,7 +1933,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_chaninfo_handle(stdClass $line) {
+    /*protected function parse_rpl_chaninfo_handle(stdClass $line) {
         return $line;
     }*/
 
@@ -1940,7 +1944,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_newhostis(stdClass $line) {
+    /*protected function parse_rpl_newhostis(stdClass $line) {
         return $line;
     }*/
 
@@ -1951,7 +1955,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_chaninfo_users(stdClass $line) {
+    /*protected function parse_rpl_chaninfo_users(stdClass $line) {
         return $line;
     }*/
 
@@ -1962,7 +1966,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_chkhead(stdClass $line) {
+    /*protected function parse_rpl_chkhead(stdClass $line) {
         return $line;
     }*/
 
@@ -1973,7 +1977,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_chaninfo_chops(stdClass $line) {
+    /*protected function parse_rpl_chaninfo_chops(stdClass $line) {
         return $line;
     }*/
 
@@ -1984,7 +1988,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_chanuser(stdClass $line) {
+    /*protected function parse_rpl_chanuser(stdClass $line) {
         return $line;
     }*/
 
@@ -1995,7 +1999,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_chaninfo_voices(stdClass $line) {
+    /*protected function parse_rpl_chaninfo_voices(stdClass $line) {
         return $line;
     }*/
 
@@ -2006,7 +2010,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_patchhead(stdClass $line) {
+    /*protected function parse_rpl_patchhead(stdClass $line) {
         return $line;
     }*/
 
@@ -2017,7 +2021,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_chaninfo_away(stdClass $line) {
+    /*protected function parse_rpl_chaninfo_away(stdClass $line) {
         return $line;
     }*/
 
@@ -2028,7 +2032,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_patchcon(stdClass $line) {
+    /*protected function parse_rpl_patchcon(stdClass $line) {
         return $line;
     }*/
 
@@ -2039,7 +2043,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_chaninfo_opers(stdClass $line) {
+    /*protected function parse_rpl_chaninfo_opers(stdClass $line) {
         return $line;
     }*/
 
@@ -2050,7 +2054,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_helphdr(stdClass $line) {
+    /*protected function parse_rpl_helphdr(stdClass $line) {
         return $line;
     }*/
 
@@ -2061,7 +2065,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_datastr(stdClass $line) {
+    /*protected function parse_rpl_datastr(stdClass $line) {
         return $line;
     }*/
 
@@ -2072,7 +2076,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_chaninfo_banned(stdClass $line) {
+    /*protected function parse_rpl_chaninfo_banned(stdClass $line) {
         return $line;
     }*/
 
@@ -2083,7 +2087,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_helpop(stdClass $line) {
+    /*protected function parse_rpl_helpop(stdClass $line) {
         return $line;
     }*/
 
@@ -2094,7 +2098,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofcheck(stdClass $line) {
+    /*protected function parse_rpl_endofcheck(stdClass $line) {
         return $line;
     }*/
 
@@ -2105,7 +2109,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_chaninfo_bans(stdClass $line) {
+    /*protected function parse_rpl_chaninfo_bans(stdClass $line) {
         return $line;
     }*/
 
@@ -2116,7 +2120,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_helptlr(stdClass $line) {
+    /*protected function parse_rpl_helptlr(stdClass $line) {
         return $line;
     }*/
 
@@ -2127,7 +2131,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_chaninfo_invite(stdClass $line) {
+    /*protected function parse_rpl_chaninfo_invite(stdClass $line) {
         return $line;
     }*/
 
@@ -2138,7 +2142,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_helphlp(stdClass $line) {
+    /*protected function parse_rpl_helphlp(stdClass $line) {
         return $line;
     }*/
 
@@ -2149,7 +2153,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_chaninfo_invites(stdClass $line) {
+    /*protected function parse_rpl_chaninfo_invites(stdClass $line) {
         return $line;
     }*/
 
@@ -2160,7 +2164,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_helpfwd(stdClass $line) {
+    /*protected function parse_rpl_helpfwd(stdClass $line) {
         return $line;
     }*/
 
@@ -2171,7 +2175,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_chaninfo_kick(stdClass $line) {
+    /*protected function parse_rpl_chaninfo_kick(stdClass $line) {
         return $line;
     }*/
 
@@ -2182,7 +2186,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_helpign(stdClass $line) {
+    /*protected function parse_rpl_helpign(stdClass $line) {
         return $line;
     }*/
 
@@ -2193,7 +2197,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_chaninfo_kicks(stdClass $line) {
+    /*protected function parse_rpl_chaninfo_kicks(stdClass $line) {
         return $line;
     }*/
 
@@ -2204,7 +2208,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_end_chaninfo(stdClass $line) {
+    /*protected function parse_rpl_end_chaninfo(stdClass $line) {
         return $line;
     }*/
 
@@ -2216,7 +2220,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_none(stdClass $line) {
+    /*protected function parse_rpl_none(stdClass $line) {
         return $line;
     }*/
 
@@ -2229,7 +2233,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_away(stdClass $line) {
+    /*protected function parse_rpl_away(stdClass $line) {
         return $line;
     }*/
 
@@ -2243,7 +2247,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_away(stdClass $line) {
+    /*protected function parse_rpl_away(stdClass $line) {
         return $line;
     }*/
 
@@ -2256,7 +2260,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_userhost(stdClass $line) {
+    /*protected function parse_rpl_userhost(stdClass $line) {
         return $line;
     }*/
 
@@ -2269,7 +2273,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_ison(stdClass $line) {
+    /*protected function parse_rpl_ison(stdClass $line) {
         return $line;
     }*/
 
@@ -2280,7 +2284,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_text(stdClass $line) {
+    /*protected function parse_rpl_text(stdClass $line) {
         return $line;
     }*/
 
@@ -2293,7 +2297,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_unaway(stdClass $line) {
+    /*protected function parse_rpl_unaway(stdClass $line) {
         return $line;
     }*/
 
@@ -2306,7 +2310,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_nowaway(stdClass $line) {
+    /*protected function parse_rpl_nowaway(stdClass $line) {
         return $line;
     }*/
 
@@ -2317,7 +2321,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_userip(stdClass $line) {
+    /*protected function parse_rpl_userip(stdClass $line) {
         return $line;
     }*/
 
@@ -2328,7 +2332,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whoisregnick(stdClass $line) {
+    /*protected function parse_rpl_whoisregnick(stdClass $line) {
         return $line;
     }*/
 
@@ -2339,7 +2343,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_suserhost(stdClass $line) {
+    /*protected function parse_rpl_suserhost(stdClass $line) {
         return $line;
     }*/
 
@@ -2350,7 +2354,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_notifyaction(stdClass $line) {
+    /*protected function parse_rpl_notifyaction(stdClass $line) {
         return $line;
     }*/
 
@@ -2361,7 +2365,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whoisadmin(stdClass $line) {
+    /*protected function parse_rpl_whoisadmin(stdClass $line) {
         return $line;
     }*/
 
@@ -2372,7 +2376,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_rulesstart(stdClass $line) {
+    /*protected function parse_rpl_rulesstart(stdClass $line) {
         return $line;
     }*/
 
@@ -2383,7 +2387,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_nicktrace(stdClass $line) {
+    /*protected function parse_rpl_nicktrace(stdClass $line) {
         return $line;
     }*/
 
@@ -2394,7 +2398,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whoissadmin(stdClass $line) {
+    /*protected function parse_rpl_whoissadmin(stdClass $line) {
         return $line;
     }*/
 
@@ -2405,7 +2409,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofrules(stdClass $line) {
+    /*protected function parse_rpl_endofrules(stdClass $line) {
         return $line;
     }*/
 
@@ -2416,7 +2420,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whoishelper(stdClass $line) {
+    /*protected function parse_rpl_whoishelper(stdClass $line) {
         return $line;
     }*/
 
@@ -2427,7 +2431,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whoissvcmsg(stdClass $line) {
+    /*protected function parse_rpl_whoissvcmsg(stdClass $line) {
         return $line;
     }*/
 
@@ -2438,7 +2442,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whoishelpop(stdClass $line) {
+    /*protected function parse_rpl_whoishelpop(stdClass $line) {
         return $line;
     }*/
 
@@ -2449,7 +2453,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whoisservice(stdClass $line) {
+    /*protected function parse_rpl_whoisservice(stdClass $line) {
         return $line;
     }*/
 
@@ -2462,7 +2466,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whoisuser(stdClass $line) {
+    /*protected function parse_rpl_whoisuser(stdClass $line) {
         return $line;
     }*/
 
@@ -2475,7 +2479,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whoisserver(stdClass $line) {
+    /*protected function parse_rpl_whoisserver(stdClass $line) {
         return $line;
     }*/
 
@@ -2488,7 +2492,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whoisoperator(stdClass $line) {
+    /*protected function parse_rpl_whoisoperator(stdClass $line) {
         return $line;
     }*/
 
@@ -2501,7 +2505,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whowasuser(stdClass $line) {
+    /*protected function parse_rpl_whowasuser(stdClass $line) {
         return $line;
     }*/
 
@@ -2514,7 +2518,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofwho(stdClass $line) {
+    /*protected function parse_rpl_endofwho(stdClass $line) {
         return $line;
     }*/
 
@@ -2525,7 +2529,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whoischanop(stdClass $line) {
+    /*protected function parse_rpl_whoischanop(stdClass $line) {
         return $line;
     }*/
 
@@ -2538,7 +2542,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whoisidle(stdClass $line) {
+    /*protected function parse_rpl_whoisidle(stdClass $line) {
         return $line;
     }*/
 
@@ -2551,7 +2555,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofwhois(stdClass $line) {
+    /*protected function parse_rpl_endofwhois(stdClass $line) {
         return $line;
     }*/
 
@@ -2564,7 +2568,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whoischannels(stdClass $line) {
+    /*protected function parse_rpl_whoischannels(stdClass $line) {
         return $line;
     }*/
 
@@ -2575,7 +2579,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whoisvirt(stdClass $line) {
+    /*protected function parse_rpl_whoisvirt(stdClass $line) {
         return $line;
     }*/
 
@@ -2586,7 +2590,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whois_hidden(stdClass $line) {
+    /*protected function parse_rpl_whois_hidden(stdClass $line) {
         return $line;
     }*/
 
@@ -2597,7 +2601,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whoisspecial(stdClass $line) {
+    /*protected function parse_rpl_whoisspecial(stdClass $line) {
         return $line;
     }*/
 
@@ -2610,7 +2614,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_liststart(stdClass $line) {
+    /*protected function parse_rpl_liststart(stdClass $line) {
         return $line;
     }*/
 
@@ -2623,7 +2627,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_list(stdClass $line) {
+    /*protected function parse_rpl_list(stdClass $line) {
         return $line;
     }*/
 
@@ -2636,7 +2640,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_listend(stdClass $line) {
+    /*protected function parse_rpl_listend(stdClass $line) {
         return $line;
     }*/
 
@@ -2648,7 +2652,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_channelmodeis(stdClass $line) {
+    /*protected function parse_rpl_channelmodeis(stdClass $line) {
         return $line;
     }*/
 
@@ -2660,7 +2664,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_uniqopis(stdClass $line) {
+    /*protected function parse_rpl_uniqopis(stdClass $line) {
         return $line;
     }*/
 
@@ -2671,7 +2675,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_channelpassis(stdClass $line) {
+    /*protected function parse_rpl_channelpassis(stdClass $line) {
         return $line;
     }*/
 
@@ -2682,7 +2686,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_nochanpass(stdClass $line) {
+    /*protected function parse_rpl_nochanpass(stdClass $line) {
         return $line;
     }*/
 
@@ -2693,7 +2697,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_chpassunknown(stdClass $line) {
+    /*protected function parse_rpl_chpassunknown(stdClass $line) {
         return $line;
     }*/
 
@@ -2704,7 +2708,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_channel_url(stdClass $line) {
+    /*protected function parse_rpl_channel_url(stdClass $line) {
         return $line;
     }*/
 
@@ -2715,7 +2719,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_creationtime(stdClass $line) {
+    /*protected function parse_rpl_creationtime(stdClass $line) {
         return $line;
     }*/
 
@@ -2726,7 +2730,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whowas_time(stdClass $line) {
+    /*protected function parse_rpl_whowas_time(stdClass $line) {
         return $line;
     }*/
 
@@ -2738,7 +2742,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whoisaccount(stdClass $line) {
+    /*protected function parse_rpl_whoisaccount(stdClass $line) {
         return $line;
     }*/
 
@@ -2751,7 +2755,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_notopic(stdClass $line) {
+    /*protected function parse_rpl_notopic(stdClass $line) {
         return $line;
     }*/
 
@@ -2764,7 +2768,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    private function parse_rpl_topic(stdClass $line) {
+    protected function parse_rpl_topic(stdClass $line) {
         $line->{$line->cmd} = [
             'channel' => $line->args[1],
             'topic'   => $line->args[2],
@@ -2780,7 +2784,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    private function parse_rpl_topicwhotime(stdClass $line) {
+    protected function parse_rpl_topicwhotime(stdClass $line) {
 
         $time = new \DateTime();
         $time->setTimestamp($line->args[3]);
@@ -2801,7 +2805,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_listusage(stdClass $line) {
+    /*protected function parse_rpl_listusage(stdClass $line) {
         return $line;
     }*/
 
@@ -2812,7 +2816,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_commandsyntax(stdClass $line) {
+    /*protected function parse_rpl_commandsyntax(stdClass $line) {
         return $line;
     }*/
 
@@ -2823,7 +2827,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_listsyntax(stdClass $line) {
+    /*protected function parse_rpl_listsyntax(stdClass $line) {
         return $line;
     }*/
 
@@ -2834,7 +2838,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whoisbot(stdClass $line) {
+    /*protected function parse_rpl_whoisbot(stdClass $line) {
         return $line;
     }*/
 
@@ -2845,7 +2849,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_chanpassok(stdClass $line) {
+    /*protected function parse_rpl_chanpassok(stdClass $line) {
         return $line;
     }*/
 
@@ -2856,7 +2860,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whoisactually(stdClass $line) {
+    /*protected function parse_rpl_whoisactually(stdClass $line) {
         return $line;
     }*/
 
@@ -2867,7 +2871,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_badchanpass(stdClass $line) {
+    /*protected function parse_rpl_badchanpass(stdClass $line) {
         return $line;
     }*/
 
@@ -2878,7 +2882,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_userip(stdClass $line) {
+    /*protected function parse_rpl_userip(stdClass $line) {
         return $line;
     }*/
 
@@ -2893,7 +2897,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_inviting(stdClass $line) {
+    /*protected function parse_rpl_inviting(stdClass $line) {
         return $line;
     }*/
 
@@ -2906,7 +2910,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_summoning(stdClass $line) {
+    /*protected function parse_rpl_summoning(stdClass $line) {
         return $line;
     }*/
 
@@ -2919,7 +2923,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_invited(stdClass $line) {
+    /*protected function parse_rpl_invited(stdClass $line) {
         return $line;
     }*/
 
@@ -2932,7 +2936,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_invitelist(stdClass $line) {
+    /*protected function parse_rpl_invitelist(stdClass $line) {
         return $line;
     }*/
 
@@ -2945,7 +2949,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofinvitelist(stdClass $line) {
+    /*protected function parse_rpl_endofinvitelist(stdClass $line) {
         return $line;
     }*/
 
@@ -2958,7 +2962,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_exceptlist(stdClass $line) {
+    /*protected function parse_rpl_exceptlist(stdClass $line) {
         return $line;
     }*/
 
@@ -2971,7 +2975,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofexceptlist(stdClass $line) {
+    /*protected function parse_rpl_endofexceptlist(stdClass $line) {
         return $line;
     }*/
 
@@ -2984,7 +2988,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_version(stdClass $line) {
+    /*protected function parse_rpl_version(stdClass $line) {
         return $line;
     }*/
 
@@ -2997,7 +3001,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whoreply(stdClass $line) {
+    /*protected function parse_rpl_whoreply(stdClass $line) {
         return $line;
     }*/
 
@@ -3010,7 +3014,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    private function parse_rpl_namreply(stdClass $line) {
+    protected function parse_rpl_namreply(stdClass $line) {
 
         if($line->args[1] == '=') {
             $visibility = 'secret';
@@ -3044,7 +3048,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whospcrpl(stdClass $line) {
+    /*protected function parse_rpl_whospcrpl(stdClass $line) {
         return $line;
     }*/
 
@@ -3059,7 +3063,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_namreply_(stdClass $line) {
+    /*protected function parse_rpl_namreply_(stdClass $line) {
         return $line;
     }*/
 
@@ -3070,7 +3074,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /* private function parse_rpl_map(stdClass $line) {
+    /* protected function parse_rpl_map(stdClass $line) {
         return $line;
     } */
 
@@ -3081,7 +3085,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_mapmore(stdClass $line) {
+    /*protected function parse_rpl_mapmore(stdClass $line) {
         return $line;
     }*/
 
@@ -3092,7 +3096,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_mapend(stdClass $line) {
+    /*protected function parse_rpl_mapend(stdClass $line) {
         return $line;
     }*/
 
@@ -3103,7 +3107,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_killdone(stdClass $line) {
+    /*protected function parse_rpl_killdone(stdClass $line) {
         return $line;
     }*/
 
@@ -3114,7 +3118,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_closing(stdClass $line) {
+    /*protected function parse_rpl_closing(stdClass $line) {
         return $line;
     }*/
 
@@ -3125,7 +3129,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_closeend(stdClass $line) {
+    /*protected function parse_rpl_closeend(stdClass $line) {
         return $line;
     }*/
 
@@ -3138,7 +3142,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_links(stdClass $line) {
+    /*protected function parse_rpl_links(stdClass $line) {
         return $line;
     }*/
 
@@ -3151,7 +3155,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endoflinks(stdClass $line) {
+    /*protected function parse_rpl_endoflinks(stdClass $line) {
         return $line;
     }*/
 
@@ -3164,7 +3168,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofnames(stdClass $line) {
+    /*protected function parse_rpl_endofnames(stdClass $line) {
         return $line;
     }*/
 
@@ -3177,7 +3181,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_banlist(stdClass $line) {
+    /*protected function parse_rpl_banlist(stdClass $line) {
         return $line;
     }*/
 
@@ -3190,7 +3194,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofbanlist(stdClass $line) {
+    /*protected function parse_rpl_endofbanlist(stdClass $line) {
         return $line;
     }*/
 
@@ -3203,7 +3207,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofwhowas(stdClass $line) {
+    /*protected function parse_rpl_endofwhowas(stdClass $line) {
         return $line;
     }*/
 
@@ -3216,7 +3220,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_info(stdClass $line) {
+    /*protected function parse_rpl_info(stdClass $line) {
         return $line;
     }*/
 
@@ -3229,8 +3233,9 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    private function parse_rpl_motd(stdClass $line) {
+    protected function parse_rpl_motd(stdClass $line) {
         $line->motdLine = $line->args[1];
+
         return $line;
     }
 
@@ -3241,7 +3246,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_infostart(stdClass $line) {
+    /*protected function parse_rpl_infostart(stdClass $line) {
         return $line;
     }*/
 
@@ -3254,7 +3259,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofinfo(stdClass $line) {
+    /*protected function parse_rpl_endofinfo(stdClass $line) {
         return $line;
     }*/
 
@@ -3267,7 +3272,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_motdstart(stdClass $line) {
+    /*protected function parse_rpl_motdstart(stdClass $line) {
         return $line;
     }*/
 
@@ -3280,7 +3285,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofmotd(stdClass $line) {
+    /*protected function parse_rpl_endofmotd(stdClass $line) {
         return $line;
     }*/
 
@@ -3291,7 +3296,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_kickexpired(stdClass $line) {
+    /*protected function parse_rpl_kickexpired(stdClass $line) {
         return $line;
     }*/
 
@@ -3304,7 +3309,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_spam(stdClass $line) {
+    /*protected function parse_rpl_spam(stdClass $line) {
         return $line;
     }*/
 
@@ -3315,7 +3320,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_banexpired(stdClass $line) {
+    /*protected function parse_rpl_banexpired(stdClass $line) {
         return $line;
     }*/
 
@@ -3326,7 +3331,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whoishost(stdClass $line) {
+    /*protected function parse_rpl_whoishost(stdClass $line) {
         return $line;
     }*/
 
@@ -3339,7 +3344,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_motd(stdClass $line) {
+    /*protected function parse_rpl_motd(stdClass $line) {
         return $line;
     }*/
 
@@ -3350,7 +3355,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_kicklinked(stdClass $line) {
+    /*protected function parse_rpl_kicklinked(stdClass $line) {
         return $line;
     }*/
 
@@ -3361,7 +3366,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whoismodes(stdClass $line) {
+    /*protected function parse_rpl_whoismodes(stdClass $line) {
         return $line;
     }*/
 
@@ -3372,7 +3377,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_banlinked(stdClass $line) {
+    /*protected function parse_rpl_banlinked(stdClass $line) {
         return $line;
     }*/
 
@@ -3383,7 +3388,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_yourhelper(stdClass $line) {
+    /*protected function parse_rpl_yourhelper(stdClass $line) {
         return $line;
     }*/
 
@@ -3396,7 +3401,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_youreoper(stdClass $line) {
+    /*protected function parse_rpl_youreoper(stdClass $line) {
         return $line;
     }*/
 
@@ -3409,7 +3414,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_rehashing(stdClass $line) {
+    /*protected function parse_rpl_rehashing(stdClass $line) {
         return $line;
     }*/
 
@@ -3422,7 +3427,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_youreservice(stdClass $line) {
+    /*protected function parse_rpl_youreservice(stdClass $line) {
         return $line;
     }*/
 
@@ -3433,7 +3438,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_myportis(stdClass $line) {
+    /*protected function parse_rpl_myportis(stdClass $line) {
         return $line;
     }*/
 
@@ -3444,7 +3449,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_notoperanymore(stdClass $line) {
+    /*protected function parse_rpl_notoperanymore(stdClass $line) {
         return $line;
     }*/
 
@@ -3455,7 +3460,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_qlist(stdClass $line) {
+    /*protected function parse_rpl_qlist(stdClass $line) {
         return $line;
     }*/
 
@@ -3466,7 +3471,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_ircops(stdClass $line) {
+    /*protected function parse_rpl_ircops(stdClass $line) {
         return $line;
     }*/
 
@@ -3477,7 +3482,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofqlist(stdClass $line) {
+    /*protected function parse_rpl_endofqlist(stdClass $line) {
         return $line;
     }*/
 
@@ -3488,7 +3493,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofircops(stdClass $line) {
+    /*protected function parse_rpl_endofircops(stdClass $line) {
         return $line;
     }*/
 
@@ -3499,7 +3504,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_alist(stdClass $line) {
+    /*protected function parse_rpl_alist(stdClass $line) {
         return $line;
     }*/
 
@@ -3510,7 +3515,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofalist(stdClass $line) {
+    /*protected function parse_rpl_endofalist(stdClass $line) {
         return $line;
     }*/
 
@@ -3524,7 +3529,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_time(stdClass $line) {
+    /*protected function parse_rpl_time(stdClass $line) {
         return $line;
     }*/
 
@@ -3537,7 +3542,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_time(stdClass $line) {
+    /*protected function parse_rpl_time(stdClass $line) {
         return $line;
     }*/
 
@@ -3551,7 +3556,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_time(stdClass $line) {
+    /*protected function parse_rpl_time(stdClass $line) {
         return $line;
     }*/
 
@@ -3564,7 +3569,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_time(stdClass $line) {
+    /*protected function parse_rpl_time(stdClass $line) {
         return $line;
     }*/
 
@@ -3577,7 +3582,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_usersstart(stdClass $line) {
+    /*protected function parse_rpl_usersstart(stdClass $line) {
         return $line;
     }*/
 
@@ -3590,7 +3595,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_users(stdClass $line) {
+    /*protected function parse_rpl_users(stdClass $line) {
         return $line;
     }*/
 
@@ -3603,7 +3608,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofusers(stdClass $line) {
+    /*protected function parse_rpl_endofusers(stdClass $line) {
         return $line;
     }*/
 
@@ -3616,7 +3621,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_nousers(stdClass $line) {
+    /*protected function parse_rpl_nousers(stdClass $line) {
         return $line;
     }*/
 
@@ -3628,7 +3633,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_hosthidden(stdClass $line) {
+    /*protected function parse_rpl_hosthidden(stdClass $line) {
         return $line;
     }*/
 
@@ -3645,7 +3650,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_unknownerror(stdClass $line) {
+    /*protected function parse_err_unknownerror(stdClass $line) {
         return $line;
     }*/
 
@@ -3658,7 +3663,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_nosuchnick(stdClass $line) {
+    /*protected function parse_err_nosuchnick(stdClass $line) {
         return $line;
     }*/
 
@@ -3671,7 +3676,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_nosuchserver(stdClass $line) {
+    /*protected function parse_err_nosuchserver(stdClass $line) {
         return $line;
     }*/
 
@@ -3684,7 +3689,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_nosuchchannel(stdClass $line) {
+    /*protected function parse_err_nosuchchannel(stdClass $line) {
         return $line;
     }*/
 
@@ -3697,7 +3702,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_cannotsendtochan(stdClass $line) {
+    /*protected function parse_err_cannotsendtochan(stdClass $line) {
         return $line;
     }*/
 
@@ -3710,7 +3715,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_toomanychannels(stdClass $line) {
+    /*protected function parse_err_toomanychannels(stdClass $line) {
         return $line;
     }*/
 
@@ -3723,7 +3728,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_wasnosuchnick(stdClass $line) {
+    /*protected function parse_err_wasnosuchnick(stdClass $line) {
         return $line;
     }*/
 
@@ -3736,7 +3741,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_toomanytargets(stdClass $line) {
+    /*protected function parse_err_toomanytargets(stdClass $line) {
         return $line;
     }*/
 
@@ -3749,7 +3754,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_nosuchservice(stdClass $line) {
+    /*protected function parse_err_nosuchservice(stdClass $line) {
         return $line;
     }*/
 
@@ -3760,7 +3765,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_nocolorsonchan(stdClass $line) {
+    /*protected function parse_err_nocolorsonchan(stdClass $line) {
         return $line;
     }*/
 
@@ -3773,7 +3778,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_noorigin(stdClass $line) {
+    /*protected function parse_err_noorigin(stdClass $line) {
         return $line;
     }*/
 
@@ -3786,7 +3791,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_norecipient(stdClass $line) {
+    /*protected function parse_err_norecipient(stdClass $line) {
         return $line;
     }*/
 
@@ -3799,7 +3804,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_notexttosend(stdClass $line) {
+    /*protected function parse_err_notexttosend(stdClass $line) {
         return $line;
     }*/
 
@@ -3812,7 +3817,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_notoplevel(stdClass $line) {
+    /*protected function parse_err_notoplevel(stdClass $line) {
         return $line;
     }*/
 
@@ -3825,7 +3830,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_wildtoplevel(stdClass $line) {
+    /*protected function parse_err_wildtoplevel(stdClass $line) {
         return $line;
     }*/
 
@@ -3838,7 +3843,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_badmask(stdClass $line) {
+    /*protected function parse_err_badmask(stdClass $line) {
         return $line;
     }*/
 
@@ -3852,7 +3857,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_toomanymatches(stdClass $line) {
+    /*protected function parse_err_toomanymatches(stdClass $line) {
         return $line;
     }*/
 
@@ -3864,7 +3869,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_querytoolong(stdClass $line) {
+    /*protected function parse_err_querytoolong(stdClass $line) {
         return $line;
     }*/
 
@@ -3875,7 +3880,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_lengthtruncated(stdClass $line) {
+    /*protected function parse_err_lengthtruncated(stdClass $line) {
         return $line;
     }*/
 
@@ -3888,7 +3893,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_unknowncommand(stdClass $line) {
+    /*protected function parse_err_unknowncommand(stdClass $line) {
         return $line;
     }*/
 
@@ -3901,7 +3906,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_nomotd(stdClass $line) {
+    /*protected function parse_err_nomotd(stdClass $line) {
         return $line;
     }*/
 
@@ -3915,7 +3920,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_noadmininfo(stdClass $line) {
+    /*protected function parse_err_noadmininfo(stdClass $line) {
         return $line;
     }*/
 
@@ -3928,7 +3933,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_fileerror(stdClass $line) {
+    /*protected function parse_err_fileerror(stdClass $line) {
         return $line;
     }*/
 
@@ -3939,7 +3944,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_noopermotd(stdClass $line) {
+    /*protected function parse_err_noopermotd(stdClass $line) {
         return $line;
     }*/
 
@@ -3950,7 +3955,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_toomanyaway(stdClass $line) {
+    /*protected function parse_err_toomanyaway(stdClass $line) {
         return $line;
     }*/
 
@@ -3962,7 +3967,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_eventnickchange(stdClass $line) {
+    /*protected function parse_err_eventnickchange(stdClass $line) {
         return $line;
     }*/
 
@@ -3975,7 +3980,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_nonicknamegiven(stdClass $line) {
+    /*protected function parse_err_nonicknamegiven(stdClass $line) {
         return $line;
     }*/
 
@@ -3989,7 +3994,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_erroneusnickname(stdClass $line) {
+    /*protected function parse_err_erroneusnickname(stdClass $line) {
         return $line;
     }*/
 
@@ -4002,7 +4007,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_nicknameinuse(stdClass $line) {
+    /*protected function parse_err_nicknameinuse(stdClass $line) {
         return $line;
     }*/
 
@@ -4013,7 +4018,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_servicenameinuse(stdClass $line) {
+    /*protected function parse_err_servicenameinuse(stdClass $line) {
         return $line;
     }*/
 
@@ -4024,7 +4029,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_norules(stdClass $line) {
+    /*protected function parse_err_norules(stdClass $line) {
         return $line;
     }*/
 
@@ -4035,7 +4040,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_serviceconfused(stdClass $line) {
+    /*protected function parse_err_serviceconfused(stdClass $line) {
         return $line;
     }*/
 
@@ -4046,7 +4051,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_banonchan(stdClass $line) {
+    /*protected function parse_err_banonchan(stdClass $line) {
         return $line;
     }*/
 
@@ -4059,7 +4064,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_nickcollision(stdClass $line) {
+    /*protected function parse_err_nickcollision(stdClass $line) {
         return $line;
     }*/
 
@@ -4072,7 +4077,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_unavailresource(stdClass $line) {
+    /*protected function parse_err_unavailresource(stdClass $line) {
         return $line;
     }*/
 
@@ -4083,7 +4088,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_bannickchange(stdClass $line) {
+    /*protected function parse_err_bannickchange(stdClass $line) {
         return $line;
     }*/
 
@@ -4095,7 +4100,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_nicktoofast(stdClass $line) {
+    /*protected function parse_err_nicktoofast(stdClass $line) {
         return $line;
     }*/
 
@@ -4106,7 +4111,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_dead(stdClass $line) {
+    /*protected function parse_err_dead(stdClass $line) {
         return $line;
     }*/
 
@@ -4118,7 +4123,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_targettoofast(stdClass $line) {
+    /*protected function parse_err_targettoofast(stdClass $line) {
         return $line;
     }*/
 
@@ -4129,7 +4134,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_servicesdown(stdClass $line) {
+    /*protected function parse_err_servicesdown(stdClass $line) {
         return $line;
     }*/
 
@@ -4142,7 +4147,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_usernotinchannel(stdClass $line) {
+    /*protected function parse_err_usernotinchannel(stdClass $line) {
         return $line;
     }*/
 
@@ -4155,7 +4160,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_notonchannel(stdClass $line) {
+    /*protected function parse_err_notonchannel(stdClass $line) {
         return $line;
     }*/
 
@@ -4168,7 +4173,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_useronchannel(stdClass $line) {
+    /*protected function parse_err_useronchannel(stdClass $line) {
         return $line;
     }*/
 
@@ -4181,7 +4186,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_nologin(stdClass $line) {
+    /*protected function parse_err_nologin(stdClass $line) {
         return $line;
     }*/
 
@@ -4194,7 +4199,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_summondisabled(stdClass $line) {
+    /*protected function parse_err_summondisabled(stdClass $line) {
         return $line;
     }*/
 
@@ -4207,7 +4212,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_usersdisabled(stdClass $line) {
+    /*protected function parse_err_usersdisabled(stdClass $line) {
         return $line;
     }*/
 
@@ -4218,7 +4223,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_nonickchange(stdClass $line) {
+    /*protected function parse_err_nonickchange(stdClass $line) {
         return $line;
     }*/
 
@@ -4231,7 +4236,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_notimplemented(stdClass $line) {
+    /*protected function parse_err_notimplemented(stdClass $line) {
         return $line;
     }*/
 
@@ -4244,7 +4249,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_notregistered(stdClass $line) {
+    /*protected function parse_err_notregistered(stdClass $line) {
         return $line;
     }*/
 
@@ -4255,7 +4260,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_idcollision(stdClass $line) {
+    /*protected function parse_err_idcollision(stdClass $line) {
         return $line;
     }*/
 
@@ -4266,7 +4271,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_nicklost(stdClass $line) {
+    /*protected function parse_err_nicklost(stdClass $line) {
         return $line;
     }*/
 
@@ -4277,7 +4282,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_hostilename(stdClass $line) {
+    /*protected function parse_err_hostilename(stdClass $line) {
         return $line;
     }*/
 
@@ -4288,7 +4293,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_acceptfull(stdClass $line) {
+    /*protected function parse_err_acceptfull(stdClass $line) {
         return $line;
     }*/
 
@@ -4299,7 +4304,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_acceptexist(stdClass $line) {
+    /*protected function parse_err_acceptexist(stdClass $line) {
         return $line;
     }*/
 
@@ -4310,7 +4315,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_acceptnot(stdClass $line) {
+    /*protected function parse_err_acceptnot(stdClass $line) {
         return $line;
     }*/
 
@@ -4322,7 +4327,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_nohiding(stdClass $line) {
+    /*protected function parse_err_nohiding(stdClass $line) {
         return $line;
     }*/
 
@@ -4333,7 +4338,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_notforhalfops(stdClass $line) {
+    /*protected function parse_err_notforhalfops(stdClass $line) {
         return $line;
     }*/
 
@@ -4346,7 +4351,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_needmoreparams(stdClass $line) {
+    /*protected function parse_err_needmoreparams(stdClass $line) {
         return $line;
     }*/
 
@@ -4359,7 +4364,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_alreadyregistered(stdClass $line) {
+    /*protected function parse_err_alreadyregistered(stdClass $line) {
         return $line;
     }*/
 
@@ -4372,7 +4377,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_nopermforhost(stdClass $line) {
+    /*protected function parse_err_nopermforhost(stdClass $line) {
         return $line;
     }*/
 
@@ -4385,7 +4390,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_passwdmismatch(stdClass $line) {
+    /*protected function parse_err_passwdmismatch(stdClass $line) {
         return $line;
     }*/
 
@@ -4398,7 +4403,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_yourebannedcreep(stdClass $line) {
+    /*protected function parse_err_yourebannedcreep(stdClass $line) {
         return $line;
     }*/
 
@@ -4410,7 +4415,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_youwillbebanned(stdClass $line) {
+    /*protected function parse_err_youwillbebanned(stdClass $line) {
         return $line;
     }*/
 
@@ -4423,7 +4428,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_keyset(stdClass $line) {
+    /*protected function parse_err_keyset(stdClass $line) {
         return $line;
     }*/
 
@@ -4434,7 +4439,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_invalidusername(stdClass $line) {
+    /*protected function parse_err_invalidusername(stdClass $line) {
         return $line;
     }*/
 
@@ -4445,7 +4450,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_onlyserverscanchange(stdClass $line) {
+    /*protected function parse_err_onlyserverscanchange(stdClass $line) {
         return $line;
     }*/
 
@@ -4456,7 +4461,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_linkset(stdClass $line) {
+    /*protected function parse_err_linkset(stdClass $line) {
         return $line;
     }*/
 
@@ -4467,7 +4472,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_linkchannel(stdClass $line) {
+    /*protected function parse_err_linkchannel(stdClass $line) {
         return $line;
     }*/
 
@@ -4478,7 +4483,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_kickedfromchan(stdClass $line) {
+    /*protected function parse_err_kickedfromchan(stdClass $line) {
         return $line;
     }*/
 
@@ -4491,7 +4496,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_channelisfull(stdClass $line) {
+    /*protected function parse_err_channelisfull(stdClass $line) {
         return $line;
     }*/
 
@@ -4504,7 +4509,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_unknownmode(stdClass $line) {
+    /*protected function parse_err_unknownmode(stdClass $line) {
         return $line;
     }*/
 
@@ -4517,7 +4522,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_inviteonlychan(stdClass $line) {
+    /*protected function parse_err_inviteonlychan(stdClass $line) {
         return $line;
     }*/
 
@@ -4530,7 +4535,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_bannedfromchan(stdClass $line) {
+    /*protected function parse_err_bannedfromchan(stdClass $line) {
         return $line;
     }*/
 
@@ -4543,7 +4548,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_badchannelkey(stdClass $line) {
+    /*protected function parse_err_badchannelkey(stdClass $line) {
         return $line;
     }*/
 
@@ -4556,7 +4561,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_badchanmask(stdClass $line) {
+    /*protected function parse_err_badchanmask(stdClass $line) {
         return $line;
     }*/
 
@@ -4569,7 +4574,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_nochanmodes(stdClass $line) {
+    /*protected function parse_err_nochanmodes(stdClass $line) {
         return $line;
     }*/
 
@@ -4580,7 +4585,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_needreggednick(stdClass $line) {
+    /*protected function parse_err_needreggednick(stdClass $line) {
         return $line;
     }*/
 
@@ -4593,7 +4598,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_banlistfull(stdClass $line) {
+    /*protected function parse_err_banlistfull(stdClass $line) {
         return $line;
     }*/
 
@@ -4604,7 +4609,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_badchanname(stdClass $line) {
+    /*protected function parse_err_badchanname(stdClass $line) {
         return $line;
     }*/
 
@@ -4615,7 +4620,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_linkfail(stdClass $line) {
+    /*protected function parse_err_linkfail(stdClass $line) {
         return $line;
     }*/
 
@@ -4626,7 +4631,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_nouline(stdClass $line) {
+    /*protected function parse_err_nouline(stdClass $line) {
         return $line;
     }*/
 
@@ -4637,7 +4642,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_cannotknock(stdClass $line) {
+    /*protected function parse_err_cannotknock(stdClass $line) {
         return $line;
     }*/
 
@@ -4650,7 +4655,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_noprivileges(stdClass $line) {
+    /*protected function parse_err_noprivileges(stdClass $line) {
         return $line;
     }*/
 
@@ -4663,7 +4668,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_chanoprivsneeded(stdClass $line) {
+    /*protected function parse_err_chanoprivsneeded(stdClass $line) {
         return $line;
     }*/
 
@@ -4676,7 +4681,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_cantkillserver(stdClass $line) {
+    /*protected function parse_err_cantkillserver(stdClass $line) {
         return $line;
     }*/
 
@@ -4689,7 +4694,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_restricted(stdClass $line) {
+    /*protected function parse_err_restricted(stdClass $line) {
         return $line;
     }*/
 
@@ -4700,7 +4705,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_ischanservice(stdClass $line) {
+    /*protected function parse_err_ischanservice(stdClass $line) {
         return $line;
     }*/
 
@@ -4711,7 +4716,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_desync(stdClass $line) {
+    /*protected function parse_err_desync(stdClass $line) {
         return $line;
     }*/
 
@@ -4722,7 +4727,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_attackdeny(stdClass $line) {
+    /*protected function parse_err_attackdeny(stdClass $line) {
         return $line;
     }*/
 
@@ -4735,7 +4740,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_uniqoprivsneeded(stdClass $line) {
+    /*protected function parse_err_uniqoprivsneeded(stdClass $line) {
         return $line;
     }*/
 
@@ -4746,7 +4751,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_killdeny(stdClass $line) {
+    /*protected function parse_err_killdeny(stdClass $line) {
         return $line;
     }*/
 
@@ -4757,7 +4762,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_cantkickadmin(stdClass $line) {
+    /*protected function parse_err_cantkickadmin(stdClass $line) {
         return $line;
     }*/
 
@@ -4768,7 +4773,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_isrealservice(stdClass $line) {
+    /*protected function parse_err_isrealservice(stdClass $line) {
         return $line;
     }*/
 
@@ -4779,7 +4784,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_nononreg(stdClass $line) {
+    /*protected function parse_err_nononreg(stdClass $line) {
         return $line;
     }*/
 
@@ -4790,7 +4795,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_htmdisabled(stdClass $line) {
+    /*protected function parse_err_htmdisabled(stdClass $line) {
         return $line;
     }*/
 
@@ -4801,7 +4806,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_accountonly(stdClass $line) {
+    /*protected function parse_err_accountonly(stdClass $line) {
         return $line;
     }*/
 
@@ -4812,7 +4817,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_chantoorecent(stdClass $line) {
+    /*protected function parse_err_chantoorecent(stdClass $line) {
         return $line;
     }*/
 
@@ -4823,7 +4828,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_msgservices(stdClass $line) {
+    /*protected function parse_err_msgservices(stdClass $line) {
         return $line;
     }*/
 
@@ -4834,7 +4839,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_tslesschan(stdClass $line) {
+    /*protected function parse_err_tslesschan(stdClass $line) {
         return $line;
     }*/
 
@@ -4845,7 +4850,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_voiceneeded(stdClass $line) {
+    /*protected function parse_err_voiceneeded(stdClass $line) {
         return $line;
     }*/
 
@@ -4856,7 +4861,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_secureonlychan(stdClass $line) {
+    /*protected function parse_err_secureonlychan(stdClass $line) {
         return $line;
     }*/
 
@@ -4869,7 +4874,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_nooperhost(stdClass $line) {
+    /*protected function parse_err_nooperhost(stdClass $line) {
         return $line;
     }*/
 
@@ -4880,7 +4885,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_noservicehost(stdClass $line) {
+    /*protected function parse_err_noservicehost(stdClass $line) {
         return $line;
     }*/
 
@@ -4891,7 +4896,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_nofeature(stdClass $line) {
+    /*protected function parse_err_nofeature(stdClass $line) {
         return $line;
     }*/
 
@@ -4902,7 +4907,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_badfeature(stdClass $line) {
+    /*protected function parse_err_badfeature(stdClass $line) {
         return $line;
     }*/
 
@@ -4913,7 +4918,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_badlogtype(stdClass $line) {
+    /*protected function parse_err_badlogtype(stdClass $line) {
         return $line;
     }*/
 
@@ -4924,7 +4929,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_badlogsys(stdClass $line) {
+    /*protected function parse_err_badlogsys(stdClass $line) {
         return $line;
     }*/
 
@@ -4935,7 +4940,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_badlogvalue(stdClass $line) {
+    /*protected function parse_err_badlogvalue(stdClass $line) {
         return $line;
     }*/
 
@@ -4946,7 +4951,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_isoperlchan(stdClass $line) {
+    /*protected function parse_err_isoperlchan(stdClass $line) {
         return $line;
     }*/
 
@@ -4959,7 +4964,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_chanownprivneeded(stdClass $line) {
+    /*protected function parse_err_chanownprivneeded(stdClass $line) {
         return $line;
     }*/
 
@@ -4972,7 +4977,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_umodeunknownflag(stdClass $line) {
+    /*protected function parse_err_umodeunknownflag(stdClass $line) {
         return $line;
     }*/
 
@@ -4985,7 +4990,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_usersdontmatch(stdClass $line) {
+    /*protected function parse_err_usersdontmatch(stdClass $line) {
         return $line;
     }*/
 
@@ -4996,7 +5001,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_ghostedclient(stdClass $line) {
+    /*protected function parse_err_ghostedclient(stdClass $line) {
         return $line;
     }*/
 
@@ -5010,7 +5015,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_vworldwarn(stdClass $line) {
+    /*protected function parse_err_vworldwarn(stdClass $line) {
         return $line;
     }*/
 
@@ -5021,7 +5026,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_usernotonserv(stdClass $line) {
+    /*protected function parse_err_usernotonserv(stdClass $line) {
         return $line;
     }*/
 
@@ -5032,7 +5037,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_silelistfull(stdClass $line) {
+    /*protected function parse_err_silelistfull(stdClass $line) {
         return $line;
     }*/
 
@@ -5044,7 +5049,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_toomanywatch(stdClass $line) {
+    /*protected function parse_err_toomanywatch(stdClass $line) {
         return $line;
     }*/
 
@@ -5056,7 +5061,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_badping(stdClass $line) {
+    /*protected function parse_err_badping(stdClass $line) {
         return $line;
     }*/
 
@@ -5067,7 +5072,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_invalid_error(stdClass $line) {
+    /*protected function parse_err_invalid_error(stdClass $line) {
         return $line;
     }*/
 
@@ -5078,7 +5083,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_toomanydcc(stdClass $line) {
+    /*protected function parse_err_toomanydcc(stdClass $line) {
         return $line;
     }*/
 
@@ -5089,7 +5094,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_badexpire(stdClass $line) {
+    /*protected function parse_err_badexpire(stdClass $line) {
         return $line;
     }*/
 
@@ -5100,7 +5105,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_dontcheat(stdClass $line) {
+    /*protected function parse_err_dontcheat(stdClass $line) {
         return $line;
     }*/
 
@@ -5112,7 +5117,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_disabled(stdClass $line) {
+    /*protected function parse_err_disabled(stdClass $line) {
         return $line;
     }*/
 
@@ -5123,7 +5128,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_noinvite(stdClass $line) {
+    /*protected function parse_err_noinvite(stdClass $line) {
         return $line;
     }*/
 
@@ -5134,7 +5139,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_longmask(stdClass $line) {
+    /*protected function parse_err_longmask(stdClass $line) {
         return $line;
     }*/
 
@@ -5145,7 +5150,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_admonly(stdClass $line) {
+    /*protected function parse_err_admonly(stdClass $line) {
         return $line;
     }*/
 
@@ -5156,7 +5161,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_toomanyusers(stdClass $line) {
+    /*protected function parse_err_toomanyusers(stdClass $line) {
         return $line;
     }*/
 
@@ -5167,7 +5172,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_operonly(stdClass $line) {
+    /*protected function parse_err_operonly(stdClass $line) {
         return $line;
     }*/
 
@@ -5178,7 +5183,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_masktoowide(stdClass $line) {
+    /*protected function parse_err_masktoowide(stdClass $line) {
         return $line;
     }*/
 
@@ -5191,7 +5196,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_whotrunc(stdClass $line) {
+    /*protected function parse_err_whotrunc(stdClass $line) {
         return $line;
     }*/
 
@@ -5202,7 +5207,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_listsyntax(stdClass $line) {
+    /*protected function parse_err_listsyntax(stdClass $line) {
         return $line;
     }*/
 
@@ -5213,7 +5218,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_whosyntax(stdClass $line) {
+    /*protected function parse_err_whosyntax(stdClass $line) {
         return $line;
     }*/
 
@@ -5224,7 +5229,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_wholimexceed(stdClass $line) {
+    /*protected function parse_err_wholimexceed(stdClass $line) {
         return $line;
     }*/
 
@@ -5235,7 +5240,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_quarantined(stdClass $line) {
+    /*protected function parse_err_quarantined(stdClass $line) {
         return $line;
     }*/
 
@@ -5246,7 +5251,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_operspverify(stdClass $line) {
+    /*protected function parse_err_operspverify(stdClass $line) {
         return $line;
     }*/
 
@@ -5260,7 +5265,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_remotepfx(stdClass $line) {
+    /*protected function parse_err_remotepfx(stdClass $line) {
         return $line;
     }*/
 
@@ -5274,7 +5279,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_pfxunroutable(stdClass $line) {
+    /*protected function parse_err_pfxunroutable(stdClass $line) {
         return $line;
     }*/
 
@@ -5285,7 +5290,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_badhostmask(stdClass $line) {
+    /*protected function parse_err_badhostmask(stdClass $line) {
         return $line;
     }*/
 
@@ -5296,7 +5301,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_hostunavail(stdClass $line) {
+    /*protected function parse_err_hostunavail(stdClass $line) {
         return $line;
     }*/
 
@@ -5307,7 +5312,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_usingsline(stdClass $line) {
+    /*protected function parse_err_usingsline(stdClass $line) {
         return $line;
     }*/
 
@@ -5318,7 +5323,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_statssline(stdClass $line) {
+    /*protected function parse_err_statssline(stdClass $line) {
         return $line;
     }*/
 
@@ -5333,7 +5338,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_logon(stdClass $line) {
+    /*protected function parse_rpl_logon(stdClass $line) {
         return $line;
     }*/
 
@@ -5344,7 +5349,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_logoff(stdClass $line) {
+    /*protected function parse_rpl_logoff(stdClass $line) {
         return $line;
     }*/
 
@@ -5355,7 +5360,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_watchoff(stdClass $line) {
+    /*protected function parse_rpl_watchoff(stdClass $line) {
         return $line;
     }*/
 
@@ -5366,7 +5371,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_watchstat(stdClass $line) {
+    /*protected function parse_rpl_watchstat(stdClass $line) {
         return $line;
     }*/
 
@@ -5377,7 +5382,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_nowon(stdClass $line) {
+    /*protected function parse_rpl_nowon(stdClass $line) {
         return $line;
     }*/
 
@@ -5388,7 +5393,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_nowoff(stdClass $line) {
+    /*protected function parse_rpl_nowoff(stdClass $line) {
         return $line;
     }*/
 
@@ -5399,7 +5404,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_watchlist(stdClass $line) {
+    /*protected function parse_rpl_watchlist(stdClass $line) {
         return $line;
     }*/
 
@@ -5410,7 +5415,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofwatchlist(stdClass $line) {
+    /*protected function parse_rpl_endofwatchlist(stdClass $line) {
         return $line;
     }*/
 
@@ -5421,7 +5426,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_watchclear(stdClass $line) {
+    /*protected function parse_rpl_watchclear(stdClass $line) {
         return $line;
     }*/
 
@@ -5432,7 +5437,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_mapmore(stdClass $line) {
+    /*protected function parse_rpl_mapmore(stdClass $line) {
         return $line;
     }*/
 
@@ -5443,7 +5448,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_isoper(stdClass $line) {
+    /*protected function parse_rpl_isoper(stdClass $line) {
         return $line;
     }*/
 
@@ -5454,7 +5459,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_islocop(stdClass $line) {
+    /*protected function parse_rpl_islocop(stdClass $line) {
         return $line;
     }*/
 
@@ -5465,7 +5470,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_isnotoper(stdClass $line) {
+    /*protected function parse_rpl_isnotoper(stdClass $line) {
         return $line;
     }*/
 
@@ -5476,7 +5481,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofisoper(stdClass $line) {
+    /*protected function parse_rpl_endofisoper(stdClass $line) {
         return $line;
     }*/
 
@@ -5487,7 +5492,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_mapmore(stdClass $line) {
+    /*protected function parse_rpl_mapmore(stdClass $line) {
         return $line;
     }*/
 
@@ -5498,7 +5503,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whoismodes(stdClass $line) {
+    /*protected function parse_rpl_whoismodes(stdClass $line) {
         return $line;
     }*/
 
@@ -5509,7 +5514,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whoishost(stdClass $line) {
+    /*protected function parse_rpl_whoishost(stdClass $line) {
         return $line;
     }*/
 
@@ -5520,7 +5525,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_dccstatus(stdClass $line) {
+    /*protected function parse_rpl_dccstatus(stdClass $line) {
         return $line;
     }*/
 
@@ -5531,7 +5536,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whoisbot(stdClass $line) {
+    /*protected function parse_rpl_whoisbot(stdClass $line) {
         return $line;
     }*/
 
@@ -5542,7 +5547,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_dcclist(stdClass $line) {
+    /*protected function parse_rpl_dcclist(stdClass $line) {
         return $line;
     }*/
 
@@ -5553,7 +5558,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofdcclist(stdClass $line) {
+    /*protected function parse_rpl_endofdcclist(stdClass $line) {
         return $line;
     }*/
 
@@ -5564,7 +5569,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whowashost(stdClass $line) {
+    /*protected function parse_rpl_whowashost(stdClass $line) {
         return $line;
     }*/
 
@@ -5575,7 +5580,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_dccinfo(stdClass $line) {
+    /*protected function parse_rpl_dccinfo(stdClass $line) {
         return $line;
     }*/
 
@@ -5586,7 +5591,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_rulesstart(stdClass $line) {
+    /*protected function parse_rpl_rulesstart(stdClass $line) {
         return $line;
     }*/
 
@@ -5597,7 +5602,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_rules(stdClass $line) {
+    /*protected function parse_rpl_rules(stdClass $line) {
         return $line;
     }*/
 
@@ -5608,7 +5613,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofrules(stdClass $line) {
+    /*protected function parse_rpl_endofrules(stdClass $line) {
         return $line;
     }*/
 
@@ -5619,7 +5624,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_mapmore(stdClass $line) {
+    /*protected function parse_rpl_mapmore(stdClass $line) {
         return $line;
     }*/
 
@@ -5630,7 +5635,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_omotdstart(stdClass $line) {
+    /*protected function parse_rpl_omotdstart(stdClass $line) {
         return $line;
     }*/
 
@@ -5641,7 +5646,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_omotd(stdClass $line) {
+    /*protected function parse_rpl_omotd(stdClass $line) {
         return $line;
     }*/
 
@@ -5652,7 +5657,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofomotd(stdClass $line) {
+    /*protected function parse_rpl_endofomotd(stdClass $line) {
         return $line;
     }*/
 
@@ -5663,7 +5668,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_settings(stdClass $line) {
+    /*protected function parse_rpl_settings(stdClass $line) {
         return $line;
     }*/
 
@@ -5674,7 +5679,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofsettings(stdClass $line) {
+    /*protected function parse_rpl_endofsettings(stdClass $line) {
         return $line;
     }*/
 
@@ -5686,7 +5691,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_dumping(stdClass $line) {
+    /*protected function parse_rpl_dumping(stdClass $line) {
         return $line;
     }*/
 
@@ -5698,7 +5703,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_dumprpl(stdClass $line) {
+    /*protected function parse_rpl_dumprpl(stdClass $line) {
         return $line;
     }*/
 
@@ -5710,7 +5715,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_eodump(stdClass $line) {
+    /*protected function parse_rpl_eodump(stdClass $line) {
         return $line;
     }*/
 
@@ -5723,7 +5728,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_traceroute_hop(stdClass $line) {
+    /*protected function parse_rpl_traceroute_hop(stdClass $line) {
         return $line;
     }*/
 
@@ -5736,7 +5741,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_traceroute_start(stdClass $line) {
+    /*protected function parse_rpl_traceroute_start(stdClass $line) {
         return $line;
     }*/
 
@@ -5749,7 +5754,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_modechangewarn(stdClass $line) {
+    /*protected function parse_rpl_modechangewarn(stdClass $line) {
         return $line;
     }*/
 
@@ -5763,7 +5768,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_chanredir(stdClass $line) {
+    /*protected function parse_rpl_chanredir(stdClass $line) {
         return $line;
     }*/
 
@@ -5776,7 +5781,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_servmodeis(stdClass $line) {
+    /*protected function parse_rpl_servmodeis(stdClass $line) {
         return $line;
     }*/
 
@@ -5790,7 +5795,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_otherumodeis(stdClass $line) {
+    /*protected function parse_rpl_otherumodeis(stdClass $line) {
         return $line;
     }*/
 
@@ -5803,7 +5808,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endof_generic(stdClass $line) {
+    /*protected function parse_rpl_endof_generic(stdClass $line) {
         return $line;
     }*/
 
@@ -5816,7 +5821,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whowasdetails(stdClass $line) {
+    /*protected function parse_rpl_whowasdetails(stdClass $line) {
         return $line;
     }*/
 
@@ -5829,7 +5834,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whoissecure(stdClass $line) {
+    /*protected function parse_rpl_whoissecure(stdClass $line) {
         return $line;
     }*/
 
@@ -5842,7 +5847,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_unknownmodes(stdClass $line) {
+    /*protected function parse_rpl_unknownmodes(stdClass $line) {
         return $line;
     }*/
 
@@ -5855,7 +5860,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_cannotsetmodes(stdClass $line) {
+    /*protected function parse_rpl_cannotsetmodes(stdClass $line) {
         return $line;
     }*/
 
@@ -5868,7 +5873,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_luserstaff(stdClass $line) {
+    /*protected function parse_rpl_luserstaff(stdClass $line) {
         return $line;
     }*/
 
@@ -5884,7 +5889,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_timeonserveris(stdClass $line) {
+    /*protected function parse_rpl_timeonserveris(stdClass $line) {
         return $line;
     }*/
 
@@ -5898,7 +5903,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_networks(stdClass $line) {
+    /*protected function parse_rpl_networks(stdClass $line) {
         return $line;
     }*/
 
@@ -5912,7 +5917,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_yourlanguageis(stdClass $line) {
+    /*protected function parse_rpl_yourlanguageis(stdClass $line) {
         return $line;
     }*/
 
@@ -5926,7 +5931,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_language(stdClass $line) {
+    /*protected function parse_rpl_language(stdClass $line) {
         return $line;
     }*/
 
@@ -5941,7 +5946,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whoisstaff(stdClass $line) {
+    /*protected function parse_rpl_whoisstaff(stdClass $line) {
         return $line;
     }*/
 
@@ -5955,7 +5960,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_whoislanguage(stdClass $line) {
+    /*protected function parse_rpl_whoislanguage(stdClass $line) {
         return $line;
     }*/
 
@@ -5968,7 +5973,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_modlist(stdClass $line) {
+    /*protected function parse_rpl_modlist(stdClass $line) {
         return $line;
     }*/
 
@@ -5981,7 +5986,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofmodlist(stdClass $line) {
+    /*protected function parse_rpl_endofmodlist(stdClass $line) {
         return $line;
     }*/
 
@@ -5994,7 +5999,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_helpstart(stdClass $line) {
+    /*protected function parse_rpl_helpstart(stdClass $line) {
         return $line;
     }*/
 
@@ -6007,7 +6012,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_helptxt(stdClass $line) {
+    /*protected function parse_rpl_helptxt(stdClass $line) {
         return $line;
     }*/
 
@@ -6020,7 +6025,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofhelp(stdClass $line) {
+    /*protected function parse_rpl_endofhelp(stdClass $line) {
         return $line;
     }*/
 
@@ -6033,7 +6038,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_etracefull(stdClass $line) {
+    /*protected function parse_rpl_etracefull(stdClass $line) {
         return $line;
     }*/
 
@@ -6046,7 +6051,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_etrace(stdClass $line) {
+    /*protected function parse_rpl_etrace(stdClass $line) {
         return $line;
     }*/
 
@@ -6059,7 +6064,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_knock(stdClass $line) {
+    /*protected function parse_rpl_knock(stdClass $line) {
         return $line;
     }*/
 
@@ -6072,7 +6077,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_knockdlvr(stdClass $line) {
+    /*protected function parse_rpl_knockdlvr(stdClass $line) {
         return $line;
     }*/
 
@@ -6085,7 +6090,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_toomanyknock(stdClass $line) {
+    /*protected function parse_err_toomanyknock(stdClass $line) {
         return $line;
     }*/
 
@@ -6098,7 +6103,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_chanopen(stdClass $line) {
+    /*protected function parse_err_chanopen(stdClass $line) {
         return $line;
     }*/
 
@@ -6111,7 +6116,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_knockonchan(stdClass $line) {
+    /*protected function parse_err_knockonchan(stdClass $line) {
         return $line;
     }*/
 
@@ -6124,7 +6129,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_knockdisabled(stdClass $line) {
+    /*protected function parse_err_knockdisabled(stdClass $line) {
         return $line;
     }*/
 
@@ -6137,7 +6142,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_targumodeg(stdClass $line) {
+    /*protected function parse_rpl_targumodeg(stdClass $line) {
         return $line;
     }*/
 
@@ -6150,7 +6155,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_targnotify(stdClass $line) {
+    /*protected function parse_rpl_targnotify(stdClass $line) {
         return $line;
     }*/
 
@@ -6164,7 +6169,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_umodegmsg(stdClass $line) {
+    /*protected function parse_rpl_umodegmsg(stdClass $line) {
         return $line;
     }*/
 
@@ -6177,7 +6182,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_omotdstart(stdClass $line) {
+    /*protected function parse_rpl_omotdstart(stdClass $line) {
         return $line;
     }*/
 
@@ -6190,7 +6195,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_omotd(stdClass $line) {
+    /*protected function parse_rpl_omotd(stdClass $line) {
         return $line;
     }*/
 
@@ -6203,7 +6208,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_endofomotd(stdClass $line) {
+    /*protected function parse_rpl_endofomotd(stdClass $line) {
         return $line;
     }*/
 
@@ -6216,7 +6221,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_noprivs(stdClass $line) {
+    /*protected function parse_err_noprivs(stdClass $line) {
         return $line;
     }*/
 
@@ -6229,7 +6234,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_testmark(stdClass $line) {
+    /*protected function parse_rpl_testmark(stdClass $line) {
         return $line;
     }*/
 
@@ -6242,7 +6247,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_testline(stdClass $line) {
+    /*protected function parse_rpl_testline(stdClass $line) {
         return $line;
     }*/
 
@@ -6255,7 +6260,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_notestline(stdClass $line) {
+    /*protected function parse_rpl_notestline(stdClass $line) {
         return $line;
     }*/
 
@@ -6267,7 +6272,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_challenge_text(stdClass $line) {
+    /*protected function parse_rpl_challenge_text(stdClass $line) {
         return $line;
     }*/
 
@@ -6279,7 +6284,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_challenge_end(stdClass $line) {
+    /*protected function parse_rpl_challenge_end(stdClass $line) {
         return $line;
     }*/
 
@@ -6291,7 +6296,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_xinfo(stdClass $line) {
+    /*protected function parse_rpl_xinfo(stdClass $line) {
         return $line;
     }*/
 
@@ -6303,7 +6308,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_xinfostart(stdClass $line) {
+    /*protected function parse_rpl_xinfostart(stdClass $line) {
         return $line;
     }*/
 
@@ -6315,7 +6320,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_xinfoend(stdClass $line) {
+    /*protected function parse_rpl_xinfoend(stdClass $line) {
         return $line;
     }*/
 
@@ -6331,7 +6336,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_rpl_sasl(stdClass $line) {
+    /*protected function parse_rpl_sasl(stdClass $line) {
         return $line;
     }*/
 
@@ -6343,7 +6348,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_sasl(stdClass $line) {
+    /*protected function parse_err_sasl(stdClass $line) {
         return $line;
     }*/
 
@@ -6356,7 +6361,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_cannotdocommand(stdClass $line) {
+    /*protected function parse_err_cannotdocommand(stdClass $line) {
         return $line;
     }*/
 
@@ -6369,7 +6374,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_cannotchangeumode(stdClass $line) {
+    /*protected function parse_err_cannotchangeumode(stdClass $line) {
         return $line;
     }*/
 
@@ -6382,7 +6387,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_cannotchangechanmode(stdClass $line) {
+    /*protected function parse_err_cannotchangechanmode(stdClass $line) {
         return $line;
     }*/
 
@@ -6395,7 +6400,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_cannotchangeservermode(stdClass $line) {
+    /*protected function parse_err_cannotchangeservermode(stdClass $line) {
         return $line;
     }*/
 
@@ -6410,7 +6415,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_cannotsendtonick(stdClass $line) {
+    /*protected function parse_err_cannotsendtonick(stdClass $line) {
         return $line;
     }*/
 
@@ -6423,7 +6428,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_unknownservermode(stdClass $line) {
+    /*protected function parse_err_unknownservermode(stdClass $line) {
         return $line;
     }*/
 
@@ -6436,7 +6441,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_servermodelock(stdClass $line) {
+    /*protected function parse_err_servermodelock(stdClass $line) {
         return $line;
     }*/
 
@@ -6451,7 +6456,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_badcharencoding(stdClass $line) {
+    /*protected function parse_err_badcharencoding(stdClass $line) {
         return $line;
     }*/
 
@@ -6466,7 +6471,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_toomanylanguages(stdClass $line) {
+    /*protected function parse_err_toomanylanguages(stdClass $line) {
         return $line;
     }*/
 
@@ -6480,7 +6485,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_nolanguage(stdClass $line) {
+    /*protected function parse_err_nolanguage(stdClass $line) {
         return $line;
     }*/
 
@@ -6494,7 +6499,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_texttooshort(stdClass $line) {
+    /*protected function parse_err_texttooshort(stdClass $line) {
         return $line;
     }*/
 
@@ -6506,7 +6511,7 @@ trait Parser {
      *
      * @return stdClass       A stdClass that has additional information parsed, if available.
      */
-    /*private function parse_err_numeric_err(stdClass $line) {
+    /*protected function parse_err_numeric_err(stdClass $line) {
         return $line;
     }*/
 }
