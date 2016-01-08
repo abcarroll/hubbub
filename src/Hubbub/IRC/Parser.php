@@ -32,7 +32,7 @@ namespace Hubbub\IRC;
 use stdClass;
 
 trait Parser {
-    use Numerics;
+    use Codes;
 
     /**
      * Parses a single IRC protocol line using a formal parser, plus modularized parser segments.
