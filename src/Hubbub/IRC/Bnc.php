@@ -66,7 +66,7 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
             'protocol' => 'irc'
         ]);
 
-        $listen = $this->conf->get('irc.bnc.listen');
+        $listen = $this->conf->get('irc/bnc/listen');
         $this->net->server('tcp://' . $listen);
     }
 
@@ -180,7 +180,7 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
         if(!empty($client->nick) && !empty($client->user)) {
             $this->logger->debug("Pre-auth was completed with NICK: " . $client->nick . ", USER: " . $client->user . ", NAME: " . $client->realName);
 
-            $password = $this->conf->get('irc.bnc.require-pass');
+            $password = $this->conf->get('irc/bnc/require-pass');
             if(!empty($password)) {
                 $client->setState('unregistered');
                 $client->sendNotice("*", "*** I'm going to have to ask to see your ID, " . $client->nick);
@@ -205,7 +205,7 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
 
         $authMethods = 0;
         foreach($compare as $confName => $givenValue) {
-            $confValue = $this->conf->get('irc.bnc.' . $confName);
+            $confValue = $this->conf->get('irc/bnc/' . $confName);
             if($confValue !== null) {
                 if($confValue !== $givenValue) {
                     $this->logger->debug("Failing loggin: $confName was set, $confValue !== $givenValue");
@@ -216,7 +216,7 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
             }
         }
 
-        if($authMethods > 0 || $this->conf->get('irc.bnc.no-authentication') === true) {
+        if($authMethods > 0 || $this->conf->get('irc/bnc/no-authentication') === true) {
             if($authPassed) {
                 $client->setState('registered');
                 $this->welcome($client);
@@ -243,11 +243,11 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
         $client->setState('registered');
 
         $client->send(":Hubbub 001 {$client->nick} WELCOME");
-        $motdFile = $this->conf->get('irc.bnc.motd-file');
+        $motdFile = $this->conf->get('irc/bnc/motd-file');
         if(is_readable($motdFile)) {
-            $f = file($this->conf->get('irc.bnc.motd-file'));
+            $f = file($this->conf->get('irc/bnc/motd-file'));
         } else {
-            $f = ["The config value irc.bnc.motd_file was unreadable"];
+            $f = ["The config value irc/bnc/motd_file was unreadable"];
         }
 
         $client->send(":Hubbub 001 {$client->nick} : Welcome to Hubbub's Internet Relay Chat Proxy, " . $client->nick);

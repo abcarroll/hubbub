@@ -54,7 +54,7 @@ class Configuration {
     public function get($value) {
         // echo " >> (config) getting value: $value\n";
         $current = $this->array;
-        $pieces = explode('.', $value);
+        $pieces = explode('/', $value);
         $lastPiece = null;
         foreach($pieces as $piece) {
             // echo " >> (config) Dropping down into $piece\n";

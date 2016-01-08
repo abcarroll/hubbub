@@ -81,7 +81,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
         // Setup our mbus subscription
         $this->bus->subscribe([$this, 'handleBusMessage']);
 
-        $this->serverList = $this->conf->get($this->protocol . '.' . $name . '.serverList');
+        $this->serverList = $this->conf->get($this->protocol . '/' . $name . '/serverList');
         $this->tryNext();
     }
 

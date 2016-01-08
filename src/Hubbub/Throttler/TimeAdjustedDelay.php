@@ -70,7 +70,7 @@ class TimeAdjustedDelay extends Throttler implements Iterable {
 
     public function setConf(\Hubbub\Configuration $conf) {
         $this->conf = $conf;
-        $this->frequency = $this->conf->get('throttler.frequency');
+        $this->frequency = $this->conf->get('throttler/frequency');
     }
 
     public function setLogger(\Hubbub\Logger $logger) {

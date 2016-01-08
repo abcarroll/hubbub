@@ -34,8 +34,8 @@ class Logger extends \Psr\Log\AbstractLogger implements \Psr\Log\LoggerInterface
      */
     public function __construct(\Hubbub\Configuration $conf = null) {
         $this->conf = $conf;
-        if(!empty($this->conf->get('logger.logToFile'))) {
-            $this->fp = fopen($this->conf->get('logger.logToFile'), 'a+');
+        if(!empty($this->conf->get('logger/logToFile'))) {
+            $this->fp = fopen($this->conf->get('logger/logToFile'), 'a+');
         } else {
             $this->fp = null;
         }

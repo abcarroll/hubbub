@@ -107,14 +107,14 @@ class DigResolver implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
                 return $msg;
             }
 
-            $timeout = isset($msg['timeout']) ? $msg['timeout'] : $this->conf->get('dns.default-timeout');
+            $timeout = isset($msg['timeout']) ? $msg['timeout'] : $this->conf->get('dns/default-timeout');
             $timeout = empty($timeout) ? 3 : $timeout;
 
-            $tries = isset($msg['tries']) ? $msg['tries'] : $this->conf->get('dns.default-tries');
+            $tries = isset($msg['tries']) ? $msg['tries'] : $this->conf->get('dns/default-tries');
             $tries = empty($tries) ? 4 : $tries;
 
-            $commandLine = escapeshellcmd($this->conf->get('dns.dig-path')) .
-                           ' @' . $this->conf->get('dns.servers.0') .
+            $commandLine = escapeshellcmd($this->conf->get('dns/dig-path')) .
+                           ' @' . $this->conf->get('dns/servers/0') .
                            ' ' . escapeshellarg($msg['host']) .
                            ' +tries=' . escapeshellarg($tries) .
                            ' +timeout=' . escapeshellarg($timeout) .
