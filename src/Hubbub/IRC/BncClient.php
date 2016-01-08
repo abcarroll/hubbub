@@ -16,148 +16,94 @@ namespace Hubbub\IRC;
  * Class BncClient
  * @package Hubbub\IRC
  */
-class BncClient { // TODO make a base class!
-    use Parser;
+class BncClient {
     use Senders;
 
-    protected $bnc, $logger, $conf, $bus, $socket;
     /**
-     * @var string $state         The state of the connection.  Possible values are 'preauth', 'unregistered', 'registered'.
-     * @var int    $auth_attempts The number of authenticiation attempts.  Currently hard-coded to a maximum of 3 attempts.
-     * @
+     * The client Id to identify this client against the server network object
+     * @var int
      */
-    protected $state = 'preauth', $auth_attempts = 0, $max_auth_attempts = 3, $nick, $user, $connect_time, $state_time;
+    public $clientId;
 
-    function __construct(\Hubbub\IRC\Bnc $bnc, \Hubbub\Logger $logger, \Hubbub\Configuration $conf, \Hubbub\MessageBus $bus, $socket) {
-        $this->bnc = $bnc;
+    /**
+     * @var int
+     */
+    public $connectedSince;
+
+    /**
+     * @var string
+     */
+    protected $state = 'preauth';
+
+    /**
+     * @var int
+     */
+    protected $inStateSince;
+
+    /**
+     * @var string
+     */
+    public $nick;
+
+    /**
+     * @var string
+     */
+    public $user;
+
+    /**
+     * @var string
+     */
+    public $realName;
+
+    /**
+     * How many times have we tried to send PASS to login?
+     * @var int
+     */
+    public $passwordAttempts = 0;
+
+    /**
+     * @var \Hubbub\Net\Server
+     */
+    public $net;
+
+
+    public function __construct(\Hubbub\Net\Server $net, \Psr\Log\LoggerInterface $logger, $clientId) {
+
+        $this->net = $net;
+        $this->clientId = $clientId;
+        $this->inStateSince = time();
         $this->logger = $logger;
-        $this->conf = $conf;
-        $this->bus = $bus;
-        $this->socket = $socket;
-        $this->connect_time = time();
-        $this->state_time = time();
-    }
 
-    function disconnect() {
-        stream_socket_shutdown($this->socket, STREAM_SHUT_RDWR);
-        //$this->bnc->disconnectClient($this->socket);
-    }
-
-    function send($command) {
-        $this->bnc->send($this->socket, "$command\n");
-    }
-
-    function onBusMessage($b) {
-        if($this->state == 'registered') {
-            $this->logger->debug("I received a bus message: ");
-            $this->logger->debug(print_r($b, true));
-            $this->send(":-Hubbub!Hubbub@Hubbub. PRIVMSG {$this->nick} :" . $b['raw']);
-        }
-    }
-
-    function on_recv_irc($c) {
-        $c = $this->parseIrcCommand($c);
-
-        $try_method = 'on_' . strtolower($c->cmd);
-        if(method_exists($this, $try_method)) {
-            $this->$try_method($c);
-        } else {
-            $this->on_unhandled($c);
-        }
-    }
-
-    function on_unhandled($c) {
-        $this->logger->debug("Unhandled IRC Command: " . $c->cmd);
-    }
-
-    function on_nick($c) {
-        $this->logger->debug("Got NICK: " . $c->argData);
-        $this->nick = $c->argData;
-        $this->tryRegistration();
-    }
-
-    function on_user($c) {
-        $this->logger->debug("Got USER: " . $c->argData);
-        $this->user = $c->argData;
-        $this->tryRegistration();
-    }
-
-    function tryRegistration() {
-        if(!empty($this->nick) && !empty($this->user)) {
-            $this->state = 'unregistered';
-            $this->state_time = time();
-            $this->sendNotice("*", "I'm going to have to ask to see your ID, " . $this->nick);
-            $this->sendNotice("*", "Type /QUOTE PASS <yourpass> now.");
-            $this->logger->debug("Moved from preauth to unregistered");
-        } else {
-            $this->logger->debug("Registration failed: Not enough data");
-        }
-    }
-
-    function on_pass($c) {
-        if($this->state != 'unregistered') {
-            $this->sendNotice("*", "PASS Sequence out of order.  You must first NICK and USER.");
-            $this->disconnect();
-        } else {
-            $compare = $this->conf->get('irc.bnc.password');
-            if($c->argData == $compare) {
-                $this->welcome();
-            } else {
-                $this->logger->notice("Failed login, " . $c->argData . " != $compare");
-                $this->sendNotice(':', "Failed login, try again?");
-                $this->auth_attempts++;
-
-                if($this->auth_attempts > $this->max_auth_attempts) {
-                    $this->logger->notice("Too many failed login attempts.");
-                    $this->sendNotice(':', "Too many failed login attempts.");
-                    $this->disconnect();
-                }
-
-            }
-        }
-    }
-
-    function welcome() {
-        $this->state = 'registered';
-
-        $this->send(":Hubbub 001 {$this->nick} WELCOME");
-        $motdFile = $this->conf->get('irc.bnc.motd_file');
-        if(is_readable($motdFile)) {
-            $f = file($this->conf->get('irc.bnc.motd_file'));
-        } else {
-            $f = ["The config value irc.bnc.motd_file was unreadable"];
-        }
-
-        $this->send(":Hubbub 001 {$this->nick} : Welcome to Hubbub's Internet Relay Chat Proxy, " . $this->nick);
-        $this->send(":Hubbub 375 {$this->nick} : MOTD AS FOLLOWS");
-        foreach($f as $line) {
-            $this->send(":Hubbub 372 {$this->nick} : - " . trim($line));
-        }
-        $this->send(":Hubbub 375 {$this->nick} :END OF MOTD");
-
-        $this->send(":-Hubbub!Hubbub@Hubbub. PRIVMSG {$this->nick} :Welcome back, cowboy!");
-
-        //$this->sendJoin("#hubbub");
+        $this->logger->alert("I WAS PASSED CLIENTID: $clientId");
 
     }
 
-    function iterate() {
-        // $this->logger->debug("BNC Client #" . ((int) $this->socket) . " was iterated.");
-        // Check state times for expiration
-        /*if(($this->state == 'preauth' || $this->state == 'unregistered') && (time() - $this->state_time) > 30) {
-            $this->sendNotice('*', "Client timeout.  Try again later.");
-            //$this->disconnect(); // TODO !!!
-        }*/
+    public function send($data) {
+        $this->net->clientSend($this->clientId, $data . "\n");
     }
 
-    function on_privmsg($c) {
-        var_dump($c);
-        $this->bus->publish([
-            'originate' => true,
-            'protocol'  => 'irc',
-            'from'      => $this->nick,
-            'message'   => $c->argData,
-        ]);
+    public function disconnect() {
+        $this->net->clientDisconnect($this->clientId);
+    }
 
+    public function setState($state) {
+        $this->inStateSince = time();
+        $this->state = $state;
+    }
+
+    public function getState() {
+        return $this->state;
+    }
+
+    public function getSecondsInState() {
+        return time() - $this->inStateSince;
+    }
+
+    public function getInStateSince() {
+        return $this->inStateSince;
+    }
+
+    public function sendServerNotice($notice) {
+        $this->send(":Hubbub.localnet NOTICE * :$notice");
     }
 }

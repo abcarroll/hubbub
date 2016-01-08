@@ -11,8 +11,6 @@
  */
 
 namespace Hubbub\IRC;
-
-use Hubbub\Utility;
 use stdClass;
 
 /**
