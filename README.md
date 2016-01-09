@@ -30,6 +30,8 @@ In addition to writing protocol support, a high priority for the project is to w
 to chat over any protocol that Hubbub supports.  These would be local installations, not SaaS.  The goal/idea being that you could install Hubbub on a cheap
 VPS, and be able to log-in to your Hubbub instance anywhere in the world on any device that has a quasi-modern web browser.  
 
+**A web client is a very high priority.  Why don't you write a nice interface?**
+
 ## Architecture
 Hubbub is meant to be totally self-contained aside from modules you may elect to install.  It uses a built-in copy of "Dice", by Tom Butler for dependency 
 injection.  Dice is distributed under the BSD license.  Some extras from the git repository were removed and only the minimum necessary files are left.
