@@ -29,11 +29,16 @@ $main = function() {
 
     $factory = Bootstrapper::getFactory();
 
+    /** @var \Hubbub\ErrorHandler $errorHandler */
+
+    //$errorHandler = $factory->create('\Hubbub\ErrorHandler');
+    //$errorHandler->setHandler();
+
     /**
      * @var \Hubbub\Hubbub $hubbub
      */
 
-    $hubbub = $factory->create('\Hubbub\Hubbub', [$factory]);;
+    $hubbub = $factory->create('\Hubbub\Hubbub', [$factory]);
     $hubbub->loop();
 
     Bootstrapper::Sunset();
