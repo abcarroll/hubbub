@@ -11,6 +11,7 @@
  */
 
 namespace Hubbub\IRC;
+use Hubbub\Utility;
 use stdClass;
 
 /**
@@ -25,7 +26,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
      * @var \Hubbub\Net\Client
      */
     protected $net, $logger, $bus, $conf;
-    protected $name;
+    protected $moduleName;
 
     protected $protocol = 'irc';
     protected $state = 'disconnected';
@@ -57,22 +58,46 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
     protected $waitingForHostResolve;
     protected $resolveStarted = 0;
 
+    /**
+     * The current nickname of the client
+     * @var string
+     */
+    protected $nick;
+
+    /**
+     * The current 'username' of the client
+     * @var string
+     */
+    protected $user;
+
+    /**
+     * The current 'real name' of the client
+     * @var string
+     */
+    protected $name;
+
+    /**
+     * The current @host of the client
+     * @var string
+     */
+    protected $myHost;
+
     protected $serverMotd = '';
-    protected $nick; // the current nickname
     protected $channels = [];
     protected $modules = []; // sub-modules, this system is currently disabled
 
-    public function __construct(\Hubbub\Net\Client $net, \Hubbub\Logger $logger, \Hubbub\MessageBus $bus, \Hubbub\Configuration $conf, $name) {
+
+
+    public function __construct(\Hubbub\Net\Client $net, \Hubbub\Logger $logger, \Hubbub\MessageBus $bus, \Hubbub\Configuration $conf, $moduleName) {
         $this->net = $net;
         $this->logger = $logger;
         $this->bus = $bus;
         $this->conf = $conf;
+        $this->moduleName = $moduleName;
 
-        $this->bus->publish([
+        $this->bPublish([
             'protocol'  => 'irc',
-            'action'    => 'created',
-            'network'   => $name,
-            'shorthand' => $name,
+            'action'    => 'create',
         ]);
 
         // Set the network's protocol to ths IRC object; the IRC object will receive event notifications via the network handler
@@ -81,7 +106,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
         // Setup our mbus subscription
         $this->bus->subscribe([$this, 'handleBusMessage']);
 
-        $this->serverList = $this->conf->get($this->protocol . '/' . $name . '/serverList');
+        $this->serverList = $this->conf->get($this->protocol . '/' . $moduleName . '/serverList');
         $this->tryNext();
     }
 
@@ -159,7 +184,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
 
         $this->bus->publish([
             'protocol' => 'irc',
-            'network' => $this->name,
+            'network' => $this->moduleName,
             'action' => 'state-change',
             'state' => $state,
         ]);
@@ -279,8 +304,17 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
 
     protected function bPublish($extra) {
         $extra['protocol'] = $this->protocol;
-        $extra['network'] = 'freenode';
+        $extra['network'] = $this->moduleName;
         $this->bus->publish($extra);
+    }
+
+    protected function on_privmsg(stdClass $line) {
+        // TODO: just for testing purposes -- don't forget to remove this!
+
+        //if(substr($line->privmsg->msg, 0, 5) ==  'quit:') {
+        //    $this->sendQuit(trim(substr($line->privmsg->msg, 6)));
+        //}
+        return $line;
     }
 
     protected function on_err_nicknameinuse(stdClass $cmd) {
@@ -289,8 +323,20 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
         $this->sendNick($nick);
     }
 
+    /**
+     * RPL_WELCOME is when we are fully connected
+     *
+     * @param stdClass $cmd
+     */
     protected function on_rpl_welcome(stdClass $cmd) {
-        $this->sendJoin("#hubbub");
+        $this->setState('online');
+
+        //$this->sendJoin("#hubbub-test");
+        //$this->sendJoin("#hubbub");
+    }
+
+    protected function on_rpl_hosthidden(stdClass $line) {
+
     }
 
     protected function on_rpl_motd(stdClass $line) {
@@ -325,9 +371,19 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
         if(isset($this->channels[$channel])) {
             $this->logger->debug("Set $channel topic to $topic");
             $this->channels[$channel]['topic'] = $topic;
+
+            $this->bPublish([
+                'action' => 'topic',
+                'channel' => $channel,
+                'topic' => $topic
+            ]);
         } else {
             $this->logger->alert("Got RPL_TOPIC for channel $channel that I haven't JOIN'd yet");
         }
+
+        //$this->sendMsg($channel, "Topic is: $topic");
+        //$this->sendMsg($channel, 'Channel list: ' . Utility::varDump($this->channels));
+        //$this->sendMsg($channel, "Server Info: " . Utility::varDump($this->serverInfo));
     }
 
     protected function on_rpl_namreply(stdClass $line) {
@@ -340,6 +396,12 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
         } else {
             $this->logger->alert("Got RPL_NAMREPLY for channel $channel that I haven't JOIN'd yet");
         }
+
+        $this->bPublish([
+            'action' => 'nameList',
+            'channel' => $channel,
+            'nameList' => $this->channels[$channel]['names']
+        ]);
 
     }
 
