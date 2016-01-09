@@ -265,11 +265,17 @@ trait Senders {
      * @param $what
      */
     public function sendMsg($who, $what) {
-        $this->send("PRIVMSG $who :$what");
+        $prefixLength = strlen("PRIVMSG $who :XX"); // XX for CRLF
+        $maxMsgPart = 513 - $prefixLength; // use 513 since str_split is 0-index based
+
+        $pieces = str_split($what, $maxMsgPart);
+        foreach($pieces as $msgPart) {
+            $this->send("PRIVMSG $who :$msgPart");
+        }
     }
 
     /**
-     * Sends a CTCP message to the specified user or chnanel.
+     * Sends a CTCP message to the specified user or channel.
      *
      * @param string $who  The person or channel to send the CTCP message to.
      * @param string $what The CTCP message to send, as "COMMAND ARGUMENT" or simply "COMMAND" if no argument.
