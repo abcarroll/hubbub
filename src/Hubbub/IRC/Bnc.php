@@ -10,15 +10,23 @@
  * distributed with this source code, or available at the URL above.
  */
 
-
 namespace Hubbub\IRC;
+
+use Hubbub\TimerList;
+use Hubbub\Utility;
 
 /**
  * The BNC server, a simple IRC server that acts as a translation module between it's clients and other protocol client modules.
  * @package Hubbub\IRC
  */
 class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
+
+    const SELF_DO_NOT_DO_THIS_IF_DOING_SO_WILL_ADVANCE_US_TO_THE_LEFT = 4;
+
     use Parser;
+
+    protected $name;
+    protected $state = 'not-listening';
 
     /**
      * @var \Hubbub\Net\Server
@@ -41,6 +49,11 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
     protected $bus;
 
     /**
+     * @var \Hubbub\TimerList
+     */
+    protected $timers;
+
+    /**
      * All of our clients, as id => stdClass.
      *
      * This was originally implemented properly, but something just has a smell to it the way it originally was implemented.  Until further review, this will
@@ -48,7 +61,6 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
      * @var array
      */
     protected $clients = [];
-
     protected $networks = [];
 
     const REGISTRATION_TIMEOUT = 20;
@@ -58,24 +70,62 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
         $this->conf = $conf;
         $this->logger = $logger;
         $this->bus = $bus;
+        $this->name = $name;
 
         $this->net = $net;
         $this->net->setProtocol($this);
+
+        $this->timers = new TimerList();
 
         $this->bus->subscribe([$this, 'busMessageHandler'], [
             'protocol' => 'irc'
         ]);
 
-        $listen = $this->conf->get('irc/bnc/listen');
-        $this->net->server('tcp://' . $listen);
+        $this->createListener();
     }
 
-    public function busMessageHandler($msg) {
-        if($msg['protocol'] == 'irc') {
-            // group subscribe, group join, i_join, i_subscribe, ... etc
-            /*if($message->action == 'group_subscribe') {
+    public function createListener() {
+        $location = $this->conf->get('irc/bnc/listen');
+        $result = $this->net->server('tcp://' . $location);
+        if(!$result) {
+            $this->logger->info("BNC " . $this->name . " failed to listen at $location.  Retrying in 30 seconds...");
+            $this->state = 'not-listening';
+            $this->timers->addBySeconds([$this, 'createListener'], 30, 'createListener');
+        } else {
+            $this->logger->info("BNC " . $this->name . " created: $location");
+            $this->state = 'listening';
+        }
+        //exit;
+    }
 
-            }*/
+
+    public function busMessageHandler($msg) {
+        if($msg['protocol'] == 'irc' && !empty($msg['action'])) {
+            if($msg['action'] == 'create') {
+                $name = $msg['network'];
+
+                $this->networks[$name] = [
+                    'name'     => $name,
+                    'channels' => [],
+                ];
+            }
+
+            if($msg['action'] == 'subscribe') {
+                $network = $msg['network'];
+                $channel = $msg['channel'];
+                $this->networks[$network]['channels'][$channel] = [
+                    'name'        => $channel,
+                    'joinedSince' => time(),
+                    'topic'       => [],
+                    'modes'       => [],
+                    'nameList'    => [],
+                ];
+            }
+
+            if($msg['action'] == 'nameList') {
+                $network = $msg['network'];
+                $this->networks[$network]['channels'][$msg['channel']]['nameList'] = $msg['nameList'];
+            }
         }
     }
 
@@ -89,12 +139,17 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
     }
 
     public function on_client_connect($clientId) {
-        $newClient = new BncClient($this->net, $this->logger, $clientId);;
+        $newClient = new BncClient($this->net, $this->logger, $clientId);
         $this->clients[$clientId] = $newClient;
 
-        $newClient->sendNotice("*", "*** You are connected...");
+        $this->timers->addBySeconds(function () use ($newClient) {
+            $newClient->sendNotice('*', "*** DISCONNECTED: Client was not registered in a satisfactory amount of time.");
+            $newClient->disconnect();
+        }, 30, "registration-timeout:$clientId");
+
+        /*$newClient->sendNotice("*", "*** You are connected...");
         $newClient->sendNotice("*", "*** Not looking up your hostname");
-        $newClient->sendNotice("*", "*** Not checking ident");
+        $newClient->sendNotice("*", "*** Not checking ident");*/
     }
 
     public function on_client_disconnect($clientId) {
@@ -138,6 +193,7 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
     }
 
     public function iterate() {
+        $this->timers->checkTimers();
         $this->net->iterate();
         //$this->logger->debug("BNC Server was iterated with " . count($this->clients) . " clients");
 
@@ -149,7 +205,7 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
             if(($cState == 'preauth' || $cState == 'unregistered') && $client->getSecondsInState() > self::REGISTRATION_TIMEOUT) {
                 if(self::REGISTRATION_TIMEOUT > 0 && $client->getSecondsInState() > self::REGISTRATION_TIMEOUT) {
                     if($cState == 'preauth') {
-                        $client->sendNotice('*', "*** DISCONNECTED: Client was not registered in a satisfactory amount of time.");
+                        ;
                     } else {
                         $client->sendNotice('*', "*** DISCONNECTED: Log-in was not completed in a satisfactory amount of time.");
                     }
@@ -159,9 +215,10 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
         }
     }
 
-    protected function recv_cap(BncClient $client, $line) {
+    /*protected function recv_cap(BncClient $client, $line) {
         $client->send("CAP ACK");
-    }
+        return $line;
+    }*/
 
     protected function recv_nick(BncClient $client, $line) {
         $client->nick = $line->args[0];
@@ -207,17 +264,18 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
         foreach($compare as $confName => $givenValue) {
             $confValue = $this->conf->get('irc/bnc/' . $confName);
             if($confValue !== null) {
+                $authMethods++;
                 if($confValue !== $givenValue) {
                     $this->logger->debug("Failing loggin: $confName was set, $confValue !== $givenValue");
                     $authPassed = false;
                     break;
                 }
-                $authMethods++;
             }
         }
 
         if($authMethods > 0 || $this->conf->get('irc/bnc/no-authentication') === true) {
             if($authPassed) {
+                $this->timers->remove("registration-timeout:" . $client->clientId);
                 $client->setState('registered');
                 $this->welcome($client);
             } else {
@@ -231,10 +289,8 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
     }
 
     protected function recv_pass(BncClient $client, $line) {
-        if($client->getState() != 'unregistered') {
-            $client->sendNotice("*", " *** DISCONNECTED: Your client must register properly before attempting to send a password.");
-            $client->disconnect();
-        } else {
+        $this->pass = $line->args[0];
+        if($client->getState() == 'unregistered') {
             $this->finishRegistration($client, $line->args[0]);
         }
     }
@@ -262,13 +318,19 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
         $selfMask = $client->nick . "!" . $client->user . '@localhost';
 
         // This is just some junk ... "examples" if you will
-        $messages = [
+        /*$messages = [
             'Welcome back, cowboy!',
             'This is your console.  You may type any Hubbub console messages here and they will be relayed to the console module.',
             'You are currently connected to %NETWORKS% networks, and subscribed to %ALLCHAN% channels.',
             'If you want to listen in to some of those channels, tell me: subscribe #channel.network',
             'For a list of networks and their suffixes, type "network list"',
             'To hide chnanel, either PART it or type "hide console"',
+        ];*/
+
+        var_dump($this->networks);
+
+        $messages = [
+            Utility::varDump($this->networks)
         ];
 
         $client->send(":$selfMask JOIN :&hubbub");
@@ -279,6 +341,17 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
             $client->send(":-Hubbub!Hubbub@Hubbub. PRIVMSG &hubbub :$m");
         }
         //$this->sendJoin("#hubbub");
+
+        foreach($this->networks as $network) {
+            $networkName = $network['name'];
+            foreach($network['channels'] as $channel) {
+                $channelName = $channel['name'] . '.' . $networkName;
+                $client->send(":$selfMask JOIN :$channelName");
+                $client->send(":Hubbub 353 " . $client->nick . " = $channelName :@Hubbub-Z +" . $client->nick);
+                //$client->send(":Hubbub TOPIC $channelName :" . $channel['topic']);
+            }
+        }
+
     }
 
 }
