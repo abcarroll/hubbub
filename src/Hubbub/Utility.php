@@ -18,9 +18,9 @@ namespace Hubbub;
  * @package Hubbub
  */
 class Utility {
-    const SI_SUFFIX_TIME = [[''], ['', 'ms', 'us']];
-    const SI_SUFFIX_BYTES = [['KiB', 'MiB', 'GiB', 'TiB'], ['']];
-    const SI_SUFFIX_STD = [['kilo', 'mega', 'giga', 'tera'], ['', 'milli', 'micro', 'nano', 'pico', 'femto', 'atto', 'zepto', 'yocto']];
+    const SI_SUFFIX_TIME = 1;
+    const SI_SUFFIX_BYTES = 2;
+    const SI_SUFFIX_STD = 4;
 
     /**
      * Converts an integer into a string using a SI suffix, e.g. 0.003 converts to '3 milli'.
@@ -40,6 +40,17 @@ class Utility {
      * @todo Import duration function that complements this
      */
     static public function siSuffix($number, $suffixSet = self::SI_SUFFIX_STD) {
+        /*
+         * This is done as such for hhvm compatibility
+         */
+        if($suffixSet == self::SI_SUFFIX_TIME) {
+            $suffixSet = [[''], ['', 'ms', 'us']];
+        } elseif($suffixSet == self::SI_SUFFIX_BYTES) {
+            $suffixSet = [['KiB', 'MiB', 'GiB', 'TiB'], ['']];
+        } elseif($suffixSet == self::SI_SUFFIX_STD) {
+            $suffixSet = [['kilo', 'mega', 'giga', 'tera'], ['', 'milli', 'micro', 'nano', 'pico', 'femto', 'atto', 'zepto', 'yocto']];
+        }
+
         $suffix_gt1 = $suffixSet[0];
         $suffix_lt1 = $suffixSet[1];
         if($number >= 1) {
