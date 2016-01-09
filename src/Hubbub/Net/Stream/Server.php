@@ -67,6 +67,8 @@ class Server implements \Hubbub\Net\Server {
         if($this->server_socket === false) {
             trigger_error("Server socket creation failed: [$errno] $errstr", E_USER_WARNING);
         }
+
+        return (bool) $this->server_socket;
     }
 
     public function clientSend($clientId, $data) {
@@ -121,31 +123,33 @@ class Server implements \Hubbub\Net\Server {
             }
         }
 
-        $ready_sockets = [$this->server_socket] + $this->clientSockets;
-        stream_select($ready_sockets, $write, $except, 0, 0); // resource &read, resource &write, resource &except, int tv_sec [, int tv_usec]
+        if(is_resource($this->server_socket)) {
+            $ready_sockets = [$this->server_socket] + $this->clientSockets;
+            stream_select($ready_sockets, $write, $except, 0, 0); // resource &read, resource &write, resource &except, int tv_sec [, int tv_usec]
 
-        foreach($ready_sockets as $socket) {
-            // A client is connecting to our listening socket
-            if($socket === $this->server_socket) {
-                if(($client = stream_socket_accept($this->server_socket)) < 0) { // resource server_socket [, int timeout [, string &peername]]
-                    //$this->logger->alert("socket_accept() has failed!");
+            foreach($ready_sockets as $socket) {
+                // A client is connecting to our listening socket
+                if($socket === $this->server_socket) {
+                    if(($client = stream_socket_accept($this->server_socket)) < 0) { // resource server_socket [, int timeout [, string &peername]]
+                        //$this->logger->alert("socket_accept() has failed!");
+                    } else {
+                        $clientId = (int) $client;
+                        //$this->logger->debug("New client socket accepted, clientId# $clientId");
+                        $this->clientSockets[$clientId] = $client;
+                        $this->protocol->on_client_connect($clientId);
+                    }
                 } else {
-                    $clientId = (int) $client;
-                    //$this->logger->debug("New client socket accepted, clientId# $clientId");
-                    $this->clientSockets[$clientId] = $client;
-                    $this->protocol->on_client_connect($clientId);
-                }
-            } else {
-                $clientId = (int) $socket;
-                $data = fread($socket, 8192);
+                    $clientId = (int) $socket;
+                    $data = fread($socket, 8192);
 
-                // A client has disconnected from our listening socket
-                if($data === 0) {
-                    //$this->logger->debug("data === 0, disconnected clientId# $clientId");
-                    $this->disconnectSocket($socket);
-                } else {
-                    //$this->logger->debug("Data received from clientId# $clientId");
-                    $this->protocol->on_client_recv($clientId, $data);
+                    // A client has disconnected from our listening socket
+                    if($data === 0) {
+                        //$this->logger->debug("data === 0, disconnected clientId# $clientId");
+                        $this->disconnectSocket($socket);
+                    } else {
+                        //$this->logger->debug("Data received from clientId# $clientId");
+                        $this->protocol->on_client_recv($clientId, $data);
+                    }
                 }
             }
         }

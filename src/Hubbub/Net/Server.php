@@ -24,6 +24,14 @@ interface Server extends \Hubbub\Iterable {
      * @return void
      */
     public function setProtocol(\Hubbub\Protocol\Server $protocol);
+
+    /**
+     * Create a server listening socket.
+     *
+     * @param string $location The address, port, and protocol to listen at.  For example, tcp://0.0.0.0:1234
+     *
+     * @return bool True on success, false on failure.
+     */
     public function server($location);
     public function pollSockets();
     public function clientSend($socketId, $data);
