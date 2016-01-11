@@ -99,35 +99,43 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
     }
 
 
-    public function busMessageHandler($msg) {
-        if($msg['protocol'] == 'irc' && !empty($msg['action'])) {
-            if($msg['action'] == 'create') {
-                $name = $msg['network'];
-
-                $this->networks[$name] = [
-                    'name'     => $name,
-                    'channels' => [],
-                ];
-            }
-
-            if($msg['action'] == 'subscribe') {
-                $network = $msg['network'];
-                $channel = $msg['channel'];
-                $this->networks[$network]['channels'][$channel] = [
-                    'name'        => $channel,
-                    'joinedSince' => time(),
-                    'topic'       => [],
-                    'modes'       => [],
-                    'nameList'    => [],
-                ];
-            }
-
-            if($msg['action'] == 'nameList') {
-                $network = $msg['network'];
-                $this->networks[$network]['channels'][$msg['channel']]['nameList'] = $msg['nameList'];
+    public function busMessageHandler($busMsg) {
+        // Send bus messages to an additional method for handling
+        if($busMsg['protocol'] == 'irc' && !empty($busMsg['action'])) {
+            if(method_exists($this, 'onBus' . $busMsg['action'])) {
+                $this->{'onBus' . $busMsg['action']}($busMsg);
             }
         }
     }
+
+    protected function onBusCreate($busMsg) {
+        $name = $busMsg['network'];
+        $this->networks[$name] = [
+            'name'     => $name,
+            'channels' => [],
+        ];
+    }
+
+    protected function onBusSubscribe($busMsg) {
+        $network = $busMsg['network'];
+        $channel = $busMsg['channel'];
+        $this->networks[$network]['channels'][$channel] = [
+            'name'        => $channel,
+            'joinedSince' => time(),
+            'topic'       => [],
+            'modes'       => [],
+            'nameList'    => [],
+        ];
+    }
+
+    protected function onBusNameList($busMsg) {
+        if($busMsg['action'] == 'nameList') {
+            $network = $busMsg['network'];
+            $this->networks[$network]['channels'][$busMsg['channel']]['nameList'] = $busMsg['nameList'];
+        }
+    }
+
+
 
     /**
      * @param int $clientId The network client identifier
