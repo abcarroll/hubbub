@@ -26,7 +26,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
      * @var \Hubbub\Net\Client
      */
     protected $net, $logger, $bus, $conf;
-    protected $moduleName;
+    protected $componentName;
 
     protected $timers;
 
@@ -91,12 +91,12 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
 
 
     public function __construct(\Hubbub\Net\Client $net, \Hubbub\Logger $logger, \Hubbub\MessageBus $bus, \Hubbub\Configuration $conf,
-        \Hubbub\DelimitedDataBuffer $bufferQueue, \Hubbub\TimerList $timers, $moduleName) {
+        \Hubbub\DelimitedDataBuffer $bufferQueue, \Hubbub\TimerList $timers, $componentName) {
         $this->net = $net;
         $this->logger = $logger;
         $this->bus = $bus;
         $this->conf = $conf;
-        $this->moduleName = $moduleName;
+        $this->componentName = $componentName;
 
         $this->delimitedBufferQueue = $bufferQueue;
         $this->delimitedBufferQueue->setDelimiter("\r\n");
@@ -114,7 +114,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
         // Setup our mbus subscription
         $this->bus->subscribe([$this, 'handleBusMessage']);
 
-        $this->serverList = $this->conf->get($this->protocol . '/' . $moduleName . '/serverList');
+        $this->serverList = $this->conf->get($this->protocol . '/' . $componentName . '/serverList');
         $this->tryNext();
     }
 
@@ -192,7 +192,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
 
         $this->bus->publish([
             'protocol' => 'irc',
-            'network' => $this->moduleName,
+            'network' => $this->componentName,
             'action' => 'state-change',
             'state' => $state,
         ]);
@@ -300,7 +300,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
 
     protected function bPublish($extra) {
         $extra['protocol'] = $this->protocol;
-        $extra['network'] = $this->moduleName;
+        $extra['network'] = $this->componentName;
         $this->bus->publish($extra);
     }
 
