@@ -22,7 +22,7 @@ namespace Hubbub\Net\Stream;
 class Client implements \Hubbub\Net\Client {
     /** @var \Hubbub\Protocol\Client */
     private $protocol; // Event handler
-    private $socket, $rawSocket;
+    private $socket;
     private $socketState = 'disconnected';
 
     protected $logger;
@@ -91,7 +91,7 @@ class Client implements \Hubbub\Net\Client {
         return $result;
     }
 
-    public function recv($length = 8192) {
+    public function recv($length = 1073741824) {
         $data = fread($this->socket, $length);
         if(strlen($data) > 0) {
             $this->on_recv($data);
@@ -118,7 +118,7 @@ class Client implements \Hubbub\Net\Client {
 
             if(count($read) > 0) {
                 $recvData = $this->recv();
-                if(empty($recvData)) {
+                if(strlen($recvData) == 0) {
                     $this->logger->debug("Empty recvData: Assuming socket disconnection");
                     $this->disconnect();
                 }
