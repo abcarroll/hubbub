@@ -28,6 +28,8 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
     protected $net, $logger, $bus, $conf;
     protected $moduleName;
 
+    protected $timers;
+
     protected $protocol = 'irc';
     protected $state = 'disconnected';
 
@@ -88,12 +90,18 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
 
 
 
-    public function __construct(\Hubbub\Net\Client $net, \Hubbub\Logger $logger, \Hubbub\MessageBus $bus, \Hubbub\Configuration $conf, $moduleName) {
+    public function __construct(\Hubbub\Net\Client $net, \Hubbub\Logger $logger, \Hubbub\MessageBus $bus, \Hubbub\Configuration $conf,
+        \Hubbub\DelimitedDataBuffer $bufferQueue, \Hubbub\TimerList $timers, $moduleName) {
         $this->net = $net;
         $this->logger = $logger;
         $this->bus = $bus;
         $this->conf = $conf;
         $this->moduleName = $moduleName;
+
+        $this->delimitedBufferQueue = $bufferQueue;
+        $this->delimitedBufferQueue->setDelimiter("\r\n");
+
+        $this->timers = $timers;
 
         $this->bPublish([
             'protocol'  => 'irc',
@@ -212,6 +220,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
     }
 
     public function iterate() {
+        $this->timers->checkTimers();
         if($this->nextActionTime <= time()) {
             if($this->nextAction == 'connect') {
                 echo "next action...\n";
@@ -230,26 +239,13 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
         $this->net->iterate();
     }
 
+    protected $maxRecvSize = 0;
     public function on_recv($data) {
-        $this->recvBuffer .= $data;
-        $pos = strrpos($this->recvBuffer, "\r\n");
-        // If the recvBuffer contains no fragmented messages
-        if($pos !== false) {
-            if(substr($this->recvBuffer, -2) == "\r\n") {
-                $completeLines = substr($this->recvBuffer, 0, -2);
-                $this->recvBuffer = '';
-            } else {
-                // else, there is a partially received message at the end.  so pull out the complete line(s) and tack the end fragment onto the buffer
-                $completeLines = substr($this->recvBuffer, 0, $pos);
-                $this->recvBuffer = substr($this->recvBuffer, $pos + 2);
-            }
-
-            $lines = explode("\r\n", $completeLines);
-            foreach($lines as $line) {
-                $this->logger->debug("RAW < $line");
-                file_put_contents("log/raw-protocol.log", " < $line\n", FILE_APPEND);
-                $this->on_recv_irc($line);
-            }
+        $this->delimitedBufferQueue->receive($data);
+        foreach($this->delimitedBufferQueue->consumeAll() as $zk => $msg) {
+            $this->logger->debug("RAW < $msg");
+            file_put_contents("log/raw-protocol.log", " < $msg\n", FILE_APPEND);
+            $this->on_recv_irc($msg);
         }
     }
 
