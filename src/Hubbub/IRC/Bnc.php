@@ -12,6 +12,7 @@
 
 namespace Hubbub\IRC;
 
+use Hubbub\DelimitedDataBuffer;
 use Hubbub\TimerList;
 use Hubbub\Utility;
 
@@ -61,6 +62,9 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
      * @var array
      */
     protected $clients = [];
+
+    protected $clientBuffers = [];
+
     protected $networks = [];
 
     const REGISTRATION_TIMEOUT = 20;
@@ -147,8 +151,10 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
     }
 
     public function on_client_connect($clientId) {
+        // TODO don't use new operator
         $newClient = new BncClient($this->net, $this->logger, $clientId);
         $this->clients[$clientId] = $newClient;
+        $this->clientBuffers[$clientId] = new DelimitedDataBuffer("\r\n");
 
         $this->timers->addBySeconds(function () use ($newClient) {
             $newClient->sendNotice('*', "*** DISCONNECTED: Client was not registered in a satisfactory amount of time.");
@@ -168,19 +174,13 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
     public function on_client_recv($clientId, $data) {
         $this->logger->debug("Received data from clientId #$clientId: $data");
 
-        $commands = explode("\n", $data);
-        if(!empty($commands[count($commands) - 1])) {
-            $incomplete = $commands[count($commands) - 1];
-            $commands[count($commands) - 1] = '';
-            // TODO Use proper logger
-            trigger_error("Received incomplete command '$incomplete' - discarding", E_USER_WARNING);
-        }
+        /** @var DelimitedDataBuffer $buffer */
+        $buffer = $this->clientBuffers[$clientId];
+        $buffer->receive($data);
 
-        foreach($commands as $line) {
-            if(!empty($line)) {
-                $client = $this->getClient($clientId);
-                $this->on_recv_irc($client, $line);
-            }
+        foreach($buffer->consumeAll() as $line) {
+            $client = $this->getClient($clientId);
+            $this->on_recv_irc($client, $line);
         }
     }
 
