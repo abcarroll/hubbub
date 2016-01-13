@@ -208,4 +208,57 @@ class Utility {
             return $time;
         }
     }
+
+    /**
+     * Returns true if the string $haystack is prefixed with (begins with), or is equal to, the $needle string
+     *
+     * @param $haystack
+     * @param $needle
+     *
+     * @return bool
+     */
+    static function strBeginsWith($haystack, $needle) {
+        if(substr($haystack, 0, strlen($needle)) === $needle) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Returns true if the string $haystack is suffixed with (ends with), or is equal to, the $needle string
+     *
+     * @param $haystack
+     * @param $needle
+     *
+     * @return bool
+     */
+    static function strEndsWith($haystack, $needle) {
+        if(substr($haystack, (0 - strlen($needle))) === $needle) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Explodes a string from right to left.  This function is identical to explode() if $limit is not used.
+     *
+     * If $limit is used, it is limited in a right-to-left fashion.  For example 'a.b.c' limited to '2' would yield a result of ['a.b', 'c'].
+     *
+     * @param string $delimiter The boundary string.
+     * @param string $string    The input string.
+     * @param int    $limit     The maximum amount of elements to return, with the first element containing the rest of the string, splitting from
+     *                          right-to-left.
+     *
+     * @return array
+     */
+    static function explodeRev($delimiter, $string, $limit = PHP_INT_MAX) {
+        $string = strrev($string);
+        $pieces = explode($delimiter, $string, $limit);
+        $pieces = array_map('strrev', $pieces);
+
+        return array_reverse($pieces);
+    }
+
 }
