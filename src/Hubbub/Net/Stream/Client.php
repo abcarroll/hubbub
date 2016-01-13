@@ -84,10 +84,16 @@ class Client implements \Hubbub\Net\Client {
         $this->on_disconnect('disconnect-called');
     }
 
+    /**
+     *
+     *
+     * @param $data
+     *
+     * @return int
+     */
     public function send($data) {
+        /*$data = */ $this->on_send($data);
         $result = fwrite($this->socket, $data);
-        $this->on_send($data);
-
         return $result;
     }
 

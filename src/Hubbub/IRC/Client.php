@@ -215,8 +215,13 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
 
     }
 
+    /**
+     * @param string $data The data pending to be sent
+     *
+     * @return string The (perhaps modified) data to be sent
+     */
     public function on_send($data) {
-
+        return $data;
     }
 
     public function iterate() {
