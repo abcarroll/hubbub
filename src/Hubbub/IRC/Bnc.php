@@ -62,10 +62,21 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
      * @var array
      */
     protected $clients = [];
-
     protected $clientBuffers = [];
 
     protected $networks = [];
+
+
+    /**
+     * A lookup table for all channels, eg. '#foo.network' => &channelStructure
+     * @var array
+     */
+    protected $channels = [];
+
+    protected $myHost = 'irc.hubbub.localnet';
+    protected $consoleMask = '-Hubbub!Hubbub@hubbub.localnet';
+    protected $consoleChan = '&hubbub';
+
 
     const REGISTRATION_TIMEOUT = 20;
     const MAX_PASSWORD_ATTEMPTS = 2;
@@ -139,7 +150,19 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
         }
     }
 
+    protected function onBusJoin($msg) {
+        /** @var \Hubbub\IRC\BncClient $c */
+        foreach($this->clients as $c) {
+            $c->sendJoin($msg['channel']);
+        }
+    }
 
+    protected function onBusPrivmsg($msg) {
+        /** @var \Hubbub\IRC\BncClient $c */
+        foreach($this->clients as $c) {
+            $c->send($msg['from'] . ' PRIVMSG ' . $msg['to']->raw . '.' . $msg['network'] . ' :' . $msg['message']);
+        }
+    }
 
     /**
      * @param int $clientId The network client identifier
@@ -303,10 +326,53 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
         }
     }
 
+    protected function recv_privmsg(BncClient $client, $line) {
+        $bncChannel = $line->args[0];
+        list($channel, $network) = Utility::explodeRev('.', $bncChannel, 2);
+        $this->bus->publish([
+            'protocol' => 'irc',
+            'action'   => 'msg',
+            'network'  => $network,
+            'to'       => $channel,
+            'message'  => $line->privmsg->msg
+        ]);
+    }
+
     protected function welcome(BncClient $client) {
         $client->setState('registered');
 
-        $client->send(":Hubbub 001 {$client->nick} WELCOME");
+        $serverPrefix = ':' . $this->myHost;
+
+        $client->send($serverPrefix . " 001 {$client->nick} :Welcome to the Hubbub BNC Internet Relay Chat Server " . $client->nick);
+        $client->send($serverPrefix . " 002 {$client->nick} :Your host is " . $this->myHost . " running Hubbub/" . phpversion());
+        $client->send($serverPrefix . " 003 {$client->nick} :This server was created " . date('r', $_SERVER['REQUEST_TIME']));
+
+        // RPL_MYINFO:
+        // <server_name> <version> <user_modes> <chan_modes> <channel_modes_with_params> <user_modes_with_params> <server_modes> <server_modes_with_params>
+        // But we just send some gibberish..
+        $client->send($serverPrefix . " 004 {$client->nick} :" . $this->myHost . ' Hubbub/PHP abBcCFioqrRswx abehiIklmMnoOPqQrRstvVz');
+
+        // RPL_ISUPPORT
+        $client->send($serverPrefix . " 005 {$client->nick} :" .
+                      "RFC2818 " .
+                      "NETWORK=Hubbub-BNC " .
+                      "IRCD=Hubbub " .
+                      "CHARSET=UTF-8 " .
+                      "CASEMAPPING=ascii " .
+                      "PREFIX=(ov)@+ " . "CHANTYPES=&#!+.~ " .
+                      "CHANMODES=beI,k,l,imMnOPQRstVz CHANLIMIT=#&+:10 :are probably supported on this server");
+
+        $client->send($serverPrefix . " 005 {$client->nick} :CHANNELLEN=50 NICKLEN=4 TOPICLEN=490 AWAYLEN=127 KICKLEN=400 MODES=5 MAXLIST=beI:50 EXCEPTS=e INVEX=I PENALTY :are supported on this server");
+
+        $client->send($serverPrefix . " 005 {$client->nick} :RFC2818 NETWORK=Hubbub-BNC IRCD=Hubbub CHARSET=UTF-8 CASEMAPPING=ascii PREFIX=(ov)@+ ");
+
+
+        $client->send($serverPrefix . " 251 {$client->nick} :There are 2 users and 1 services on " . count($this->networks) . " servers");
+        $client->send($serverPrefix . " 254 {$client->nick} 1 :channels formed");
+        $client->send($serverPrefix . " 255 {$client->nick} :I have 2 users, 1 services and 0 servers");
+        $client->send($serverPrefix . " 266 {$client->nick} :I have 2 users, 1 services and 0 servers");
+        $client->send($serverPrefix . " 250 {$client->nick} :I have 2 users, 1 services and 0 servers");
+
         $motdFile = $this->conf->get('irc/bnc/motd-file');
         if(is_readable($motdFile)) {
             $f = file($this->conf->get('irc/bnc/motd-file'));
@@ -314,16 +380,19 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
             $f = ["The config value irc/bnc/motd_file was unreadable"];
         }
 
-        $client->send(":Hubbub 001 {$client->nick} : Welcome to Hubbub's Internet Relay Chat Proxy, " . $client->nick);
         $client->send(":Hubbub 375 {$client->nick} : MOTD AS FOLLOWS");
         foreach($f as $line) {
             $client->send(":Hubbub 372 {$client->nick} : - " . trim($line));
         }
-        $client->send(":Hubbub 375 {$client->nick} :END OF MOTD");
+        $client->send(":Hubbub 376 {$client->nick} :END OF MOTD");
+
+        $selfMask = $client->nick . "!" . $client->user . '@hubbub.localnet';
+
+        $client->send(":Hubbub 396 {$client->nick} $selfMask :is your displayed hostname now");
 
         //$this->send(":-Hubbub!Hubbub@Hubbub. PRIVMSG {$this->nick} :Welcome back, cowboy!");
 
-        $selfMask = $client->nick . "!" . $client->user . '@localhost';
+
 
         // This is just some junk ... "examples" if you will
         /*$messages = [
@@ -334,8 +403,6 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
             'For a list of networks and their suffixes, type "network list"',
             'To hide chnanel, either PART it or type "hide console"',
         ];*/
-
-        var_dump($this->networks);
 
         $messages = [
             Utility::varDump($this->networks)
@@ -355,7 +422,7 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
             foreach($network['channels'] as $channel) {
                 $channelName = $channel['name'] . '.' . $networkName;
                 $client->send(":$selfMask JOIN :$channelName");
-                $client->send(":Hubbub 353 " . $client->nick . " = $channelName :@Hubbub-Z +" . $client->nick);
+                $client->send(":Hubbub 353 " . $client->nick . " = $channelName :@Hubbub-Z FOO +" . $client->nick);
                 //$client->send(":Hubbub TOPIC $channelName :" . $channel['topic']);
             }
         }

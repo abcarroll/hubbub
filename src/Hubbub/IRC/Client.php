@@ -11,6 +11,7 @@
  */
 
 namespace Hubbub\IRC;
+use Hubbub\IRC\Client\BncHandler;
 use Hubbub\Utility;
 use stdClass;
 
@@ -103,6 +104,10 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
 
         $this->timers = $timers;
 
+        // We're pretty much full circle at this point.  these are subcomponents, aka modules,...
+        // Not sure if we can use dice to load this?
+        $this->modules[] = new BncHandler($this, $this->componentName);
+
         $this->bPublish([
             'protocol'  => 'irc',
             'action'    => 'create',
@@ -119,6 +124,13 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
     }
 
     public function handleBusMessage($msg) {
+        // Call loaded modules
+        foreach($this->modules as $module) {
+            if(method_exists($module, 'onBusMessage')) {
+                $module->onBusmessage($msg);
+            }
+        }
+
         // Incoming DNS messages
         if(isset($msg['protocol']) && $msg['protocol'] == 'dns') {
             if(isset($msg['action']) && $msg['action'] == 'response' && $this->state == 'attempt-resolve' && $this->currentServer == $msg['host']) {
@@ -132,6 +144,16 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
                     $this->logger->notice("DNS lookup failed for hostname " . $this->currentServer . ": " . $msg['message']);
                 }
             }
+        }
+
+        if(isset($msg['protocol']) && $msg['protocol'] == 'irc') {
+            if($msg['network'] == $this->componentName) {
+
+                if($msg['action'] == 'msg') {
+                    $this->sendMsg($msg['to'], $msg['message']);
+                }
+            }
+
         }
     }
 
@@ -281,12 +303,12 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
                 $method_name = 'on_' . $data->cmd;
                 $this->logger->debug("Trying method $method_name for class '" . get_class($m) . "'");
                 if(method_exists($m, $method_name)) {
-                    $m->$method_name($this, $data);
+                    $m->$method_name($data);
                 } elseif(isset($cmd['cmd_numeric'])) {
                     $method_name = 'on_numeric_' . $cmd['cmd_numeric'];
                     $this->logger->debug("Trying method $method_name for class '" . get_class($m) . "'");
                     if(method_exists($m, $method_name)) {
-                        $m->$method_name($this, $data);
+                        $m->$method_name($data);
                     }
                 }
             }
@@ -294,7 +316,8 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
             // Send this data across the bus for other modules to handle
             $this->bus->publish([
                 'protocol' => $this->protocol,
-                //'network'  => $this->network,
+                'network'  => $this->componentName,
+                'action'   => 'raw',
                 //'event'    => 'msg',
                 //'from'     => $data->sender,
                 //'data'     => $data->data,
@@ -303,7 +326,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
         }
     }
 
-    protected function bPublish($extra) {
+    public function bPublish($extra) {
         $extra['protocol'] = $this->protocol;
         $extra['network'] = $this->componentName;
         $this->bus->publish($extra);
@@ -333,7 +356,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
         $this->setState('online');
 
         //$this->sendJoin("#hubbub-test");
-        //$this->sendJoin("#hubbub");
+        $this->sendJoin("#hubbub");
     }
 
     protected function on_rpl_hosthidden(stdClass $line) {
