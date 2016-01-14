@@ -75,7 +75,7 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
 
     protected $myHost = 'irc.hubbub.localnet';
     protected $consoleMask = '-Hubbub!Hubbub@hubbub.localnet';
-    protected $consoleChan = '&hubbub';
+    protected $consoleChan = '&localnet';
 
 
     const REGISTRATION_TIMEOUT = 20;
@@ -137,10 +137,16 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
         $this->networks[$network]['channels'][$channel] = [
             'name'        => $channel,
             'joinedSince' => time(),
-            'topic'       => [],
+            'topic'       => '',
             'modes'       => [],
             'nameList'    => [],
         ];
+    }
+
+    protected function onBusTopic($busMsg) {
+        $network = $busMsg['network'];
+        $channel = $busMsg['channel'];
+        $this->networks[$network]['channels'][$channel]['topic'] = $busMsg['topic'];
     }
 
     protected function onBusNameList($busMsg) {
@@ -177,7 +183,7 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
         // TODO don't use new operator
         $newClient = new BncClient($this->net, $this->logger, $clientId);
         $this->clients[$clientId] = $newClient;
-        $this->clientBuffers[$clientId] = new DelimitedDataBuffer("\r\n");
+        $this->clientBuffers[$clientId] = new DelimitedDataBuffer("\n");
 
         $this->timers->addBySeconds(function () use ($newClient) {
             $newClient->sendNotice('*', "*** DISCONNECTED: Client was not registered in a satisfactory amount of time.");
@@ -195,13 +201,17 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
 
     // When any data is received by a client ..
     public function on_client_recv($clientId, $data) {
-        $this->logger->debug("Received data from clientId #$clientId: $data");
-
         /** @var DelimitedDataBuffer $buffer */
         $buffer = $this->clientBuffers[$clientId];
         $buffer->receive($data);
 
         foreach($buffer->consumeAll() as $line) {
+            // If the client correctly implements the IRC protocol -
+            // m*RC does NOT send the CR!
+            if(substr($line, 0, -1) == "\r") {
+                $line = substr($line, 0, -1);
+            }
+
             $client = $this->getClient($clientId);
             $this->on_recv_irc($client, $line);
         }
@@ -211,8 +221,6 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
         $line = $this->parseIrcCommand($line);
 
         $try_method = 'recv_' . strtolower($line->cmd);
-        $this->logger->debug("Trying method: $try_method");
-
         if(method_exists($this, $try_method)) {
             $this->$try_method($client, $line);
         }
@@ -220,7 +228,7 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
 
     public function on_client_send($client, $data) {
         // TODO: does this do anything?
-        $this->logger->debug("BNC::on_client_send: " . $data);
+        $this->logger->debug("[BNC SEND] " . trim($data));
     }
 
     public function iterate() {
@@ -262,6 +270,10 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
         $this->tryRegistration($client);
     }
 
+    protected function recv_version(BncClient $client, $line) {
+
+    }
+
     protected function tryRegistration(BncClient $client) {
         $this->logger->debug("Trying registration...");
 
@@ -276,8 +288,6 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
             } else {
                 $this->finishRegistration($client);
             }
-        } else {
-            $this->logger->debug("Registration failed: Not enough data (this is normal)");
         }
     }
 
@@ -297,7 +307,7 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
             if($confValue !== null) {
                 $authMethods++;
                 if($confValue !== $givenValue) {
-                    $this->logger->debug("Failing loggin: $confName was set, $confValue !== $givenValue");
+                    $this->logger->debug("Failing login: $confName was set, $confValue !== $givenValue");
                     $authPassed = false;
                     break;
                 }
@@ -310,7 +320,7 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
                 $client->setState('registered');
                 $this->welcome($client);
             } else {
-                $client->sendNotice("*", "*** DISCONNECTED: One or more of your login parameters were incorrect.  Please try again later. ");
+                $client->sendNotice("*", "*** DISCONNECTED: Login incorrect.  Please try again later. ");
                 $client->disconnect();
             }
         } else {
@@ -324,6 +334,10 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
         if($client->getState() == 'unregistered') {
             $this->finishRegistration($client, $line->args[0]);
         }
+    }
+
+    protected function recv_ping(BncClient $client, $line) {
+        $client->send(":" . $this->myHost . " PONG " . $this->myHost . " :" . $line->args[0]);
     }
 
     protected function recv_privmsg(BncClient $client, $line) {
@@ -359,19 +373,19 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
                       "IRCD=Hubbub " .
                       "CHARSET=UTF-8 " .
                       "CASEMAPPING=ascii " .
-                      "PREFIX=(ov)@+ " . "CHANTYPES=&#!+.~ " .
-                      "CHANMODES=beI,k,l,imMnOPQRstVz CHANLIMIT=#&+:10 :are probably supported on this server");
+                      "PREFIX=(uOqaohv).@~@@%+ " . "CHANTYPES=&#!+.~ " .
+                      "CHANMODES=beI,k,l,imMnOPQRstVz CHANLIMIT=#&+:10 :are supported on this server");
 
         $client->send($serverPrefix . " 005 {$client->nick} :CHANNELLEN=50 NICKLEN=4 TOPICLEN=490 AWAYLEN=127 KICKLEN=400 MODES=5 MAXLIST=beI:50 EXCEPTS=e INVEX=I PENALTY :are supported on this server");
 
-        $client->send($serverPrefix . " 005 {$client->nick} :RFC2818 NETWORK=Hubbub-BNC IRCD=Hubbub CHARSET=UTF-8 CASEMAPPING=ascii PREFIX=(ov)@+ ");
+        //$client->send($serverPrefix . " 005 {$client->nick} :RFC2818 NETWORK=Hubbub-BNC IRCD=Hubbub CHARSET=UTF-8 CASEMAPPING=ascii PREFIX=(ov)@+ ");
 
 
         $client->send($serverPrefix . " 251 {$client->nick} :There are 2 users and 1 services on " . count($this->networks) . " servers");
         $client->send($serverPrefix . " 254 {$client->nick} 1 :channels formed");
-        $client->send($serverPrefix . " 255 {$client->nick} :I have 2 users, 1 services and 0 servers");
-        $client->send($serverPrefix . " 266 {$client->nick} :I have 2 users, 1 services and 0 servers");
-        $client->send($serverPrefix . " 250 {$client->nick} :I have 2 users, 1 services and 0 servers");
+        $client->send($serverPrefix . " 255 {$client->nick} :I have " . count($this->clients) . " users, 1 services and 0 servers");
+        //$client->send($serverPrefix . " 266 {$client->nick} :I have 2 users, 1 services and 0 servers");
+        //$client->send($serverPrefix . " 250 {$client->nick} :I have 2 users, 1 services and 0 servers");
 
         $motdFile = $this->conf->get('irc/bnc/motd-file');
         if(is_readable($motdFile)) {
@@ -380,15 +394,15 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
             $f = ["The config value irc/bnc/motd_file was unreadable"];
         }
 
-        $client->send(":Hubbub 375 {$client->nick} : MOTD AS FOLLOWS");
+        $client->send(":" . $this->myHost . " 375 {$client->nick} : MOTD AS FOLLOWS");
         foreach($f as $line) {
-            $client->send(":Hubbub 372 {$client->nick} : - " . trim($line));
+            $client->send(":" . $this->myHost . " 372 {$client->nick} : - " . trim($line));
         }
-        $client->send(":Hubbub 376 {$client->nick} :END OF MOTD");
+        $client->send(":" . $this->myHost . " 376 {$client->nick} :END OF MOTD");
 
         $selfMask = $client->nick . "!" . $client->user . '@hubbub.localnet';
 
-        $client->send(":Hubbub 396 {$client->nick} $selfMask :is your displayed hostname now");
+        $client->send(":" . $this->myHost . " 396 {$client->nick} $selfMask :is your displayed hostname now");
 
         //$this->send(":-Hubbub!Hubbub@Hubbub. PRIVMSG {$this->nick} :Welcome back, cowboy!");
 
@@ -408,12 +422,20 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
             Utility::varDump($this->networks)
         ];
 
-        $client->send(":$selfMask JOIN :&hubbub");
-        $client->send(":Hubbub 353 " . $client->nick . " = &hubbub :@-Hubbub +" . $client->nick);
-        $client->send(":Hubbub TOPIC &hubbub :Hubbub Console Channel");
+
+        $client->send(":$selfMask JOIN :" . $this->consoleChan);
+
+        $localClientList = ['.-Hubbub'];
+        /** @var BncClient $c */
+        foreach($this->clients as $c) {
+            $localClientList[] = $c->nick;
+            $c->send(":$selfMask JOIN :" . $this->consoleChan); // notify other bnc clients of their join
+        }
+        $client->send(":" . $this->myHost . " TOPIC " . $this->consoleChan . " :Hubbub Console Channel!");
+        $this->sendNamesList($client, $this->consoleChan, $localClientList);
 
         foreach($messages as $m) {
-            $client->send(":-Hubbub!Hubbub@Hubbub. PRIVMSG &hubbub :$m");
+            $client->send(":" . $this->consoleMask . " PRIVMSG " . $this->consoleChan . " :$m");
         }
         //$this->sendJoin("#hubbub");
 
@@ -422,11 +444,23 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
             foreach($network['channels'] as $channel) {
                 $channelName = $channel['name'] . '.' . $networkName;
                 $client->send(":$selfMask JOIN :$channelName");
-                $client->send(":Hubbub 353 " . $client->nick . " = $channelName :@Hubbub-Z FOO +" . $client->nick);
-                //$client->send(":Hubbub TOPIC $channelName :" . $channel['topic']);
+                if(!empty($channel['topic'])) {
+                    $client->send(":" . $this->myHost . " TOPIC $channelName :" . $channel['topic']);
+                }
+                $channel['nameList'][] = $client->nick; // we'll be shown twice since we must comply with the RFC and MUST show the local nickname in the channel
+                $this->sendNamesList($client, $channelName, $channel['nameList']);
+                $client->send(":" . $this->myHost . " MODE $channelName +a " . $client->nick);
             }
         }
 
+    }
+
+    protected function sendNamesList(BncClient $client, $channelName, $nameList) {
+        // Crappy as hell - we can send multiple $names per entry..
+        foreach($nameList as $name) {
+            $client->send(":" . $this->myHost . " 353 " . $client->nick . " = $channelName :$name");
+        }
+        $client->send(":" . $this->myHost . " 366 " . $client->nick . " $channelName :End of /NAMES list.");
     }
 
 }

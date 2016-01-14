@@ -40,7 +40,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
     public $serverInfo = [];
     public $cfg = [
         'nickname' => 'Hubbub-Z',
-        'username' => 'Hubbub',
+        'username' => 'hubbub',
         'realname' => 'Bob Marley',
     ];
 
@@ -90,6 +90,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
     protected $modules = []; // sub-modules, this system is currently disabled
 
 
+    const LATENCY_CHECK_EVERY_SEC = 30;
 
     public function __construct(\Hubbub\Net\Client $net, \Hubbub\Logger $logger, \Hubbub\MessageBus $bus, \Hubbub\Configuration $conf,
         \Hubbub\DelimitedDataBuffer $bufferQueue, \Hubbub\TimerList $timers, $componentName) {
@@ -199,13 +200,30 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
         $this->sendNick($this->cfg['nickname']);
         $this->nick = $this->cfg['nickname'];
         $this->setState('gave-auth');
+
+        $this->timers->addBySeconds([$this, 'pingServer'], self::LATENCY_CHECK_EVERY_SEC, 'pingServer');
+    }
+
+    public function pingServer() {
+        // Latency check!
+        $this->send("PING :latency-check " . microtime(1));
+        $this->timers->addBySeconds([$this, 'pingServer'], self::LATENCY_CHECK_EVERY_SEC, 'pingServer');
+    }
+
+    public function on_pong($line) {
+        // see self::pingServer()
+        if(!empty($line->args[1]) && substr($line->args[1], 0, 14) == 'latency-check ') {
+            $argChunks = explode(' ', $line->args[1], 3);
+            $sentPingAt = $argChunks[1]; //  + $argChunks[2]
+            $msLatency = sprintf("%.2f", (microtime(1) - $sentPingAt) * 1000);
+            $this->logger->info("[{$this->componentName}] Current latency is ~ " . $msLatency . "ms, including iteration block time");
+        }
     }
 
     public function send($data) {
         file_put_contents("log/raw-protocol.log", " > $data\n", FILE_APPEND);
-        $this->logger->debug("RAW > $data");
-
-        return $this->net->send("$data\n");
+        $this->logger->debug($this->componentName . " RAW > $data");
+        return $this->net->send("$data\r\n");
     }
 
 
@@ -224,8 +242,11 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
         $this->setState('disconnected');
         $this->nextAction = 'connect';
 
-        $connectionDelay = (pow(2, $this->reconnectAttempt) * 30);
+        // Remove latency check..
+        $this->timers->remove('pingServer');
 
+        // Eh, not too bad..
+        $connectionDelay = (pow(2, $this->reconnectAttempt) * 30);
         if($connectionDelay > (3600 * 2)) {
             $connectionDelay = (3600 * 2);
         }
@@ -248,6 +269,9 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
 
     public function iterate() {
         $this->timers->checkTimers();
+
+
+
         if($this->nextActionTime <= time()) {
             if($this->nextAction == 'connect') {
                 echo "next action...\n";
@@ -258,9 +282,6 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
             $this->nextAction = null;
         }
 
-        if($this->state == 'attempt-resolve' && ($this->resolveStarted + 60) > time()) {
-
-        }
 
         //$this->logger->debug("IRC\\Client State: " . $this->state);
         $this->net->iterate();
@@ -270,7 +291,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
     public function on_recv($data) {
         $this->delimitedBufferQueue->receive($data);
         foreach($this->delimitedBufferQueue->consumeAll() as $zk => $msg) {
-            $this->logger->debug("RAW < $msg");
+            $this->logger->debug($this->componentName . " RAW < $msg");
             file_put_contents("log/raw-protocol.log", " < $msg\n", FILE_APPEND);
             $this->on_recv_irc($msg);
         }
@@ -355,8 +376,8 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
     protected function on_rpl_welcome(stdClass $cmd) {
         $this->setState('online');
 
-        //$this->sendJoin("#hubbub-test");
-        $this->sendJoin("#hubbub");
+        //$this->sendJoin("#hubbub");
+        $this->sendJoin("#hubbub-test");
     }
 
     protected function on_rpl_hosthidden(stdClass $line) {
@@ -392,6 +413,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
     protected function on_rpl_topic(stdClass $line) {
         $channel = $line->rpl_topic['channel'];
         $topic = $line->rpl_topic['topic'];
+
         if(isset($this->channels[$channel])) {
             $this->logger->debug("Set $channel topic to $topic");
             $this->channels[$channel]['topic'] = $topic;
@@ -421,12 +443,15 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
             $this->logger->alert("Got RPL_NAMREPLY for channel $channel that I haven't JOIN'd yet");
         }
 
+    }
+
+    protected function on_rpl_endofnames(stdClass $line) {
+        $channel = $line->args[1];
         $this->bPublish([
             'action' => 'nameList',
             'channel' => $channel,
             'nameList' => $this->channels[$channel]['names']
         ]);
-
     }
 
     /*

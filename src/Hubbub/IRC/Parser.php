@@ -114,7 +114,7 @@ trait Parser {
         if(method_exists($this, 'parse_' . $parsed->cmd)) {
             $parsed = $this->{'parse_' . $parsed->cmd}($parsed);
         } else {
-            $this->logger->notice("I don't have a parser method for the command: " . $parsed->cmd);
+            $this->logger->debug("(PARSER) No handler parse_" . $parsed->cmd);
         }
 
         return $parsed;
@@ -3020,7 +3020,7 @@ trait Parser {
             $visibility = 'secret';
         } elseif($line->args[1] == '*') {
             $visibility = 'private';
-        } elseif($line->args[1] == '=') {
+        } elseif($line->args[1] == '@') {
             $visibility = 'global';
         } else {
             // Unexpected...

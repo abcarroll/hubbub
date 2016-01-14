@@ -68,14 +68,10 @@ class BncClient {
 
 
     public function __construct(\Hubbub\Net\Server $net, \Psr\Log\LoggerInterface $logger, $clientId) {
-
         $this->net = $net;
         $this->clientId = $clientId;
         $this->inStateSince = time();
         $this->logger = $logger;
-
-        $this->logger->alert("I WAS PASSED CLIENTID: $clientId");
-
     }
 
     public function send($data) {
