@@ -132,15 +132,44 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
     }
 
     protected function onBusSubscribe($busMsg) {
-        $network = $busMsg['network'];
-        $channel = $busMsg['channel'];
-        $this->networks[$network]['channels'][$channel] = [
-            'name'        => $channel,
-            'joinedSince' => time(),
-            'topic'       => '',
-            'modes'       => [],
-            'nameList'    => [],
-        ];
+
+        if(empty($busMsg['from'])) { // we joined the channel
+            $network = $busMsg['network'];
+            $channel = $busMsg['channel'];
+            $this->networks[$network]['channels'][$channel] = [
+                'name'        => $channel,
+                'joinedSince' => time(),
+                'topic'       => '',
+                'modes'       => [],
+                'nameList'    => [],
+            ];
+        } else { // another user joined
+            $network = $busMsg['network'];
+            $channel = $busMsg['channel'];
+            $this->networks[$network]['channels'][$channel]['userList'][] = $busMsg['from']->nick;
+            /** @var BncClient $c */
+            foreach($this->clients as $c) {
+                // instead of using raw .. use something better? TODO
+                $c->send($busMsg['from']->raw . ' JOIN :' . $channel . '.' . $network);
+            }
+        }
+    }
+
+    protected function onBusUnsubscribe($busMsg) {
+        // todo .. this is basically subscribe just with a few bytes difference
+        if(empty($busMsg['from'])) { // we joined the channel
+            // TODO: implement self-parting a channel
+        } else { // another user joined
+            $network = $busMsg['network'];
+            $channel = $busMsg['channel'];
+            // todo unset here
+            //$this->networks[$network]['channels'][$channel]['userList'][] = $busMsg['from']->nick;
+            /** @var BncClient $c */
+            foreach($this->clients as $c) {
+                // instead of using raw .. use something better? TODO
+                $c->send($busMsg['from']->raw . ' PART :' . $channel . '.' . $network);
+            }
+        }
     }
 
     protected function onBusTopic($busMsg) {
@@ -435,7 +464,7 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
         $this->sendNamesList($client, $this->consoleChan, $localClientList);
 
         foreach($messages as $m) {
-            $client->send(":" . $this->consoleMask . " PRIVMSG " . $this->consoleChan . " :$m");
+            $client->sendMsg($this->consoleMask, $this->consoleChan, $m);
         }
         //$this->sendJoin("#hubbub");
 

@@ -378,6 +378,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
 
         //$this->sendJoin("#hubbub");
         $this->sendJoin("#hubbub-test");
+
     }
 
     protected function on_rpl_hosthidden(stdClass $line) {
@@ -392,7 +393,7 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
         if($this->nick == $cmd->hostmask->nick) {
             $this->logger->debug("You have joined some channel(s)");
             foreach($cmd->join['channels'] as $channel) {
-                $this->logger->debug("Adding $channel to joined chanenl list");
+                $this->logger->debug("Adding $channel to joined channel list");
                 $this->channels[$channel] = [
                     'joinedSince' => time(),
                     'names'       => [],
@@ -406,7 +407,28 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
             }
 
         } else {
-            $this->logger->debug("your nick: {$this->nick} and cmd->hostmask->nick: {$cmd->hostmask->nick}");
+            $p = [
+                'action'  => 'subscribe',
+                'channel' => $cmd->args[0],
+                'from'    => $cmd->hostmask,
+            ];
+            $this->bPublish($p);
+            $this->logger->debug("Somebody else joined a channel!");
+        }
+    }
+
+    protected function on_part(stdClass $cmd) {
+        if($this->nick == $cmd->hostmask->nick) {
+            $this->logger->debug("You have parted some channels");
+        } else {
+            $p = [
+                'action'  => 'unsubscribe',
+                'channel' => $cmd->args[0],
+                'from'    => $cmd->hostmask,
+            ];
+            $this->bPublish($p);
+            $this->logger->debug("Somebody else parted a channel");
+
         }
     }
 
