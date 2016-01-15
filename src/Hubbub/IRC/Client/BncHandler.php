@@ -46,9 +46,6 @@ class BncHandler {
     }
 
     public function on_privmsg($line) {
-        var_dump($line);
-
-
         $this->irc->bPublish([
             'action'  => 'privmsg',
             'to'      => $line->privmsg->to,
