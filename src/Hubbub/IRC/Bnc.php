@@ -140,14 +140,24 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
 
     protected function onRecv_privmsg(BncClient $client, $line) {
         $bncChannel = $line->args[0];
-        list($channel, $network) = Utility::explodeRev('.', $bncChannel, 2);
-        $this->bus->publish([
-            'protocol' => 'irc',
-            'action'   => 'msg',
-            'network'  => $network,
-            'to'       => $channel,
-            'message'  => $line->privmsg->msg
-        ]);
+        if(strpos($bncChannel, '.') !== false) {
+            list($channel, $network) = Utility::explodeRev('.', $bncChannel, 2);
+            $this->bus->publish([
+                'protocol' => 'irc',
+                'action'   => 'msg',
+                'network'  => $network,
+                'to'       => $channel,
+                'message'  => $line->privmsg->msg
+            ]);
+        }
+
+        if($line->args[0] == $this->consoleChan) {
+            foreach($this->clients as $c) {
+                if($c !== $client) {
+                    $client->sendArray(['PRIVMSG', $this->consoleChan, ':' . $line->privmsg->msg], $client->hostmask);
+                }
+            }
+        }
     }
 
     protected function sendNamesList(BncClient $client, $channelName, $nameList) {
@@ -222,78 +232,104 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
     protected function welcome(BncClient $client) {
         $client->setState('registered');
         $selfMask = $client->nick . "!" . $client->user . '@hubbub.localnet';
+        $client->hostmask = $selfMask;
 
-        $serverPrefix = ':' . $this->myHost;
+        // TODO: this *should* use constants .. eg. Codes::RPL_WELCOME instead of 001...
+        // You can do $this->commandToNumeric('RPL_WELCOME'); but that's quite the mou - ... finger -- err hand? full
+        $serverWelcome = [
+            ['001', $client->nick, ":Welcome to the Hubbub BNC Internet Relay Chat Server " . $client->nick],
+            ['002', $client->nick, ":Your host is " . $this->myHost . " running Hubbub/HEAD"],
+            ['003', $client->nick, ":This server was created " . date('r', $_SERVER['REQUEST_TIME'])],
 
-        $client->send($serverPrefix . " 001 {$client->nick} :Welcome to the Hubbub BNC Internet Relay Chat Server " . $client->nick);
-        $client->send($serverPrefix . " 002 {$client->nick} :Your host is " . $this->myHost . " running Hubbub/" . phpversion());
-        $client->send($serverPrefix . " 003 {$client->nick} :This server was created " . date('r', $_SERVER['REQUEST_TIME']));
+            // RPL_MYINFO:
+            // <server_name> <version> <user_modes> <chan_modes> <channel_modes_with_params> <user_modes_with_params> <server_modes> <server_modes_with_params>
+            // But we just send some gibberish..
+            ['004', $client->nick, ":" . $this->myHost . " Hubbub abBcCFioqrRswx abehiIklmMnoOPqQrRstvVz"],
 
-        // RPL_MYINFO:
-        // <server_name> <version> <user_modes> <chan_modes> <channel_modes_with_params> <user_modes_with_params> <server_modes> <server_modes_with_params>
-        // But we just send some gibberish..
-        $client->send($serverPrefix . " 004 {$client->nick} :" . $this->myHost . ' Hubbub/PHP abBcCFioqrRswx abehiIklmMnoOPqQrRstvVz');
+            // RPL_ISUPPORT todo: Improve
+            ['005', $client->nick,
+                ":" .
+                 "RFC2818 " .
+                 "NETWORK=Hubbub-BNC " .
+                 "IRCD=Hubbub " .
+                 "CHARSET=UTF-8 " .
+                 "CASEMAPPING=ascii " .
+                 "PREFIX=(uOqaohv).@~@@%+ " . "CHANTYPES=&#!+.~ " .
+                 "CHANMODES=beI,k,l,imMnOPQRstVz CHANLIMIT=#&+:10 :are supported on this server"
+            ],
 
-        // RPL_ISUPPORT
-        $client->send($serverPrefix . " 005 {$client->nick} :" .
-                      "RFC2818 " .
-                      "NETWORK=Hubbub-BNC " .
-                      "IRCD=Hubbub " .
-                      "CHARSET=UTF-8 " .
-                      "CASEMAPPING=ascii " .
-                      "PREFIX=(uOqaohv).@~@@%+ " . "CHANTYPES=&#!+.~ " .
-                      "CHANMODES=beI,k,l,imMnOPQRstVz CHANLIMIT=#&+:10 :are supported on this server");
+            ['005', $client->nick,
+                ":CHANNELLEN=50 NICKLEN=4 TOPICLEN=490 AWAYLEN=127 KICKLEN=400 MODES=5 MAXLIST=beI:50 EXCEPTS=e INVEX=I PENALTY :are supported on this server"
+            ],
 
-        $client->send($serverPrefix . " 005 {$client->nick} :CHANNELLEN=50 NICKLEN=4 TOPICLEN=490 AWAYLEN=127 KICKLEN=400 MODES=5 MAXLIST=beI:50 EXCEPTS=e INVEX=I PENALTY :are supported on this server");
+            ['251', $client->nick, ":There are " . count($this->clients) . " users and 1 services on " . count($this->networks) . " servers"],
+            ['254', $client->nick, count($this->channels), ":channels formed"],
+            ['255', $client->nick, ":I have " . count($this->clients) . " users, 1 services and 0 servers"],
+        ];
 
-        $client->send($serverPrefix . " 251 {$client->nick} :There are 2 users and 1 services on " . count($this->networks) . " servers");
-        $client->send($serverPrefix . " 254 {$client->nick} 1 :channels formed");
-        $client->send($serverPrefix . " 255 {$client->nick} :I have " . count($this->clients) . " users, 1 services and 0 servers");
+        foreach($serverWelcome as $line) {
+            $client->sendArray($line, $this->myHost);
+        }
 
         $motdFile = $this->conf->get('irc/bnc/motd-file');
         if(is_readable($motdFile)) {
-            $f = file($this->conf->get('irc/bnc/motd-file'));
+            $f = file($motdFile);
+            $client->sendArray(['375', $client->nick, ":MOTD AS FOLLOWS"], $this->myHost);
+            foreach($f as $line) {
+                $client->sendArray(['372', $client->nick, ": - " . trim($line)], $this->myHost);
+            }
+            $client->sendArray(['376', $client->nick, ":END OF MOTD"], $this->myHost);
         } else {
-            $f = ["The config value irc/bnc/motd_file was unreadable"];
+            $client->sendArray(['422', $client->nick, ": The config value irc/bnc/motd_file was unreadable"], $this->myHost);
         }
-        $client->send(":" . $this->myHost . " 375 {$client->nick} : MOTD AS FOLLOWS");
-        foreach($f as $line) {
-            $client->send(":" . $this->myHost . " 372 {$client->nick} : - " . trim($line));
-        }
-        $client->send(":" . $this->myHost . " 376 {$client->nick} :END OF MOTD");
-        $client->send(":" . $this->myHost . " 396 {$client->nick} $selfMask :is your displayed hostname now");
 
+        // Send our 'hostname'
+        $client->sendArray(['396', $client->nick, $selfMask, ': is your displayed hostname now']);
 
-        $messages = [
-            Utility::varDump($this->networks)
+        // Force-Join into the console channel; todo go by setting...
+        $client->sendArray(['JOIN', ':' . $this->consoleChan], $selfMask);
+
+        // Server sends topic for console channel
+        $goofyTopics = [
+            'Hubbub Central Command Station', 'Hubbub welcomes you to the 340th annual testing of the BNC', 'Just another lonely channel...',
+            'This isn\'t your everyday channel, mister...'
         ];
+        $client->sendArray(['TOPIC', $this->consoleChan, ':' . $goofyTopics[array_rand($goofyTopics)]], $this->myHost);
 
-        $client->send(":$selfMask JOIN :" . $this->consoleChan);
-
+        // Notify other connected client of the newly connected client JOIN'ing the console channel while also building a list of names for the RPL_NAMREPLY
         $localClientList = ['.-Hubbub'];
         /** @var BncClient $c */
         foreach($this->clients as $c) {
             $localClientList[] = $c->nick;
-            $c->send(":$selfMask JOIN :" . $this->consoleChan); // notify other bnc clients of their join
+            $c->sendArray(['JOIN', $this->consoleChan], $selfMask);
         }
-        $client->send(":" . $this->myHost . " TOPIC " . $this->consoleChan . " :Hubbub Console Channel!");
+
+        // Send the RPL_NAMREPLY to the newly connected client
         $this->sendNamesList($client, $this->consoleChan, $localClientList);
 
-        foreach($messages as $m) {
+        // Here we can send some 'secret' messages only to the newly connected client in the console channel
+        /*$consoleMessages = [
+            Utility::varDump($this->networks)
+        ];
+        foreach($consoleMessages as $m) {
             $client->sendMsg($this->consoleMask, $this->consoleChan, $m);
-        }
+        }*/
 
+        // Force-join the newly connected client to the bnc bridge channels
         foreach($this->networks as $network) {
             $networkName = $network['name'];
             foreach($network['channels'] as $channel) {
                 $channelName = $channel['name'] . '.' . $networkName;
-                $client->send(":$selfMask JOIN :$channelName");
+                $client->sendArray(['JOIN', ':' . $channelName], $selfMask);
                 if(!empty($channel['topic'])) {
-                    $client->send(":" . $this->myHost . " TOPIC $channelName :" . $channel['topic']);
+                    $client->sendArray(['TOPIC', $channelName, ':' . $channel['topic']]);
                 }
-                $channel['nameList'][] = $client->nick; // we'll be shown twice since we must comply with the RFC and MUST show the local nickname in the channel
+                // todo: what should ultimately be done about this?
+                // currently, we'll be shown twice (even twice wiht the same nick if our bnc nick and irc nick match).  the RFC states the RPL_NAMREPLY
+                // "MUST" send the newly joined nickname along with the rest of the RPL_NAMREPLY..
+                $channel['nameList'][] = '.' . $client->nick;
                 $this->sendNamesList($client, $channelName, $channel['nameList']);
-                $client->send(":" . $this->myHost . " MODE $channelName +a " . $client->nick);
+                $client->sendArray(['MODE', $channelName, '+a', $client->nick], $this->myHost);
             }
         }
     }
@@ -309,6 +345,23 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
             if(method_exists($this, 'onBus_' . $busMsg['action'])) {
                 $this->{'onBus_' . $busMsg['action']}($busMsg);
             }
+        }
+
+        /** @var BncClient $c */
+        foreach($this->clients as $c) {
+            if(!empty($busMsg['protocol']) && !empty($busMsg['action']) &&  $busMsg['protocol'] == 'irc' && $busMsg['action'] == 'raw') {
+                $c->sendMsg($this->consoleMask, $this->consoleChan, '[' . $busMsg['network'] . ' RAW] ' . $busMsg['raw']);
+            } else {
+                $c->sendMsg($this->consoleMask, $this->consoleChan, Utility::varDump($busMsg));
+            }
+        }
+
+    }
+
+    public function onBus_Raw($busMsg) {
+        /** @var BncClient $c */
+        foreach($this->clients as $c) {
+
         }
     }
 
@@ -504,6 +557,14 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
     public function onClientSend($client, $data) {
         // TODO: does this do anything?
         $this->logger->debug("[BNC SEND] " . trim($data));
+        /*
+         * this causes a loop :)
+         *//*$this->bus->publish([
+            'protocol' => 'irc',
+            'network'  => $this->componentName,
+            'action'   => 'raw',
+            'raw'      => trim($data),
+        ]);*/
     }
 
 

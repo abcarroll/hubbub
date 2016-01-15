@@ -56,6 +56,11 @@ class BncClient {
     public $realName;
 
     /**
+     * @var string
+     */
+    public $hostmask;
+
+    /**
      * How many times have we tried to send PASS to login?
      * @var int
      */
@@ -113,7 +118,15 @@ class BncClient {
         }
     }
 
-    public function sendFrom($originate, $what) {
-        $this->send(":$originate $what");
+    public function sendFrom($what, $originate = null) {
+        if($originate !== null) {
+            $this->send(":$originate $what");
+        } else {
+            $this->send($what);
+        }
+    }
+
+    public function sendArray($what, $originate = null) {
+        $this->sendFrom(implode(' ', $what), $originate);
     }
 }

@@ -432,6 +432,21 @@ class Client implements \Hubbub\Protocol\Client, \Hubbub\Iterable {
         }
     }
 
+    protected function on_kick(stdClass $cmd) {
+        if($this->nick == $cmd->hostmask->nick) {
+            $this->logger->debug("You have parted some channels");
+        } else {
+            $p = [
+                'action'  => 'unsubscribe',
+                'channel' => $cmd->args[0],
+                'from'    => $cmd->hostmask,
+            ];
+            $this->bPublish($p);
+            $this->logger->debug("Somebody else parted a channel");
+
+        }
+    }
+
     protected function on_rpl_topic(stdClass $line) {
         $channel = $line->rpl_topic['channel'];
         $topic = $line->rpl_topic['topic'];
