@@ -103,8 +103,6 @@ class BncClient {
         $this->send(":Hubbub.localnet NOTICE * :$notice");
     }
 
-
-
     public function sendMsg($origin, $to, $msg) {
         $prefixLength = strlen(":$origin PRIVMSG $to :XX"); // XX for CRLF
         $maxMsgPart = 513 - $prefixLength; // use 513 since str_split is 0-index based
@@ -113,5 +111,9 @@ class BncClient {
         foreach($pieces as $msgPart) {
             $this->send(":$origin PRIVMSG $to :$msgPart");
         }
+    }
+
+    public function sendFrom($originate, $what) {
+        $this->send(":$originate $what");
     }
 }

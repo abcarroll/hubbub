@@ -128,7 +128,14 @@ class Bnc implements \Hubbub\Protocol\Server, \Hubbub\Iterable {
     }
 
     protected function onRecv_version(BncClient $client, $line) {
+        $versionInfo = [
+            [351, $client->nick, "Hubbub: Running Hubbub [http://github.com/abcarroll/github].  World's best (only?) php powered irc bnc, client, and bot."].
+            [351, $client->nick, "PHP: Hubbub is running on PHP/" . phpversion()]
+        ];
 
+        foreach($versionInfo as $versionParam) {
+            $client->sendFrom($this->myHost, implode(' ', $versionParam));
+        }
     }
 
     protected function onRecv_privmsg(BncClient $client, $line) {
