@@ -22,14 +22,14 @@ interface Server {
      *
      * @return void
      */
-    function on_client_connect($clientId);
+    function onClientConnect($clientId);
 
     /**
      * @param $clientId int Socket ID for the recently disconnected socket
      *
      * @return void
      */
-    function on_client_disconnect($clientId);
+    function onClientDisconnect($clientId);
 
     /**
      * @param $clientId int    Socket ID for the client sending the data
@@ -37,7 +37,7 @@ interface Server {
      *
      * @return void
      */
-    function on_client_send($clientId, $data);
+    function onClientSend($clientId, $data);
 
     /**
      * @param $clientId int    The Socket ID for the client that received the data.
@@ -45,5 +45,5 @@ interface Server {
      *
      * @return mixed
      */
-    function on_client_recv($clientId, $data);
+    function onClientRecv($clientId, $data);
 }
