@@ -43,6 +43,7 @@ class Bootstrapper {
     /**
      * @return array An associative array containing the loaded & injected dependencies
      * @throws \Exception
+     * @deprecated This has been superseded by Dice.  Remove when ready.
      */
     static public function loadDependencies(Array $bootstrap) {
         // This injects everything with everything.
@@ -131,6 +132,11 @@ class Bootstrapper {
             echo "Hubbub session started " . date('r') . "\n";
         }
 
+        // HHVM does not set REQUEST_TIME, guarantee it is there:
+        if(!isset($_SERVER['REQUEST_TIME'])) {
+            $_SERVER['REQUEST_TIME'] = time();
+        }
+
         // All errors + strict
         error_reporting(E_ALL | E_STRICT);
 
@@ -139,7 +145,6 @@ class Bootstrapper {
             header('Content-Type: text/plain');
             ob_implicit_flush();
 
-            // TODO Should this be changed to a warning?
             if(self::VERBOSE) {
                 echo "I think I am running in a web environment.  I normally need to be run in a shell.  I will continue anyway, but please be advised this might be a bad idea.\n";
             }
